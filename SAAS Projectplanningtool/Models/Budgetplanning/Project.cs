@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Mono.TextTemplating;
+using SAAS_Projectplanningtool.Models.IndependentTables;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
@@ -37,7 +39,9 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // Instead of Deleting a completed Project it is archived 
         public bool? IsArchived { get; set; }
 
-
+        public string? StateId { get; set; }
+        [ForeignKey(nameof(StateId))]
+        public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
         // Latest Modifier of Database Entry
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]

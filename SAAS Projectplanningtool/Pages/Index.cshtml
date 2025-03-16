@@ -4,7 +4,74 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@* <div class="text-center"> *@
+@*     <h1 class="display-4">Welcome</h1> *@
+@*     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p> *@
+@* </div> *@
+
+<div class="container text-center mt-5">
+    @if (Model.company != null)
+    {
+        <h1>
+            <a asp-page="/Company/Edit" asp-route-id="@Model.company.CompanyId" class="text-decoration-none">
+                @Model.company.CompanyName
+            </a>
+        </h1>
+
+
+        @foreach (var project in Model.projects)
+        {
+            <div class="col-md-4">
+                <div class="card mb-4 shadow">
+                    <div class="card-body">
+                        <h5 class="card-title">@project.ProjectName</h5>
+                        <div class="card-text">
+                            <!-- Kunde -->
+                            <div class="card-line">
+                                <div class="card-line-item">
+                                    <strong>Kunde:</strong>
+                                </div>
+                                <div class="card-line-item-value">
+                                    @project.Customer?.CustomerName
+                                </div>
+                            </div>
+
+                            <!-- Start Datum  -->
+                            <div class="card-line">
+                                <div class="card-line-item">
+                                    <strong>Start Datum (Geplant):</strong>
+                                </div>
+                                <div class="card-line-item-value">
+                                    @project.StartDate
+                                </div>
+                            </div>
+
+                            <!-- Fälligkeitsdatum -->
+                            <div class="card-line">
+                                <div class="card-line-item">
+                                    <strong>Fälligkeitsdatum:</strong>
+                                </div>
+                                <div class="card-line-item-value">
+                                    @project.EndDate
+                                </div>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="card-line">
+                                <div class="card-line-item">
+                                    <strong>Status:</strong>
+                                </div>
+                                <div class="card-line-item-value">
+                                    <span class="card-line-item-state" style="background-color:@project.State?.Color;">
+                                        @project.State?.StateName
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId" class="btn btn-secondary card-details-btn">Anzeigen</a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
 </div>

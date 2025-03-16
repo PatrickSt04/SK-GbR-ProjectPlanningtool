@@ -8,8 +8,22 @@ using Microsoft.VisualBasic;
 
 public static class DbInitializer
 {
+    private static State openState = new State { StateName = "Offen", Color = "#007BFF" };
+    private static State progressState = new State { StateName = "In Bearbeitung", Color = "#FFC107" };
+    private static State doneState = new State { StateName = "Abgeschlossen", Color = "#28A745" };
+    private static State waitingState = new State { StateName = "In Verzug", Color = "#DC3545" };
     public static async Task Initialize(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
     {
+        if (context.Company.Any())
+        {
+            return;
+        }
+
+        context.Add(openState);
+        context.Add(progressState);
+        context.Add(doneState);
+        context.Add(waitingState);
+
         // Rollen erstellen
         if (!roleManager.RoleExistsAsync("Admin").Result)
         {
@@ -148,6 +162,7 @@ public static class DbInitializer
                             ProjectTaskName = task,
                             ProjectSection = section,
                             Company = company,
+                            State = GetRandomState()
                         };
                         context.Set<ProjectTask>().Add(projectTask);
                         context.SaveChanges();
@@ -179,6 +194,12 @@ public static class DbInitializer
             "Altbausanierung" => "Sanierung und Modernisierung von Altbauten",
             _ => "allgemeine Bauarbeiten"
         };
+    }
+
+    private static State GetRandomState()
+    {
+        var states = new List<State> { openState, progressState, doneState, waitingState };
+        return states[new Random().Next(0, states.Count)];
     }
 }
 

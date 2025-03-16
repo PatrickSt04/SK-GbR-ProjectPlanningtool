@@ -16,14 +16,18 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public Company? Company { get; set; }
 
         // Reference to ProjectSection
-        public string? ProjectSectionID { get; set; }
-        [ForeignKey(nameof(ProjectSectionID))]
+        public string? ProjectSectionId { get; set; }
+        [ForeignKey(nameof(ProjectSectionId))]
         public ProjectSection? ProjectSection { get; set; }
 
         // Amount of Workers per hourly rate group
         // p. Ex: < 5, Polier > 
         [NotMapped]
         public Dictionary<float, string>? AmountPerHourlyRateGroup { get; set; }
+
+        public string? StateId { get; set; }
+        [ForeignKey(nameof(StateId))]
+        public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
 
         // Latest Modifier of Database Entry
         public string? LatestModifierId { get; set; }

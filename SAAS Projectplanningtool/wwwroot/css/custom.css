@@ -1,0 +1,180 @@
+﻿﻿
+.logo {
+    height: 72px;
+}
+
+
+.navbar-nav > .nav-item {
+    position: relative;
+}
+
+/* Das Untermenü soll standardmäßig nicht sichtbar sein */
+.nav-dropdowncontainer {
+    display: none;
+    position: absolute;
+    top: 100%; /* Unterhalb des übergeordneten .nav-item */
+    left: 0; /* Ausrichtung links */
+    list-style: none;
+    background-color: #fff;
+    min-width: 150px; /* Optionale Mindestbreite */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 0;
+    padding: 0;
+    z-index: 999; /* Damit das Dropdown über anderen Elementen liegt */
+}
+
+    /* Einzelne Einträge im Dropdown-Container */
+    .nav-dropdowncontainer .nav-item {
+        padding: 0; /* Bootstrap hat oft eigene Paddings – ggf. anpassen */
+    }
+
+    /* Links im Dropdown */
+    .nav-dropdowncontainer .nav-link {
+        color: #333;
+        padding: 0.5em 1em;
+        white-space: nowrap; /* Verhindert Zeilenumbruch bei langen Texten */
+    }
+
+/* Hover-Effekt auf dem Haupt-Menüpunkt: zeigt das Dropdown an */
+.navbar-nav > .nav-item:hover .nav-dropdowncontainer {
+    display: block;
+}
+
+/* Optional: Hover-Effekt auf den einzelnen Dropdown-Elementen */
+.nav-dropdowncontainer .nav-item:hover .nav-link {
+    background-color: #f5f5f5;
+    color: #000;
+}
+
+.nav-menu > li:hover .nav-dropdowncontainer {
+    display: block;
+}
+
+
+
+.content {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.h1-main {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: 10px;
+    margin-bottom: 32px;
+}
+
+.main-search {
+    display: flex;
+    margin-bottom: 32px;
+    padding-bottom: 10px;
+}
+
+.main-search-btn {
+    margin-left: 18px;
+}
+
+.main-search-search {
+    width: 302px;
+}
+
+.link-btn-container {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.btn-delete {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.btn-edit {
+    margin-right: 4px;
+}
+
+.card-line {
+    display: flex;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-bottom: 2px
+}
+
+.card-line-item {
+    margin-right: 4px;
+}
+
+.card-line-item-value {
+    margin-left: 4px;
+}
+
+.card-line-item-state {
+    padding: 3px 6px;
+    border-radius: 3px;
+    color: #fff;
+}
+
+.card-details-btn {
+    margin-top: 22px;
+}
+
+.details_collection_container {
+    padding-top: 12px;
+    margin-top: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+
+.topstate {
+    margin-top: 22px;
+    margin-bottom: 22px;
+    font-weight: 400;
+    font-size: 20px;
+}
+
+.stateheadercontainer {
+    text-align: center
+}
+
+.statecolorcontainer {
+    padding: 10px;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+}
+
+
+.FilterContainer {
+    display: flex;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.FilterElement {
+    padding-right: 12px;
+    margin-right: 12px;
+}
+
+.calenderCol {
+    width: 14.28% !important;
+}
+
+.calenderRow {
+    height: 68px;
+}
+
+.SchedulePlannedDays {
+    font-weight: bold;
+}
+
+.smallIcon {
+    width: 20px;
+    height: 20px;
+}

@@ -30,6 +30,9 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // Collection to hold child sections
         public ICollection<ProjectSection>? SubSections { get; set; } = new List<ProjectSection>();
 
+        public string? StateId { get; set; }
+        [ForeignKey(nameof(StateId))]
+        public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
 
         // Latest Modifier of Database Entry
         public string? LatestModifierId { get; set; }
