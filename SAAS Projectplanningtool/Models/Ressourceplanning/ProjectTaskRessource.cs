@@ -1,0 +1,33 @@
+﻿using SAAS_Projectplanningtool.Models.Budgetplanning;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SAAS_Projectplanningtool.Models.Ressourceplanning
+{
+    public class ProjectTaskRessource
+    {
+        [Key]
+        public required string ProjectTaskRessourceId { get; set; } = Guid.NewGuid().ToString();
+        // Company dependency
+        public string? CompanyId { get; set; }
+        [ForeignKey(nameof(CompanyId))]
+        public Company? Company { get; set; }
+
+        // Ressource reference
+        public string? RessourceId { get; set; }
+        [ForeignKey(nameof(RessourceId))]
+        public Ressource? Ressource { get; set; }
+
+        // ProjectTask reference
+        public string? ProjectTaskId { get; set; }
+        [ForeignKey(nameof(ProjectTaskId))]
+        public ProjectTask? ProjectTask { get; set; }
+
+        public required float AmountPerUnit { get; set; }
+
+        // Latest Modifier of Database Entry
+        public string? LatestModifierId { get; set; }
+        [ForeignKey(nameof(LatestModifierId))]
+        public Employee? LatestModidier { get; set; }
+    }
+}

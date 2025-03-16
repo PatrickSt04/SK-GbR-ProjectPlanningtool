@@ -21,6 +21,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         // Amount of Workers per hourly rate group
         // p. Ex: < 5, Polier > 
+        [NotMapped]
         public Dictionary<float, string>? AmountPerHourlyRateGroup { get; set; }
 
         // Latest Modifier of Database Entry
