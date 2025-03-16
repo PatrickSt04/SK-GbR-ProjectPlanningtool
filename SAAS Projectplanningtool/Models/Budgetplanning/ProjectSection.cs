@@ -1,0 +1,38 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SAAS_Projectplanningtool.Models.Budgetplanning
+{
+    public class ProjectSection
+    {
+        [Key]
+        public required string ProjectSectionId { get; set; } = Guid.NewGuid().ToString();
+
+        // Company dependency
+        public string? CompanyId { get; set; }
+        [ForeignKey(nameof(CompanyId))]
+        public Company? Company { get; set; }
+
+        // Reference to the Project
+        public string? ProjectId { get; set; }
+        [ForeignKey(nameof(ProjectId))]
+        public Project? Project { get; set; }
+
+        public string? SubSectionId { get; set; }
+        [ForeignKey(nameof(SubSectionId))]
+        public ProjectSection? SubSection { get; set; }
+        // ParentSectionId to reference a parent ProjectSection
+        public string? ParentSectionId { get; set; }
+        [ForeignKey("ParentSectionId")]
+        public ProjectSection? ParentSection { get; set; }
+
+        // Collection to hold child sections
+        public ICollection<ProjectSection>? SubSections { get; set; } = new List<ProjectSection>();
+
+
+        // Latest Modifier of Database Entry
+        public string? LatestModifierId { get; set; }
+        [ForeignKey(nameof(LatestModifierId))]
+        public Employee? LatestModidier { get; set; }
+    }
+}
