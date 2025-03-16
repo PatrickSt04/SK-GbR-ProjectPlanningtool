@@ -1,4 +1,9 @@
+using Microsoft.AspNetCore.Identity;
+using SAAS_Projectplanningtool.Data;
+
+
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 builder.Services.AddRazorPages();
