@@ -1,26 +1,27 @@
 ﻿using SAAS_Projectplanningtool.Models.IndependentTables;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SAAS_Projectplanningtool.Models
 {
     public class Company
     {
         [Key]
-        public required string CompanyId { get; set; } = Guid.NewGuid().ToString();
+        [NotNull] public string CompanyId { get; set; } = Guid.NewGuid().ToString();
 
         // The name of the company
         public required string CompanyName { get; set; }
 
         // The industry sector in which the company operates
-        public required string SectorId { get; set; }
+        public string? SectorId { get; set; }
         [ForeignKey(nameof(SectorId))]
         public IndustrySector? Sector { get; set; }
 
         // The license chosen by the company
-        public required string LicenseId { get; set; }
+        public string? LicenseId { get; set; }
         [ForeignKey(nameof(LicenseId))]
-        public License? License { get; set; }
+        public LicenseModel? License { get; set; }
 
         // The company's headquarters address
         // Can be initialized or modified later

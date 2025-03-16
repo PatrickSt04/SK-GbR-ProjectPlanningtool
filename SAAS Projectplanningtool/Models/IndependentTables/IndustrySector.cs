@@ -7,7 +7,7 @@ namespace SAAS_Projectplanningtool.Models.IndependentTables
     {
         // Represents all available industry sectors, independent of any specific company
         [Key]
-        public required string SectorId { get; set; } = Guid.NewGuid().ToString();
+        [NotNull] public string SectorId { get; set; } = Guid.NewGuid().ToString();
 
         // The name of the industry sector
         public required string SectorName { get; set; }

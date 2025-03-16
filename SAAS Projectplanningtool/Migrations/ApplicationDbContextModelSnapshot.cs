@@ -353,6 +353,10 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("ProjectId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ProjectSectionName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SubSectionId")
                         .HasColumnType("nvarchar(450)");
 
@@ -386,7 +390,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProjectTaskName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ProjectTaskId");
@@ -416,11 +419,9 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LicenseId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("SectorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("CompanyId");
@@ -440,7 +441,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("AddressId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CompanyId")
@@ -477,15 +477,12 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HourlyRateGroupId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("IdentityRoleId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("IdentityUserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("EmployeeId");
@@ -544,7 +541,7 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.ToTable("IndustrySector");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.IndependentTables.License", b =>
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.IndependentTables.LicenseModel", b =>
                 {
                     b.Property<string>("LicenseId")
                         .HasColumnType("nvarchar(450)");
@@ -555,7 +552,7 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasKey("LicenseId");
 
-                    b.ToTable("License");
+                    b.ToTable("LicenseModel");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.IndependentTables.State", b =>
@@ -882,17 +879,15 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.License", "License")
+                    b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.LicenseModel", "License")
                         .WithMany()
                         .HasForeignKey("LicenseId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.IndustrySector", "Sector")
                         .WithMany()
                         .HasForeignKey("SectorId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Address");
 
@@ -906,8 +901,7 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasOne("SAAS_Projectplanningtool.Models.Address", "Address")
                         .WithMany()
                         .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
                         .WithMany()
@@ -936,20 +930,17 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasOne("SAAS_Projectplanningtool.Models.HourlyRateGroup", "HourlyRateGroup")
                         .WithMany()
                         .HasForeignKey("HourlyRateGroupId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "IdentityRole")
                         .WithMany()
                         .HasForeignKey("IdentityRoleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
                         .WithMany()
                         .HasForeignKey("IdentityUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Company");
 

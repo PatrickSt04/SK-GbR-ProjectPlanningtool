@@ -1,13 +1,14 @@
 ﻿using SAAS_Projectplanningtool.Models.Budgetplanning;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SAAS_Projectplanningtool.Models.Ressourceplanning
 {
     public class ProjectTaskRessource
     {
         [Key]
-        public required string ProjectTaskRessourceId { get; set; } = Guid.NewGuid().ToString();
+        [NotNull] public string ProjectTaskRessourceId { get; set; } = Guid.NewGuid().ToString();
         // Company dependency
         public string? CompanyId { get; set; }
         [ForeignKey(nameof(CompanyId))]

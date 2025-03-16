@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SAAS_Projectplanningtool.Models.Budgetplanning
 {
     public class ProjectBudget
     {
         [Key]
-        public required string ProjectBudgetId { get; set; } = Guid.NewGuid().ToString();
+        [NotNull] public string ProjectBudgetId { get; set; } = Guid.NewGuid().ToString();
 
         // Company dependency
         public string? CompanyId { get; set; }

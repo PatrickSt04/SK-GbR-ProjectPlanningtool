@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SAAS_Projectplanningtool.Models.Ressourceplanning
 {
     public class Unit
     {
         [Key]
-        public required string UnitId { get; set; } = Guid.NewGuid().ToString();
+        [NotNull] public string UnitId { get; set; } = Guid.NewGuid().ToString();
         // Company dependency
         public string? CompanyId { get; set; }
         [ForeignKey(nameof(CompanyId))]

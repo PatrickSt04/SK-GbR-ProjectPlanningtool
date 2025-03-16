@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SAAS_Projectplanningtool.Models.Budgetplanning
 {
     public class Project
     {
         [Key]
-        public required string ProjectId { get; set; } = Guid.NewGuid().ToString();
+        [NotNull] public string ProjectId { get; set; } = Guid.NewGuid().ToString();
 
         // Company dependency
         public string? CompanyId { get; set; }
@@ -14,7 +15,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public Company? Company { get; set; }
 
         // Reference to Customer of this Project
-        public required string CustomerId { get; set; }
+        public   string CustomerId { get; set; }
         [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 
@@ -24,7 +25,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public ProjectBudget? ProjectBudget { get; set; }
 
         public required string ProjectName { get; set; }
-        public required string ProjectDescription { get; set; }
+        public required  string ProjectDescription { get; set; }
 
         // Start Date of Project
         [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}")]

@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SAAS_Projectplanningtool.Models.IndependentTables
 {
     public class State
     {
-        [Key]
-        public string StateId { get; set; } = Guid.NewGuid().ToString();
+
+        [Key]public string StateId { get; set; } = Guid.NewGuid().ToString();
 
         [Required]
         [Display(Name = "Status")]

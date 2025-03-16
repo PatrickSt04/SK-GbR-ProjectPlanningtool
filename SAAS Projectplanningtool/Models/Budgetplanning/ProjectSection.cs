@@ -1,13 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SAAS_Projectplanningtool.Models.Budgetplanning
 {
     public class ProjectSection
     {
         [Key]
-        public required string ProjectSectionId { get; set; } = Guid.NewGuid().ToString();
-
+        [NotNull] public string ProjectSectionId { get; set; } = Guid.NewGuid().ToString();
+        public required string ProjectSectionName { get; set; } 
         // Company dependency
         public string? CompanyId { get; set; }
         [ForeignKey(nameof(CompanyId))]

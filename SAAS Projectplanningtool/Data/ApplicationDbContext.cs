@@ -22,7 +22,7 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection> ProjectSection { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask> ProjectTask { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.IndustrySector> IndustrySector { get; set; } = default!;
-        public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.License> License { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.LicenseModel> LicenseModel { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.State> State { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.ProjectTaskRessource> ProjectTaskRessource { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.Ressource> Ressource { get; set; } = default!;
