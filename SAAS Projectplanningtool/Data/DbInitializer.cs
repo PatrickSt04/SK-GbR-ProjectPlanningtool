@@ -58,10 +58,10 @@ public static class DbInitializer
         await context.SaveChangesAsync();
 
         var addresses = new[] {
-        new Address { City = "Julbach", PostalCode = "84387", Country = "Deutschland", HouseNumber = "1", Street = "Mooswinkl" },
-        new Address { City = "Frankfurt", PostalCode = "84387", Country = "Deutschland", HouseNumber = "1a", Street = "Fliegenweg" },
-         new Address { City = "München", PostalCode = "84387", Country = "Deutschland", HouseNumber = "13b", Street = "Blumenstraße" },
-        new Address { City = "Straubing", PostalCode = "84387", Country = "Deutschland", HouseNumber = "2a", Street = "Vorstraße" }
+        new Address { City = "Julbach", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "1", Street = "Mooswinkl" },
+        new Address { City = "Frankfurt",  Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "1a", Street = "Fliegenweg" },
+         new Address { City = "München", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "13b", Street = "Blumenstraße" },
+        new Address { City = "Straubing", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "2a", Street = "Vorstraße" }
         };
         await context.Address.AddRangeAsync(addresses);
         await context.SaveChangesAsync();

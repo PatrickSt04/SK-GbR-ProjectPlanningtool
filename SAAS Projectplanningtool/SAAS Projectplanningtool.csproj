@@ -23,6 +23,7 @@
 	<ItemGroup>
 	  <Folder Include="Migrations\" />
 	  <Folder Include="Models\Sceduling\" />
+	  <Folder Include="Pages\Projects\" />
 	</ItemGroup>
 
 </Project>

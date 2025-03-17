@@ -32,6 +32,6 @@ namespace SAAS_Projectplanningtool.Models
         // The company's default working days
         // Represented as numbers from 1 to 7 (Monday - Sunday)
         // Can be initialized or modified later
-        public List<int>? DefaultWorkDays { get; set; }
+        public List<int>? DefaultWorkDays { get; set; } = new(new int[] { 1, 2, 3, 4, 5 });
     }
 }

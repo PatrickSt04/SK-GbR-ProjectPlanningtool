@@ -14,16 +14,16 @@ namespace SAAS_Projectplanningtool.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
+        //private readonly ILogger<IndexModel> _logger;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         [BindProperty]
         public IList<SAAS_Projectplanningtool.Models.Budgetplanning.Project> projects { get; set; } = new List<SAAS_Projectplanningtool.Models.Budgetplanning.Project>();
         [BindProperty]
         public Company company { get; set; }
-        public IndexModel(ILogger<IndexModel> logger, ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public IndexModel( ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
-            _logger = logger;
+            //_logger = logger;
             _context = context;
             _userManager = userManager;
         }
