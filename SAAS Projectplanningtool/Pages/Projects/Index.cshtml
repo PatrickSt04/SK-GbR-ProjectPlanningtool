@@ -1,0 +1,90 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Projects.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].Company)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].Customer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].ProjectBudget)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].ProjectName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].ProjectDescription)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].StartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].EndDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].IsArchived)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].State)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Project[0].LatestModidier)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Project) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Company.CompanyId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer.CustomerId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProjectBudget.ProjectBudgetId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProjectName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProjectDescription)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsArchived)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.State.StateId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LatestModidier.EmployeeId)
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.ProjectId">Edit</a> |
+                <a asp-page="./Details" asp-route-id="@item.ProjectId">Details</a> |
+                <a asp-page="./Delete" asp-route-id="@item.ProjectId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

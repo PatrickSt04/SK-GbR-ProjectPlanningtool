@@ -1,0 +1,49 @@
+﻿.pie-wrapper {
+    width: 10em;
+    height: 10em;
+    float: left;
+    margin: 15px;
+    position: relative;
+}
+
+.pie {
+    width: 100%;
+    height: 100%;
+    clip: rect(0, 10em, 10em, 5em);
+    position: absolute;
+}
+.left-side{
+
+}
+
+
+.half-circle {
+    width: 100%;
+    height: 100%;
+    border: 1em solid #3498db;
+    border-radius: 50%;
+    clip: rect(0, 5em, 10em, 0);
+    position: absolute;
+}
+
+.label {
+    background: #34495e;
+    border-radius: 50%;
+    bottom: 0.4em;
+    color: #ecf0f1;
+    display: block;
+    font-size: 2.5em;
+    left: 0.4em;
+    line-height: 7em;
+    position: absolute;
+    right: 0.4em;
+    text-align: center;
+    top: 0.4em;
+}
+
+    .label .smaller {
+        color: #bdc3c7;
+        font-size: 0.45em;
+        padding-bottom: 20px;
+        vertical-align: super;
+    }

@@ -1,0 +1,82 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<link rel="stylesheet" href="~/css/progress.css">
+<h3>@Model.Project.ProjectName</h3>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <h4>Projektdetails</h4>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-2">
+                Projektname
+            </dt>
+            <dd class="col-sm-12">
+                @Html.DisplayFor(model => model.Project.ProjectName)
+            </dd>
+            <dt class="col-sm-2">
+                Verantwortliche*r
+            </dt>
+            <dd class="col-sm-12">
+                @Html.DisplayFor(model => model.Project.ResponsiblePerson.EmployeeDisplayName)
+            </dd>
+        </dl>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Abgeschlossene Aufgaben</h4>
+                <h6>@Model.CompletetedTasks / @Model.TotalTasks</h6>
+                <hr />
+                @{
+                    double progress = (Model.TotalTasks == 0) ? 0 : ((double)Model.CompletetedTasks / Model.TotalTasks) * 100;
+                    double rotation = (progress / 100) * 360; // Berechnet den Drehwinkel von 0° bis 360°
+                }
+
+                <div class="pie-wrapper">
+                    <span class="label">@(progress.ToString("0"))<span class="smaller">%</span></span>
+                        <div class="pie">
+                        <div class="left-side half-circle" style="transform: rotate(@(rotation > 180 ? 180 : rotation)deg)"></div>
+                        <div class="right-side half-circle" style="transform: rotate(@(rotation > 180 ? (rotation - 180) : 0)deg)"></div>
+                        </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4>Budgetübersicht</h4>
+                <h6>20.000€/100.000€</h6>
+                <hr/>
+                @{
+                    double pr = ((double)20000 / 100000) * 100;
+                    double ro = (progress / 100) * 360; // Berechnet den Drehwinkel von 0° bis 360°
+                }
+
+                <div class="pie-wrapper">
+                    <span class="label">@(pr.ToString("0"))<span class="smaller">%</span></span>
+                    <div class="pie">
+                        <div class="left-side half-circle" style="transform: rotate(@(ro > 180 ? 180 : ro)deg)"></div>
+                        <div class="right-side half-circle" style="transform: rotate(@(ro > 180 ? (ro - 180) : 0)deg)"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <hr/>
+        <dt class="col-sm-2">
+            Startdatum
+        </dt>
+        <dd class="col-sm-12">
+            @Html.DisplayFor(model => model.Project.StartDate)
+        </dd>       
+        <dt class="col-sm-2">
+            Enddatum
+        </dt>
+        <dd class="col-sm-12">
+            @Html.DisplayFor(model => model.Project.EndDate)
+        </dd>
+
+    </div>
+</div>

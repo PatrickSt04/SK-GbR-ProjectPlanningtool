@@ -114,6 +114,7 @@ public static class DbInitializer
                 var project = new Project
                 {
                     ProjectName = projectName,
+                    ResponsiblePerson = employee,
                     ProjectDescription = $"Projekt für {customer.CustomerName} mit dem Schwerpunkt auf {GetProjectFocus(projectName)}.",
                     Customer = customer,
                     Company = company,

@@ -39,6 +39,12 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // Instead of Deleting a completed Project it is archived 
         public bool? IsArchived { get; set; }
 
+        // Responsible person 
+        // Reference to Employee
+        public string? ResponsiblePersonId { get; set; }
+        [ForeignKey(nameof(ResponsiblePersonId))]
+        public Employee? ResponsiblePerson { get; set; }
+
         public string? StateId { get; set; }
         [ForeignKey(nameof(StateId))]
         public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
