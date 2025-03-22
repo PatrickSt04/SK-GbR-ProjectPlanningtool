@@ -28,6 +28,7 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.Ressource> Ressource { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.RessourceType> RessourceType { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.Unit> Unit { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -75,6 +75,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .Where(pt => pt.CompanyId == employee.CompanyId)
                 .Where(pt => pt.StateId == completedState.StateId)
                 .CountAsync();
+            try
+            {
+                throw new Exception("Test");
+            }catch (Exception ex){
+                await new Logger(_context, _userManager).Log(ex, User, Project);
+            }
+
 
             return Page();
         }
