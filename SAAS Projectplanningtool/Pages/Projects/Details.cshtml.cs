@@ -43,20 +43,26 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .FirstOrDefaultAsync(m => m.ProjectId == id);
             if (project == null)
             {
-                return NotFound();
+                try
+                {
+                    throw new Exception("Es wurde kein projekt gefunden");
+                }
+                catch (Exception ex)
+                {
+                    return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, project) });
+                }
             }
             else
             {
                 Project = project;
             }
-            Employee employee;
+            Employee employee = default!;
             try
             {
                 employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
             } catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return Page();
+                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, employee) });
             }
 
             var sectionsOfThisProject = await _context.ProjectSection
@@ -78,11 +84,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             try
             {
                 throw new Exception("Test");
-            }catch (Exception ex){
-                await new Logger(_context, _userManager).Log(ex, User, Project);
             }
-
-
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Project) });
+            }
             return Page();
         }
     }

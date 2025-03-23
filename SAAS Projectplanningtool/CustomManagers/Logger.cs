@@ -9,7 +9,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
 {
     public class Logger
     {
-        private readonly ApplicationDbContext _context;
+        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly CustomUserManager customUserManager;
 
@@ -20,18 +20,23 @@ namespace SAAS_Projectplanningtool.CustomManagers
             customUserManager = new CustomUserManager(context, userManager);
         }
 
-        public async Task Log(Exception exception, ClaimsPrincipal ExcecutingUserTable, object UsedModelObject )
+        public async Task<string> Log(Exception exception, ClaimsPrincipal ExcecutingUserTable, object? UsedModelObject)
         {
             var excecutingEmployee = await customUserManager.GetEmployeeAsync(_userManager.GetUserId(ExcecutingUserTable));
-            var log = new Logfile { ExceptionName = exception.GetType().FullName,               // NullReferenceException
-                ExceptionMessage = exception.Message,                                           // Object reference not set to an instance of an object.
-                ExceptionPath = exception.TargetSite.DeclaringType.FullName,                    // SAAS_Projectplanningtool.Pages.Projects.DetailsModel+<OnGetAsync>d__15
-                ExcecutingEmployee = excecutingEmployee,                                        // Employee
-                TimeOfException = DateTime.Now,                                                 // 2021-09-15 12:00:00
-                SerializedObject = JsonSerializer.Serialize(UsedModelObject)                    // Project
+            var log = new Logfile
+            {
+                ExceptionName = exception.GetType().FullName,
+                ExceptionMessage = exception.Message,
+                ExceptionPath = exception.TargetSite?.DeclaringType?.FullName,
+                ExcecutingEmployee = excecutingEmployee,
+                TimeOfException = DateTime.Now,
+                SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
             };
+
             _context.Logfile.Add(log);
             await _context.SaveChangesAsync();
+
+            return log.LogfileId;
         }
     }
 }

@@ -10,6 +10,9 @@ namespace SAAS_Projectplanningtool.Pages
     {
         public string? RequestId { get; set; }
 
+        [BindProperty] 
+        public string LogfileId { get; set; } = default!;
+
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
         private readonly ILogger<ErrorModel> _logger;
@@ -19,8 +22,11 @@ namespace SAAS_Projectplanningtool.Pages
             _logger = logger;
         }
 
-        public void OnGet()
+        public void OnGet(string? id)
         {
+            if (id != null) {
+                LogfileId = id!;
+            }
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
         }
     }
