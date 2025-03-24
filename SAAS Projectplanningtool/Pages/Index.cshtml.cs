@@ -17,19 +17,23 @@ namespace SAAS_Projectplanningtool.Pages
         //private readonly ILogger<IndexModel> _logger;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly Logger _logger;
         [BindProperty]
         public IList<SAAS_Projectplanningtool.Models.Budgetplanning.Project> projects { get; set; } = new List<SAAS_Projectplanningtool.Models.Budgetplanning.Project>();
         [BindProperty]
         public Company company { get; set; }
+
         public IndexModel( ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
-            //_logger = logger;
             _context = context;
             _userManager = userManager;
+            _logger = new Logger(_context, _userManager);
         }
 
         public async Task<IActionResult> OnGetAsync()
         {
+            await _logger.Log(null, User, null, "Index<OnGet>Beginn");
+            
             Employee employee = default!;
             try
             {
@@ -37,7 +41,7 @@ namespace SAAS_Projectplanningtool.Pages
             }
             catch (Exception ex)
             {
-                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, employee) });
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, employee, null) });
             }
 
             var query = _context.Project
@@ -56,7 +60,17 @@ namespace SAAS_Projectplanningtool.Pages
                 project.State = await stateManager.GetProjectState(project.ProjectId);
             }
 
-            company = await _context.Company.FirstOrDefaultAsync(c => c.CompanyId == employee.CompanyId);
+            try
+            {
+                company = await _context.Company.FirstOrDefaultAsync(c => c.CompanyId == employee.CompanyId);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, employee, null) });
+            }
+
+
+            await _logger.Log(null, User, null, "Index<OnGet>End");
             return Page();
         }
     }
