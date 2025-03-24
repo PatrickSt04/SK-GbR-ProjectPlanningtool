@@ -57,19 +57,40 @@ namespace SAAS_Projectplanningtool.Pages.Companies
 
             if (company == null)
             {
-                return NotFound();
+                try
+                {
+                    throw new Exception("Keine Company gefunden");
+                }
+                catch (Exception ex)
+                {
+                    return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, company) });
+                }
             }
 
             Company = company;
-            Address = company.Address;
-
-            if (_dayMap != null)
+            try
             {
-                foreach (var day in _dayMap)
+                Address = company.Address;
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Address) });
+            }
+            try
+            {
+                if (_dayMap != null)
                 {
-                    SelectedWorkDays[day.Key] = Company.DefaultWorkDays.Contains(day.Key);
+                    foreach (var day in _dayMap)
+                    {
+                        SelectedWorkDays[day.Key] = Company.DefaultWorkDays.Contains(day.Key);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Address) });
+            }
+           
 
             return Page();
         }
@@ -89,18 +110,34 @@ namespace SAAS_Projectplanningtool.Pages.Companies
 
                 if (existingCompany == null)
                 {
-                    return NotFound();
+                    try
+                    {
+                        throw new Exception("Keine Company gefunden");
+                    }
+                    catch (Exception ex)
+                    {
+                        return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, existingCompany) });
+                    }
                 }
 
                 // Adresse aktualisieren
-                existingCompany.Address.Country = Address.Country;
-                existingCompany.Address.Region = Address.Region;
-                existingCompany.Address.PostalCode = Address.PostalCode;
-                existingCompany.Address.City = Address.City;
-                existingCompany.Address.Street = Address.Street;
-                existingCompany.Address.HouseNumber = Address.HouseNumber;
-                existingCompany.Address.LatestModidier = await new CustomUserManager(_context, _userManager)
-                    .GetEmployeeAsync(_userManager.GetUserId(User));
+
+                try
+                {
+                    existingCompany.Address.Country = Address.Country;
+                    existingCompany.Address.Region = Address.Region;
+                    existingCompany.Address.PostalCode = Address.PostalCode;
+                    existingCompany.Address.City = Address.City;
+                    existingCompany.Address.Street = Address.Street;
+                    existingCompany.Address.HouseNumber = Address.HouseNumber;
+                    existingCompany.Address.LatestModidier = await new CustomUserManager(_context, _userManager)
+                        .GetEmployeeAsync(_userManager.GetUserId(User));
+                }
+                catch (Exception ex)
+                {
+                    return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, existingCompany) });
+                }
+                
 
                 if (SelectedWorkDays != null)
                 {
@@ -116,24 +153,25 @@ namespace SAAS_Projectplanningtool.Pages.Companies
 
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!CompanyExists(Company.CompanyId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                //if (!CompanyExists(Company.CompanyId))
+                //{
+                //    return NotFound();
+                //}
+                //else
+                //{
+                //    throw;
+                //}
+                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Company) });
             }
 
             return RedirectToPage("/Index");
         }
 
-        private bool CompanyExists(string id)
-        {
-            return _context.Company.Any(e => e.CompanyId == id);
-        }
+        //private bool CompanyExists(string id)
+        //{
+        //    return _context.Company.Any(e => e.CompanyId == id);
+        //}
     }
 }

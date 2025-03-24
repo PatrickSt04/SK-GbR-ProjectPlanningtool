@@ -28,17 +28,16 @@ namespace SAAS_Projectplanningtool.Pages
             _userManager = userManager;
         }
 
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
-            Employee employee;
+            Employee employee = default!;
             try
             {
                 employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return;
+                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, employee) });
             }
 
             var query = _context.Project
@@ -58,6 +57,7 @@ namespace SAAS_Projectplanningtool.Pages
             }
 
             company = await _context.Company.FirstOrDefaultAsync(c => c.CompanyId == employee.CompanyId);
+            return Page();
         }
     }
 }
