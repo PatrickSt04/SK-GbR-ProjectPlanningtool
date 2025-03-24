@@ -39,5 +39,26 @@ namespace SAAS_Projectplanningtool.CustomManagers
 
             return log.LogfileId;
         }
+        // Overload for logging by user id
+        // Used for Login / Logout actions of a user
+        public async Task<string> LogByUserId(string userId, string? customMessage, object? UsedModelObject = null)
+        {
+            var excecutingEmployee = await customUserManager.GetEmployeeAsync(userId);
+            var log = new Logfile
+            {
+                ExceptionName = "null",
+                ExceptionMessage = "null",
+                ExceptionPath = "Login/Logout",
+                ExcecutingEmployee = excecutingEmployee,
+                TimeOfException = DateTime.Now,
+                CustomMessage = customMessage,
+                SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
+            };
+
+            _context.Logfile.Add(log);
+            await _context.SaveChangesAsync();
+
+            return log.LogfileId;
+        }
     }
 }
