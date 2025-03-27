@@ -16,10 +16,12 @@ namespace SAAS_Projectplanningtool.Pages.Companies
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly Logger _logger;
         public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _logger = new Logger(context, userManager);
         }
 
         [BindProperty]
@@ -43,6 +45,7 @@ namespace SAAS_Projectplanningtool.Pages.Companies
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
+            await _logger.Log(null, User, null, "Companies/Edit<OnGet>Beginn");
             if (id == null)
             {
                 return NotFound();
@@ -57,14 +60,7 @@ namespace SAAS_Projectplanningtool.Pages.Companies
 
             if (company == null)
             {
-                try
-                {
-                    throw new Exception("Keine Company gefunden");
-                }
-                catch (Exception ex)
-                {
-                    return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, company) });
-                }
+                return NotFound();
             }
 
             Company = company;
@@ -74,7 +70,7 @@ namespace SAAS_Projectplanningtool.Pages.Companies
             }
             catch (Exception ex)
             {
-                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Address) });
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Address, null) });
             }
             try
             {
@@ -88,15 +84,16 @@ namespace SAAS_Projectplanningtool.Pages.Companies
             }
             catch (Exception ex)
             {
-                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Address) });
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Address, null) });
             }
-           
 
+            await _logger.Log(null, User, null, "Companies/Edit<OnGet>End");
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            await _logger.Log(null, User, null, "Companies/Edit<OnPost>Beginn");
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -110,14 +107,7 @@ namespace SAAS_Projectplanningtool.Pages.Companies
 
                 if (existingCompany == null)
                 {
-                    try
-                    {
-                        throw new Exception("Keine Company gefunden");
-                    }
-                    catch (Exception ex)
-                    {
-                        return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, existingCompany) });
-                    }
+                    return NotFound();
                 }
 
                 // Adresse aktualisieren
@@ -135,7 +125,7 @@ namespace SAAS_Projectplanningtool.Pages.Companies
                 }
                 catch (Exception ex)
                 {
-                    return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, existingCompany) });
+                    return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, existingCompany, null) });
                 }
                 
 
@@ -163,9 +153,9 @@ namespace SAAS_Projectplanningtool.Pages.Companies
                 //{
                 //    throw;
                 //}
-                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Company) });
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Company, null) });
             }
-
+            await _logger.Log(null, User, null, "Companies/Edit<OnPost>End");
             return RedirectToPage("/Index");
         }
 

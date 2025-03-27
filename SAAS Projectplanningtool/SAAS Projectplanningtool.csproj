@@ -8,6 +8,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Models\Sceduling\**" />
+	  <Content Remove="Models\Sceduling\**" />
+	  <EmbeddedResource Remove="Models\Sceduling\**" />
+	  <None Remove="Models\Sceduling\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11" />
@@ -22,7 +29,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Migrations\" />
-	  <Folder Include="Models\Sceduling\" />
 	</ItemGroup>
 
 </Project>

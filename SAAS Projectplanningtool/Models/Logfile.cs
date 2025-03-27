@@ -15,6 +15,8 @@ namespace SAAS_Projectplanningtool.Models
         public DateTime? TimeOfException { get; set; }
         public string? ExceptionPath { get; set; }
 
+        public string? CustomMessage { get; set; }
+
         public string? SerializedObject { get; set; }
     }
 }

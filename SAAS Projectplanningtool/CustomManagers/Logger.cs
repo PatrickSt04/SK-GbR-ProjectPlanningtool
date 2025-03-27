@@ -20,16 +20,38 @@ namespace SAAS_Projectplanningtool.CustomManagers
             customUserManager = new CustomUserManager(context, userManager);
         }
 
-        public async Task<string> Log(Exception exception, ClaimsPrincipal ExcecutingUserTable, object? UsedModelObject)
+        public async Task<string> Log(Exception? exception, ClaimsPrincipal ExcecutingUserTable, object? UsedModelObject, string? custommessage)
         {
             var excecutingEmployee = await customUserManager.GetEmployeeAsync(_userManager.GetUserId(ExcecutingUserTable));
             var log = new Logfile
             {
-                ExceptionName = exception.GetType().FullName,
-                ExceptionMessage = exception.Message,
-                ExceptionPath = exception.TargetSite?.DeclaringType?.FullName,
+                ExceptionName = exception == null ? "null" : exception.GetType().FullName,
+                ExceptionMessage = exception == null ? "null" : exception.Message,
+                ExceptionPath = exception == null ? "null" : exception.TargetSite?.DeclaringType?.FullName,
                 ExcecutingEmployee = excecutingEmployee,
                 TimeOfException = DateTime.Now,
+                CustomMessage = custommessage,
+                SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
+            };
+
+            _context.Logfile.Add(log);
+            await _context.SaveChangesAsync();
+
+            return log.LogfileId;
+        }
+        // Overload for logging by user id
+        // Used for Login / Logout actions of a user
+        public async Task<string> LogByUserId(string userId, string? customMessage, object? UsedModelObject = null)
+        {
+            var excecutingEmployee = await customUserManager.GetEmployeeAsync(userId);
+            var log = new Logfile
+            {
+                ExceptionName = "null",
+                ExceptionMessage = "null",
+                ExceptionPath = "Login/Logout",
+                ExcecutingEmployee = excecutingEmployee,
+                TimeOfException = DateTime.Now,
+                CustomMessage = customMessage,
                 SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
             };
 

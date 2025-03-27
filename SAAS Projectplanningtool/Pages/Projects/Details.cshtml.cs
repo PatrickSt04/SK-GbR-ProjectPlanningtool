@@ -17,10 +17,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly Logger _logger;
         public DetailsModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _logger = new Logger(_context, _userManager);
         }
 
         public Project Project { get; set; } = default!;
@@ -28,6 +30,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public int CompletetedTasks { get; set; } = 0;  
         public async Task<IActionResult> OnGetAsync(string id)
         {
+            await _logger.Log(null, User, null, "Projects/Details<OnGet>Beginn");
             if (id == null)
             {
                 return NotFound();
@@ -43,14 +46,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .FirstOrDefaultAsync(m => m.ProjectId == id);
             if (project == null)
             {
-                try
-                {
-                    throw new Exception("Es wurde kein projekt gefunden");
-                }
-                catch (Exception ex)
-                {
-                    return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, project) });
-                }
+                return NotFound();
             }
             else
             {
@@ -62,33 +58,48 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
             } catch (Exception ex)
             {
-                return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, employee) });
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, employee, null) });
+            }
+            var sectionsOfThisProject = await _context.ProjectSection
+                 .Where(s => s.ProjectId == id)
+                 .Where(s => s.CompanyId == employee.CompanyId)
+                 .Select(s => s.ProjectSectionId)
+                 .ToListAsync();
+            try
+            {
+                
+                TotalTasks = await _context.ProjectTask
+                    .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
+                    .Where(pt => pt.CompanyId == employee.CompanyId)
+                    .CountAsync();
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, TotalTasks, null) });
             }
 
-            var sectionsOfThisProject = await _context.ProjectSection
-                .Where(s => s.ProjectId == id)
-                .Where( s => s.CompanyId == employee.CompanyId)
-                .Select(s => s.ProjectSectionId)
-                .ToListAsync();
-            TotalTasks = await _context.ProjectTask
-                .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
-                .Where(pt => pt.CompanyId == employee.CompanyId)
-                .CountAsync();
             var completedState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Abgeschlossen");
+            try
+            {
+                CompletetedTasks = await _context.ProjectTask
+                    .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
+                    .Where(pt => pt.CompanyId == employee.CompanyId)
+                    .Where(pt => pt.StateId == completedState.StateId)
+                    .CountAsync();
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, CompletetedTasks, null) });
+            }
 
-            CompletetedTasks = await _context.ProjectTask
-                .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
-                .Where(pt => pt.CompanyId == employee.CompanyId)
-                .Where(pt => pt.StateId == completedState.StateId)
-                .CountAsync();
             //try
             //{
             //    throw new Exception("Test");
+            //}catch (Exception ex){
+            //    await new Logger(_context, _userManager).Log(ex, User, Project);
             //}
-            //catch (Exception ex)
-            //{
-            //    return RedirectToPage("/Error", new { id = await new Logger(_context, _userManager).Log(ex, User, Project) });
-            //}
+
+            await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
             return Page();
         }
     }

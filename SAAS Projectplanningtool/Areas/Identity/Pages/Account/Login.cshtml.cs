@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SAAS_Projectplanningtool.Data;
+using SAAS_Projectplanningtool.CustomManagers;
+using Microsoft.AspNetCore.SignalR;
 
 namespace software.Areas.Identity.Pages.Account
 {
@@ -21,12 +24,12 @@ namespace software.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly ILogger<LoginModel> _logger;
-
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
+        private readonly Logger _logger;
+        //Custom Changes: REMOVED: ILogger<LoginModel> _logger; ADDED: Own logger
+        public LoginModel(SignInManager<IdentityUser> signInManager, ApplicationDbContext context)
         {
             _signInManager = signInManager;
-            _logger = logger;
+            _logger = new Logger(context, signInManager.UserManager);
         }
 
         /// <summary>
@@ -115,7 +118,10 @@ namespace software.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User logged in.");
+                    //_logger.LogInformation("User logged in.");
+                    var user =  await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+                    var userId = await _signInManager.UserManager.GetUserIdAsync(user);
+                    await _logger.LogByUserId(userId, "SUCCESS: User logged in.", null);
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -124,7 +130,7 @@ namespace software.Areas.Identity.Pages.Account
                 }
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("User account locked out.");
+                    //_logger.LogWarning("User account locked out.");
                     return RedirectToPage("./Lockout");
                 }
                 else
