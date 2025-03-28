@@ -48,9 +48,12 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public string? StateId { get; set; }
         [ForeignKey(nameof(StateId))]
         public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
-        // Latest Modifier of Database Entry
+        // Latest Modification Attributes
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]
-        public Employee? LatestModidier { get; set; }
+        public Employee? LatestModifier { get; set; }
+
+        public DateTime? LatestModificationTimestamp { get; set; }
+        public string? LatestModificationText { get; set; }
     }
 }

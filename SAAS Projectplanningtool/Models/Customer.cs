@@ -19,9 +19,12 @@ namespace SAAS_Projectplanningtool.Models
         // The customers name
         public required string CustomerName { get; set; }
 
-        // Latest Modifier of Database Entry
+        // Latest Modification Attributes
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]
-        public Employee? LatestModidier { get; set; }
+        public Employee? LatestModifier { get; set; }
+
+        public DateTime? LatestModificationTimestamp { get; set; }
+        public string? LatestModificationText { get; set; }
     }
 }

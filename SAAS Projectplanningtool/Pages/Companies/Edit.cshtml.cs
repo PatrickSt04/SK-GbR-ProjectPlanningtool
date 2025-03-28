@@ -111,7 +111,6 @@ namespace SAAS_Projectplanningtool.Pages.Companies
                 }
 
                 // Adresse aktualisieren
-
                 try
                 {
                     existingCompany.Address.Country = Address.Country;
@@ -120,8 +119,6 @@ namespace SAAS_Projectplanningtool.Pages.Companies
                     existingCompany.Address.City = Address.City;
                     existingCompany.Address.Street = Address.Street;
                     existingCompany.Address.HouseNumber = Address.HouseNumber;
-                    existingCompany.Address.LatestModidier = await new CustomUserManager(_context, _userManager)
-                        .GetEmployeeAsync(_userManager.GetUserId(User));
                 }
                 catch (Exception ex)
                 {
@@ -141,27 +138,23 @@ namespace SAAS_Projectplanningtool.Pages.Companies
                 existingCompany.SectorId = Company.SectorId;
                 existingCompany.LicenseId = Company.LicenseId;
 
+                try
+                {
+                    existingCompany = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unternehmensdaten wurden bearbeitet", existingCompany);
+                }
+                catch (Exception ex)
+                {
+                    return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Company, null) });
+                }
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                //if (!CompanyExists(Company.CompanyId))
-                //{
-                //    return NotFound();
-                //}
-                //else
-                //{
-                //    throw;
-                //}
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Company, null) });
             }
             await _logger.Log(null, User, null, "Companies/Edit<OnPost>End");
             return RedirectToPage("/Index");
         }
-
-        //private bool CompanyExists(string id)
-        //{
-        //    return _context.Company.Any(e => e.CompanyId == id);
-        //}
     }
 }

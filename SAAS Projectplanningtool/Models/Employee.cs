@@ -27,5 +27,13 @@ namespace SAAS_Projectplanningtool.Models
         public HourlyRateGroup? HourlyRateGroup { get; set; }
 
         public required string EmployeeDisplayName { get; set; }
+
+        // Latest Modification Attributes
+        public string? LatestModifierId { get; set; }
+        [ForeignKey(nameof(LatestModifierId))]
+        public Employee? LatestModifier { get; set; }
+
+        public DateTime? LatestModificationTimestamp { get; set; }
+        public string? LatestModificationText { get; set; }
     }
 }

@@ -26,7 +26,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             Project = await _context.Project
                 .Include(p => p.Company)
                 .Include(p => p.Customer)
-                .Include(p => p.LatestModidier)
+                .Include(p => p.LatestModifier)
                 .Include(p => p.ProjectBudget)
                 .Include(p => p.State).ToListAsync();
         }

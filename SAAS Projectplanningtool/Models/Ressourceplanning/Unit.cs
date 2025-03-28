@@ -13,11 +13,12 @@ namespace SAAS_Projectplanningtool.Models.Ressourceplanning
         [ForeignKey(nameof(CompanyId))]
         public Company? Company { get; set; }
 
-        // Latest Modifier of Database Entry
+        // Latest Modification Attributes
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]
-        public Employee? LatestModidier { get; set; }
+        public Employee? LatestModifier { get; set; }
 
-        public required string UnitName { get; set; }
+        public DateTime? LatestModificationTimestamp { get; set; }
+        public string? LatestModificationText { get; set; }
     }
 }

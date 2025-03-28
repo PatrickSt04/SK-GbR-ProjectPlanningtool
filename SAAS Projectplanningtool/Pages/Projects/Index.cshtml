@@ -41,7 +41,7 @@
                 @Html.DisplayNameFor(model => model.Project[0].State)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Project[0].LatestModidier)
+                @Html.DisplayNameFor(model => model.Project[0].LatestModifier)
             </th>
             <th></th>
         </tr>
@@ -77,7 +77,7 @@
                 @Html.DisplayFor(modelItem => item.State.StateId)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.LatestModidier.EmployeeId)
+                @Html.DisplayFor(modelItem => item.LatestModifier.EmployeeId)
             </td>
             <td>
                 <a asp-page="./Edit" asp-route-id="@item.ProjectId">Edit</a> |

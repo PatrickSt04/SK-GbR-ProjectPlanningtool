@@ -33,5 +33,13 @@ namespace SAAS_Projectplanningtool.Models
         // Represented as numbers from 1 to 7 (Monday - Sunday)
         // Can be initialized or modified later
         public List<int>? DefaultWorkDays { get; set; } = new(new int[] { 1, 2, 3, 4, 5 });
+
+        // Latest Modification Attributes
+        public string? LatestModifierId { get; set; }
+        [ForeignKey(nameof(LatestModifierId))]
+        public Employee? LatestModifier { get; set; }
+
+        public DateTime? LatestModificationTimestamp { get; set; }
+        public string? LatestModificationText { get; set; }
     }
 }
