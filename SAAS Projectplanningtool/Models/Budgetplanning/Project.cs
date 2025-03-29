@@ -55,5 +55,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         public DateTime? LatestModificationTimestamp { get; set; }
         public string? LatestModificationText { get; set; }
+
+        public ICollection<ProjectSection>? ProjectSections { get; set; }
     }
 }

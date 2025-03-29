@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250329132439_addedNavEntries")]
+    partial class addedNavEntries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -422,9 +425,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateOnly?>("EndDate")
-                        .HasColumnType("date");
-
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");
 
@@ -439,9 +439,6 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Property<string>("ProjectTaskName")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateOnly?>("StartDate")
-                        .HasColumnType("date");
 
                     b.Property<string>("StateId")
                         .HasColumnType("nvarchar(450)");

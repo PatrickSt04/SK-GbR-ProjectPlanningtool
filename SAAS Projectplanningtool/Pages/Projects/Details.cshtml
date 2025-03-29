@@ -10,7 +10,7 @@
 <hr />
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-7">
         <hr />
         <dl class="row">
             <dt class="col-sm-2">
@@ -77,4 +77,145 @@
             @Html.DisplayFor(model => model.Project.EndDate)
         </dd>
     </div>
+
+     <div class="col-md-5">
+     <hr />
+        <div class="d-flex justify-content-between align-items-center">
+     <h6><strong>@Model.Project.ProjectName</strong></h6>
+            <a asp-page="/Projects/Edit" asp-route-id="@Model.Project.ProjectId">
+                <img src="~/edit_icon.png" alt="Dashboard" width="20" height="20" class="justify-content-md-between">
+            </a>
+     </div>
+        <div class="tree">
+            
+                <table class="table table-sm">
+                    <tbody>
+                @{
+                    // Nur die Top-Level-Abschnitte (ParentSectionId == null)
+                    var topSections = Model.Project.ProjectSections
+                    .Where(ps => ps.ParentSectionId == null)
+                    .OrderBy(ps => ps.ProjectSectionName);
+
+                    RenderSections(topSections, level: 0);
+                }
+                    </tbody>
+                </table>
+        </div>
+    </div>
+
 </div>
+
+<script>
+    function toggleRow(rowId) {
+    const tr = document.getElementById(rowId);
+    if (!tr) return;
+
+    if (tr.style.display === 'none' || tr.style.display === '') {
+    tr.style.display = 'table-row';  // <--- WICHTIG
+    } else {
+    tr.style.display = 'none';
+    }
+    }
+</script>
+
+
+
+@functions {
+
+    private void RenderSections(IEnumerable<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection> sections, int level)
+    {
+        // Falls keine Abschnitte oder null, nichts tun
+        if (sections == null || !sections.Any())
+            return;
+
+        foreach (var ps in sections)
+        {
+            // Prüfen, ob dieser Abschnitt Kinder (SubSections) oder Tasks besitzt
+            bool hasChildren =
+                (ps.SubSections != null && ps.SubSections.Any()) ||
+                (ps.ProjectTasks != null && ps.ProjectTasks.Any());
+
+            // Erste Zeile: Sichtbare Zeile mit den Hauptinfos
+            <tr>
+                <td>
+                    @* Wenn es Kinder gibt, dann "Plus"-Symbol anzeigen *@
+                    @if (hasChildren)
+                    {
+                        <span style="cursor:pointer; color:blue; margin-left:@(level * 20)px;"
+                              onclick="toggleRow('row-@ps.ProjectSectionId')">
+                            +
+                        </span>
+                    }
+                    else
+                    {
+                        // Falls kein Child, nur "padding" um es einzurücken
+                        <span style="display:inline-block; margin-left:@(level * 20)px;"></span>
+                    }
+                        @ps.ProjectSectionName
+                </td>
+                <!-- Status -->
+                <td align="right">
+                    <div class="statecolorcontainer badge" style="background-color:@ps.State?.Color;">
+                        @(ps.State?.StateName ?? "Kein Status")
+                    </div>
+
+                </td>
+            </tr>
+
+            // Zweite Zeile (versteckt), falls Tasks oder SubSections existieren
+            if (hasChildren)
+            {
+                <tr id="row-@ps.ProjectSectionId" style="display:none">
+                    <!-- colspan=4, damit wir in einer Zelle den Inhalt verbreiten -->
+                    <td colspan="4" style="background:#f9f9f9; padding-left:@((level + 1) * 20)px;">
+
+                        <!-- 1) Tasks dieses Abschnitts -->
+                        @if (ps.ProjectTasks != null && ps.ProjectTasks.Any())
+                        {
+                            <table class="table table-sm">
+                               
+                                <tbody>
+                                    @foreach (var task in ps.ProjectTasks)
+                                    {
+                                        <tr>
+                                            <td>@task.ProjectTaskName</td>
+                                            <td>@task.StartDate - </td>  
+                                            <td>@task.EndDate</td>
+                                            <td>
+                                                <!-- <span style="background-color:@task.State?.Color;"> -->
+                                                <!--    @task.State?.StateName -->
+                                                <!-- </span> -->
+                                                <div class="statecolorcontainer badge" style="background:@task.State?.Color;">
+                                                    @(task.State?.StateName ?? "Kein Status")
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <span>
+                                Keine Tasks
+                            </span>
+                        }
+                        @if (ps.SubSections != null && ps.SubSections.Any())
+                        {
+                            <h5>Unterabschnitte</h5>
+                            <table class="table table-sm" style="margin-left:20px;">
+                                <tbody>
+                                    <!-- Hier erzeugst du neue <tr> etc. -->
+                                    @{
+                                        RenderSections(ps.SubSections, level + 1);
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                    </td>
+                </tr>
+            }
+        }
+    }
+}

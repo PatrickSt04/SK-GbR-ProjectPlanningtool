@@ -138,6 +138,7 @@ public static class DbInitializer
                         sectionName = $"{j - 1}. Obergeschoss";
                     }
 
+                    // Start- und Enddaten für Abschnitte festlegen
                     var sectionStartDate = startDate.AddMonths(j - 1);
                     var sectionDueDate = sectionStartDate.AddMonths(1); // Jede Etage dauert ca. 1 Monat
 
@@ -155,6 +156,7 @@ public static class DbInitializer
 
                     foreach (var task in tasks)
                     {
+                        // Start- und Enddaten für Aufgaben festlegen
                         var taskStartDate = sectionStartDate.AddDays(new Random().Next(1, 5)); // Tasks starten innerhalb weniger Tage nach dem Beginn des Abschnitts
                         var taskDueDate = taskStartDate.AddDays(new Random().Next(5, 15)); // Jede Aufgabe dauert 5-15 Tage
 
@@ -163,15 +165,13 @@ public static class DbInitializer
                             ProjectTaskName = task,
                             ProjectSection = section,
                             Company = company,
-                            State = GetRandomState()
+                            State = GetRandomState(),
+                            StartDate = taskStartDate,
+                            EndDate = taskDueDate
                         };
                         context.Set<ProjectTask>().Add(projectTask);
                         context.SaveChanges();
-
-
-
                     }
-
                 }
             }
         }

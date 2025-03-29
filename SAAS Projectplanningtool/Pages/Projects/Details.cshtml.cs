@@ -43,6 +43,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .Include(p => p.ProjectBudget)
                 .Include(p => p.ResponsiblePerson)
                 .Include(p => p.State)
+                // Projectsections lesen
+                .Include(p => p.ProjectSections)
+                    //deren Tasks
+                .ThenInclude(ps => ps.ProjectTasks)
+                .ThenInclude(pt => pt.State)
+                // Projectsections lesen
+                .Include(p => p.ProjectSections)
+                // deren Subsections    
+                .ThenInclude(ps => ps.SubSections)
+                //deren Tasks
+                .ThenInclude(ss => ss.ProjectTasks)
                 .FirstOrDefaultAsync(m => m.ProjectId == id);
             if (project == null)
             {
@@ -91,14 +102,21 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, CompletetedTasks, null) });
             }
+            if (Project.ProjectSections != null)
+            {
+                foreach (var section in Project.ProjectSections)
+                {
+                    section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
 
-            //try
-            //{
-            //    throw new Exception("Test");
-            //}catch (Exception ex){
-            //    await new Logger(_context, _userManager).Log(ex, User, Project);
-            //}
-
+                    if (section.SubSections != null)
+                    {
+                        foreach (var subsection in section.SubSections)
+                        {
+                            subsection.State = await new StateManager(_context).GetSectionState(subsection.ProjectSectionId);
+                        }
+                    }
+                }
+            }
             await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
             return Page();
         }

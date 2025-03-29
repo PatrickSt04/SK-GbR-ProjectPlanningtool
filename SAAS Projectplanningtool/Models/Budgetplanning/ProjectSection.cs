@@ -29,6 +29,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         // Collection to hold child sections
         public ICollection<ProjectSection>? SubSections { get; set; } = new List<ProjectSection>();
+        public ICollection<ProjectTask>? ProjectTasks { get; set; } = new List<ProjectTask>();
 
         public string? StateId { get; set; }
         [ForeignKey(nameof(StateId))]

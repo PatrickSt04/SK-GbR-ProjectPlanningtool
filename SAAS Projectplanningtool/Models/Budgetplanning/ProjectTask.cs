@@ -25,6 +25,14 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         [NotMapped]
         public Dictionary<float, string>? AmountPerHourlyRateGroup { get; set; }
 
+        // Start Date of Project
+        [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}")]
+        public DateOnly? StartDate { get; set; }
+
+        // End Date of Project
+        [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}")]
+        public DateOnly? EndDate { get; set; }
+
         public string? StateId { get; set; }
         [ForeignKey(nameof(StateId))]
         public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
