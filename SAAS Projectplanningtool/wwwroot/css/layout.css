@@ -1,0 +1,35 @@
+﻿footer {
+    background-color: #2C3E50;
+    text-align: center;
+    height:62px;
+}
+body {
+    min-height: 100vh;
+}
+.pb-3{
+    padding-bottom:0px!important;
+}
+.navbar {
+    background-color: #2C3E50;
+    margin:0px !important;
+}
+.nav-link {
+    color: #E8F6FE!important
+}
+
+.left-menu {
+    background-color: #ECECEC
+}
+
+.left-menu-item {
+    background-color: #2C3E50;
+    color: #E8F6FE;
+    padding: 12px;
+    margin: 12px 20px;
+    text-align:center;
+    border-radius:8px;
+}
+
+.footer-menu {
+    color: #E8F6FE
+}
