@@ -1,0 +1,41 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Projects.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Projektarchiv</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Projektname
+            </th>
+            <th>
+                Kunde
+            </th>
+            <th>
+
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Projects) {
+        <tr>
+            <td>
+                    <a asp-page="./Details" asp-route-id="@item.ProjectId"> @Html.DisplayFor(modelItem => item.ProjectName) </a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer.CustomerName)
+            </td>
+            <td>
+                    <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@item.ProjectId" asp-route-origin="Archived" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Projekt wiederherstellen</button>
+                    </form>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

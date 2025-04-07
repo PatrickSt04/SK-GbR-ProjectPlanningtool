@@ -10,6 +10,21 @@
 <hr />
 
 <div class="row">
+    @*Hier kann das Projekt archiviert werden*@
+    @*Die Entsprechenden Methoden sind im ProjectPageModel gekapselt um Redundanz zu vermeiden*@
+    @if (Model.Project.IsArchived != true)
+    {
+        <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
+            <button type="submit" class="btn btn-danger">Projekt archivieren</button>
+        </form>
+    }
+    else
+    {
+        <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
+            <button type="submit" class="btn btn-danger">Projekt wiederherstellen</button>
+        </form>
+    }
+
     <div class="col-md-7">
         <hr />
         <dl class="row">

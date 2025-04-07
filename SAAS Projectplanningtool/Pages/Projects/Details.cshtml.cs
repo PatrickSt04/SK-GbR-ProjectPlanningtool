@@ -13,12 +13,12 @@ using SAAS_Projectplanningtool.CustomManagers;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
-    public class DetailsModel : PageModel
+    public class DetailsModel : ProjectPageModel
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
-        public DetailsModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public DetailsModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -27,7 +27,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         public Project Project { get; set; } = default!;
         public int TotalTasks { get; set; } = 0;
-        public int CompletetedTasks { get; set; } = 0;  
+        public int CompletetedTasks { get; set; } = 0;
         public async Task<IActionResult> OnGetAsync(string id)
         {
             await _logger.Log(null, User, null, "Projects/Details<OnGet>Beginn");
@@ -45,7 +45,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .Include(p => p.State)
                 // Projectsections lesen
                 .Include(p => p.ProjectSections)
-                    //deren Tasks
+                //deren Tasks
                 .ThenInclude(ps => ps.ProjectTasks)
                 .ThenInclude(pt => pt.State)
                 // Projectsections lesen
@@ -67,7 +67,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             try
             {
                 employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, employee, null) });
             }
@@ -78,7 +79,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                  .ToListAsync();
             try
             {
-                
+
                 TotalTasks = await _context.ProjectTask
                     .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
                     .Where(pt => pt.CompanyId == employee.CompanyId)

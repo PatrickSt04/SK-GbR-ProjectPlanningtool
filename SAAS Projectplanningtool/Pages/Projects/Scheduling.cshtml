@@ -4,7 +4,8 @@
 @{
     ViewData["Title"] = "Edit";
 }
-
+<h1>Terminplanung</h1>
+<hr/>
 <h4>@Model.Project.ProjectName</h4>
 <hr />
 
@@ -73,7 +74,7 @@
 </div>
 
 <div>
-    <a asp-page="./Index">Back to List</a>
+    <a asp-page="/Projects/Details" asp-route-id="@Model.Project.ProjectId">Zurück zur Projektübersicht</a>
 </div>
 
 @section Scripts {
