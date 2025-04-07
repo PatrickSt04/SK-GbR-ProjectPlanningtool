@@ -29,6 +29,12 @@ body {
     text-align:center;
     border-radius:8px;
 }
+.left-menu-link {
+    background-color: #2C3E50;
+    color: #E8F6FE;
+    text-align:center;
+    text-decoration: none;
+}
 
 .footer-menu {
     color: #E8F6FE

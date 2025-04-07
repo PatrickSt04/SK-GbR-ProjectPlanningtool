@@ -55,6 +55,9 @@ public static class DbInitializer
 
         var employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Admin", IdentityRole = await roleManager.FindByNameAsync("Admin") };
         await context.Employee.AddAsync(employee);
+        await context.SaveChangesAsync(); 
+         employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRole = await roleManager.FindByNameAsync("Planner") };
+        await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
 
         var addresses = new[] {

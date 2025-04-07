@@ -68,8 +68,9 @@
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
+    </div> 
+
     </div>
-</div>
 
 <div>
     <a asp-page="./Index">Back to List</a>
