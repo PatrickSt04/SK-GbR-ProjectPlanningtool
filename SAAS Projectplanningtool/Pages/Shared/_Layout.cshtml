@@ -6,13 +6,14 @@
     <title>@ViewData["Title"] - SAAS_Projectplanningtool</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SAAS_Projectplanningtool.styles.css" asp-append-version="true" />
 
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light box-shadow mb-3 ">@* <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 "> *@
+            <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-page="/Index">[Softwarename]</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -21,22 +22,46 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Projects/Create">Projekt anlegen</a>
+                            <a class="nav-link" asp-area="" asp-page="/Index">Budgetplanung</a>
                         </li>    
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Index">Ressourcenplanung</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Index">Terminplanung</a>
+                        </li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container-fluid">
         <main role="main" class="pb-3">
-            @RenderBody() 
+            <div class="row">
+                <div class="col-2 left-menu">
+                    <div class="left-menu-item">
+                        DASHBOARD
+                    </div>
+                    <div class="left-menu-item">
+                        DASHBOARD
+                    </div>
+                    <div class="left-menu-item">
+                        DASHBOARD
+                    </div>
+                    <div class="left-menu-item">
+                        DASHBOARD
+                    </div>
+                </div>
+                <div class="col-10">
+                    @RenderBody()
+                </div>
+            </div>         
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div>
+    <footer class="footer text-muted">
+        <div class="footer-menu">
             &copy; 2025 - SAAS_Projectplanningtool - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
