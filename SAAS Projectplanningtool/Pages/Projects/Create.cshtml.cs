@@ -2,48 +2,82 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
-    public class CreateModel : PageModel
+    public class CreateModel : ProjectPageModel
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
-
-        public CreateModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context)
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly Logger _logger;
+        public CreateModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
+            _userManager = userManager;
+            _logger = new Logger(_context, _userManager);
         }
-
-        public IActionResult OnGet()
-        {
-        ViewData["CompanyId"] = new SelectList(_context.Company, "CompanyId", "CompanyId");
-        ViewData["CustomerId"] = new SelectList(_context.Customer, "CustomerId", "CustomerId");
-        ViewData["LatestModifierId"] = new SelectList(_context.Employee, "EmployeeId", "EmployeeId");
-        ViewData["ProjectBudgetId"] = new SelectList(_context.ProjectBudget, "ProjectBudgetId", "ProjectBudgetId");
-        ViewData["StateId"] = new SelectList(_context.State, "StateId", "StateId");
-            return Page();
-        }
-
         [BindProperty]
         public Project Project { get; set; } = default!;
-
-        // For more information, see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
+        public float InitialBudget { get; set; } = 0.0f;
+        public async Task<IActionResult> OnGetAsync()
         {
-            if (!ModelState.IsValid)
+            try
             {
+                await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
+                await PublishCustomersAsync();
+                await PublishProjectLeadsAsync();
+                await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>End");
                 return Page();
             }
+            catch(Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, null) });
+            }
+        }
 
-            _context.Project.Add(Project);
-            await _context.SaveChangesAsync();
+        public async Task<IActionResult> OnPostAsync()
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
+                if (!ModelState.IsValid)
+                {
+                    await PublishCustomersAsync();
+                    await PublishProjectLeadsAsync();
+                    return Page();
+                }
+                //companyuser lesen
+                var companyuser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
 
-            return RedirectToPage("./Index");
+
+                //Budget Eintrag hinzufügen
+                var projectBudget = new ProjectBudget
+                {
+                    InitialBudget = InitialBudget,
+                    CompanyId = companyuser.CompanyId,
+                };
+                Project.ProjectBudget = projectBudget;
+                Project.CompanyId = companyuser.CompanyId;
+
+                // LatestModification Attribut hinzufügen
+                Project = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User,"Projekt angelegt", Project);
+
+                _context.Project.Add(Project);
+                await _context.SaveChangesAsync();
+
+
+                await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>End");
+                return RedirectToPage("/Projects/Edit", new {id = Project.ProjectId});
+            }catch (Exception ex) {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, null) });
+            }
         }
     }
 }

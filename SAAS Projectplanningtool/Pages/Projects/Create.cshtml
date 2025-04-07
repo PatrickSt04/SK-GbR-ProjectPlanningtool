@@ -12,66 +12,52 @@
 <div class="row">
     <div class="col-md-4">
         <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Project.ProjectId" class="control-label"></label>
-                <input asp-for="Project.ProjectId" class="form-control" />
-                <span asp-validation-for="Project.ProjectId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Project.CompanyId" class="control-label"></label>
-                <select asp-for="Project.CompanyId" class ="form-control" asp-items="ViewBag.CompanyId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Project.CustomerId" class="control-label"></label>
-                <select asp-for="Project.CustomerId" class ="form-control" asp-items="ViewBag.CustomerId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Project.ProjectBudgetId" class="control-label"></label>
-                <select asp-for="Project.ProjectBudgetId" class ="form-control" asp-items="ViewBag.ProjectBudgetId"></select>
-            </div>
             <div class="form-group">
                 <label asp-for="Project.ProjectName" class="control-label"></label>
                 <input asp-for="Project.ProjectName" class="form-control" />
                 <span asp-validation-for="Project.ProjectName" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Project.ProjectDescription" class="control-label"></label>
                 <input asp-for="Project.ProjectDescription" class="form-control" />
                 <span asp-validation-for="Project.ProjectDescription" class="text-danger"></span>
             </div>
+
+
             <div class="form-group">
-                <label asp-for="Project.StartDate" class="control-label"></label>
-                <input asp-for="Project.StartDate" class="form-control" />
-                <span asp-validation-for="Project.StartDate" class="text-danger"></span>
+                <label asp-for="Project.CustomerId" class="control-label"></label>
+                <select asp-for="Project.CustomerId" class="form-control" asp-items="Model.Customers">
+                    <option value="">-- Bitte wählen --</option>
+                </select>
+                <span asp-validation-for="Project.CustomerId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Project.ResponsiblePersonId" class="control-label"></label>
+                <select asp-for="Project.ResponsiblePersonId" class="form-control" asp-items="Model.ProjectLeads">
+                    <option value="">-- Bitte wählen --</option>
+                </select>
+                <span asp-validation-for="Project.ResponsiblePersonId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Project.EndDate" class="control-label"></label>
-                <input asp-for="Project.EndDate" class="form-control" />
-                <span asp-validation-for="Project.EndDate" class="text-danger"></span>
+                <label asp-for="InitialBudget" class="control-label"></label>
+                <input asp-for="InitialBudget" class="form-control" />
+                <span asp-validation-for="InitialBudget" class="text-danger"></span>
             </div>
+
+            <!-- Weitere Felder wie Name, StartDate, etc. -->
+
             <div class="form-group">
-                <label asp-for="Project.IsArchived" class="control-label"></label>
-                <input asp-for="Project.IsArchived" class="form-control" />
-                <span asp-validation-for="Project.IsArchived" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Project.StateId" class="control-label"></label>
-                <select asp-for="Project.StateId" class ="form-control" asp-items="ViewBag.StateId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Project.LatestModifierId" class="control-label"></label>
-                <select asp-for="Project.LatestModifierId" class ="form-control" asp-items="ViewBag.LatestModifierId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Projekt anlegen" class="btn btn-primary" />
             </div>
         </form>
+
     </div>
 </div>
 
 <div>
-    <a asp-page="Index">Back to List</a>
+    <a asp-page="/Index">Zurück zum Dashboard</a>
 </div>
 
 @section Scripts {
