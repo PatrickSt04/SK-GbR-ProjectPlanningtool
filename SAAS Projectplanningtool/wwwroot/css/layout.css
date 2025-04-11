@@ -2,12 +2,15 @@
     background-color: #2C3E50;
     text-align: center;
     height:62px;
+    padding:20px;
 }
-body {
-    min-height: 100vh;
+
+.main-container{
+    height:100%
 }
-.pb-3{
-    padding-bottom:0px!important;
+.pb-3 {
+    padding-bottom: 0px !important;
+    height:100%
 }
 .navbar {
     background-color: #2C3E50;
@@ -18,7 +21,7 @@ body {
 }
 
 .left-menu {
-    background-color: #ECECEC
+    background-color: #ECECEC;
 }
 
 .left-menu-item {
