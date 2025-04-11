@@ -78,9 +78,9 @@ public static class DbInitializer
 
         var customers = new[]
        {
-            new Customer { CustomerName = "Schmidt Bau AG", Address = addresses[1] },
-            new Customer { CustomerName = "Mayer Immobilien GmbH", Address = addresses[2] },
-            new Customer { CustomerName = "Kraus Bauunternehmen", Address = addresses[3] }
+            new Customer { CustomerName = "Schmidt Bau AG", Company = company, Address = addresses[1] },
+            new Customer { CustomerName = "Mayer Immobilien GmbH", Company = company, Address = addresses[2] },
+            new Customer { CustomerName = "Kraus Bauunternehmen", Company = company, Address = addresses[3] }
         };
         await context.Customer.AddRangeAsync(customers);
         await context.SaveChangesAsync();
