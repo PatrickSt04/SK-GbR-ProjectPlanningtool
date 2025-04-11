@@ -74,7 +74,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
 
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>End");
-                return RedirectToPage("/Projects/Edit", new {id = Project.ProjectId});
+                return RedirectToPage("/Projects/Scheduling", new {id = Project.ProjectId});
             }catch (Exception ex) {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, null) });
             }
