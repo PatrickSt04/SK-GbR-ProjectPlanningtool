@@ -8,10 +8,17 @@
 .main-container{
     height:100%
 }
+
+h1{
+    font-size:28px;
+    margin-top:12px;
+}
+
 .pb-3 {
     padding-bottom: 0px !important;
     height:100%
 }
+
 .navbar {
     background-color: #2C3E50;
     margin:0px !important;
@@ -19,9 +26,15 @@
 .nav-link {
     color: #E8F6FE!important
 }
+.main-container {
+    padding-top: 12px;
+    height: 100%
+}
 
 .left-menu {
     background-color: #ECECEC;
+    height: 100%; 
+    overflow-y: auto;
 }
 
 .left-menu-item {
@@ -39,6 +52,27 @@
     text-decoration: none;
 }
 
+
+
 .footer-menu {
     color: #E8F6FE
 }
+
+
+/*Forms*/
+.form-group {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+}
+
+.btn-primary {
+    background-color: #2C3E50;
+    border-color: #2C3E50;
+    color: #E8F6FE;
+    padding: 12px;
+    border-radius: 8px;
+}
+    .btn-primary:hover {
+        background-color: gray;
+        border-color: gray;
+    }

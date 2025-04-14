@@ -14,11 +14,11 @@ html {
 
 html {
     position: relative;
-    height: 100vh;
+    height: 100%;
 }
 
 body {
-
+    height:100%
 }
 footer{
     position:fixed;
