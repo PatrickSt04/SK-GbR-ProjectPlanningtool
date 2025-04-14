@@ -1,0 +1,69 @@
+﻿@page
+@model CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Employee</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Employee.EmployeeId" class="control-label"></label>
+                <input asp-for="Employee.EmployeeId" class="form-control" />
+                <span asp-validation-for="Employee.EmployeeId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.CompanyId" class="control-label"></label>
+                <select asp-for="Employee.CompanyId" class ="form-control" asp-items="ViewBag.CompanyId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.IdentityUserId" class="control-label"></label>
+                <select asp-for="Employee.IdentityUserId" class ="form-control" asp-items="ViewBag.IdentityUserId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.IdentityRoleId" class="control-label"></label>
+                <select asp-for="Employee.IdentityRoleId" class ="form-control" asp-items="ViewBag.IdentityRoleId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.HourlyRateGroupId" class="control-label"></label>
+                <select asp-for="Employee.HourlyRateGroupId" class ="form-control" asp-items="ViewBag.HourlyRateGroupId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.EmployeeDisplayName" class="control-label"></label>
+                <input asp-for="Employee.EmployeeDisplayName" class="form-control" />
+                <span asp-validation-for="Employee.EmployeeDisplayName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.LatestModifierId" class="control-label"></label>
+                <select asp-for="Employee.LatestModifierId" class ="form-control" asp-items="ViewBag.LatestModifierId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.LatestModificationTimestamp" class="control-label"></label>
+                <input asp-for="Employee.LatestModificationTimestamp" class="form-control" />
+                <span asp-validation-for="Employee.LatestModificationTimestamp" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employee.LatestModificationText" class="control-label"></label>
+                <input asp-for="Employee.LatestModificationText" class="form-control" />
+                <span asp-validation-for="Employee.LatestModificationText" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
