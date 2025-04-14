@@ -44,6 +44,9 @@ public static class DbInitializer
         var adminUser = new IdentityUser { UserName = "admin@company.com", Email = "admin@company.com", EmailConfirmed = true };
         userManager.CreateAsync(adminUser, "Password123!").Wait();
         userManager.AddToRoleAsync(adminUser, "Admin").Wait();
+        var plannerUser = new IdentityUser { UserName = "planner@company.com", Email = "planner@company.com", EmailConfirmed = true };
+        userManager.CreateAsync(adminUser, "Password123!").Wait();
+        userManager.AddToRoleAsync(adminUser, "Planner").Wait();
 
         var company = new Company { CompanyName = "Innovatec UG" };
         await context.Company.AddAsync(company);
@@ -56,7 +59,7 @@ public static class DbInitializer
         var employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Admin", IdentityRole = await roleManager.FindByNameAsync("Admin") };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync(); 
-         employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRole = await roleManager.FindByNameAsync("Planner") };
+         employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRole = await roleManager.FindByNameAsync("Planner") };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
 

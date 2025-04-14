@@ -56,7 +56,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 //companyuser lesen
                 var companyuser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
 
-
                 //Budget Eintrag hinzufügen
                 var projectBudget = new ProjectBudget
                 {
