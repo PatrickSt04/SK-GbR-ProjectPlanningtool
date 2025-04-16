@@ -45,5 +45,10 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public DateTime? LatestModificationTimestamp { get; set; }
         public string? LatestModificationText { get; set; }
 
+        public string? CreatedById { get; set; }
+        [ForeignKey(nameof(CreatedById))]
+        public Employee? CreatedByEmployee { get; set; }
+        public DateTime? CreatedTimestamp { get; set; }
+
     }
 }

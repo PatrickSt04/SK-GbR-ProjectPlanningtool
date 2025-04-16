@@ -140,7 +140,7 @@ namespace SAAS_Projectplanningtool.Pages.Companies
 
                 try
                 {
-                    existingCompany = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unternehmensdaten wurden bearbeitet", existingCompany);
+                    existingCompany = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unternehmensdaten wurden bearbeitet", existingCompany, false);
                 }
                 catch (Exception ex)
                 {

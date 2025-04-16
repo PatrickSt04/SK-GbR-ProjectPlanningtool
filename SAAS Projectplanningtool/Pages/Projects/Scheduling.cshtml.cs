@@ -119,7 +119,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                                            EndDate = endDate, 
                                            ProjectTaskName = Name,
                                            ProjectSectionId = SectionId };
-                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe angelegt", pt);
+                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
                 _context.ProjectTask.Add(pt);
                 await _context.SaveChangesAsync();
             }
@@ -148,7 +148,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     pt.ProjectTaskName = name;
                 }
-                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe angelegt", pt);
+                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe angelegt", pt, false);
 
                 _context.ProjectTask.Update(pt);
                 await _context.SaveChangesAsync();
@@ -173,7 +173,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     ProjectSectionName = Name,
                     CompanyId = excecutingUser.CompanyId
                 };
-                section = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Abschnitt angelegt", section);
+                section = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Abschnitt angelegt", section, true);
                 _context.ProjectSection.Add(section);
                 await _context.SaveChangesAsync();
             }
@@ -195,7 +195,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     section.ProjectSectionName = Name;
                 }
-                section = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Abschnitt bearbeitet", section);
+                section = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Abschnitt bearbeitet", section, false);
                 _context.ProjectSection.Update(section);
                 await _context.SaveChangesAsync();
             }
@@ -219,7 +219,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     ProjectSectionName = Name,
                     CompanyId = excecutingUser.CompanyId
                 };
-                sub = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unterabschnitt angelegt", sub);
+                sub = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unterabschnitt angelegt", sub, true);
                 _context.ProjectSection.Add(sub);
                 await _context.SaveChangesAsync();
             }
@@ -241,7 +241,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     sub.ProjectSectionName = Name;
                 }
-                sub = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unterabschnitt bearbeitet", sub);
+                sub = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unterabschnitt bearbeitet", sub, false);
                 _context.ProjectSection.Update(sub);
                 await _context.SaveChangesAsync();
             }

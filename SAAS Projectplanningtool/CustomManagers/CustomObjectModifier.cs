@@ -22,7 +22,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
         }
         // Diese Methode fügt dem Objekt werte für LatestModification Attribute hinzu
         // Es können exceptions geworfen werden. Diese müssen in der aufrufenden Methode behandelt werden ( Logger -> Logfile )
-        public async Task<TObject> AddLatestModificationAsync<TObject>(ClaimsPrincipal ExcecutingUserTable, string ModificationText, TObject ModifiedObject)
+        public async Task<TObject> AddLatestModificationAsync<TObject>(ClaimsPrincipal ExcecutingUserTable, string ModificationText, TObject ModifiedObject, bool isFirtCreateOfObject)
         {
             var employee = await _customUserManager.GetEmployeeAsync(_userManager.GetUserId(ExcecutingUserTable));
             //LatestModifier Attribut holen
@@ -44,11 +44,36 @@ namespace SAAS_Projectplanningtool.CustomManagers
             //LatestModificationText Attribut setzen
             if (property != null && property.CanWrite && property.PropertyType == typeof(string))
             {
-                property.SetValue(ModifiedObject, "Letzter Änderer: " + employee.EmployeeDisplayName == null ? "unbekannt" : employee.EmployeeDisplayName +
-                                                   "\n" + "Änderung" + ModificationText);
+                property.SetValue(ModifiedObject, ModificationText);
             }
+            if (!isFirtCreateOfObject)
+            {
+                // zurückgeben des modifizierten Objekts
+
+                return ModifiedObject;
+            }
+
+            //Creating User Attribut holen
+            property = ModifiedObject.GetType().GetProperty("CreatedByEmployee");
+            //Creating User Attribut setzen
+            if (property != null && property.CanWrite && property.PropertyType == typeof(string))
+            {
+                property.SetValue(ModifiedObject, employee);
+            }
+            //Creating Timestamp Attribut holen
+            property = ModifiedObject.GetType().GetProperty("CreatedTimestamp");
+            //Creating Timestamp Attribut setzen
+            if (property != null && property.CanWrite && property.PropertyType == typeof(string))
+            {
+                property.SetValue(ModifiedObject, DateTime.Now);
+            }
+
+
             // zurückgeben des modifizierten Objekts
+
             return ModifiedObject;
+
+
         }
 
     }

@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
+using SAAS_Projectplanningtool.Models;
+using SAAS_Projectplanningtool.Models.Ressourceplanning;
 
 
 namespace SAAS_Projectplanningtool.Data
@@ -36,6 +38,7 @@ namespace SAAS_Projectplanningtool.Data
             foreach (var foreignKey in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
                 foreignKey.DeleteBehavior = DeleteBehavior.NoAction;
+
             }
 
             // Configure the self-referencing relationship for ProjectSection:
@@ -45,6 +48,165 @@ namespace SAAS_Projectplanningtool.Data
                 .HasForeignKey(ps => ps.ParentSectionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Every Table has a Employee ( LatestModifier ) and a Employee ( CreatedBy )
+            // For the Employee instance itself we have to handle this differently
+            modelBuilder.Entity<Employee>()
+            .HasOne(e => e.CreatedByEmployee)
+            .WithMany()
+            .HasForeignKey(e => e.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
+
+            modelBuilder.Entity<Employee>()
+                .HasOne(e => e.LatestModifierEmployee)
+                .WithMany()
+                .HasForeignKey(e => e.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
+
+
+            // Manuelles Mapping für jede der Entitäten, die auf Employee verweisen
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);  // Verhindern der Kaskadenlöschung
+
+            modelBuilder.Entity<Project>()
+                .HasOne(p => p.LatestModifier)
+                .WithMany()
+                .HasForeignKey(p => p.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);  // Verhindern der Kaskadenlöschung
+
+            modelBuilder.Entity<ProjectBudget>()
+                .HasOne(pb => pb.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(pb => pb.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectBudget>()
+                .HasOne(pb => pb.LatestModifier)
+                .WithMany()
+                .HasForeignKey(pb => pb.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectSection>()
+                .HasOne(ps => ps.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(ps => ps.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectSection>()
+                .HasOne(ps => ps.LatestModifier)
+                .WithMany()
+                .HasForeignKey(ps => ps.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectTask>()
+                .HasOne(pt => pt.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(pt => pt.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectTask>()
+                .HasOne(pt => pt.LatestModifier)
+                .WithMany()
+                .HasForeignKey(pt => pt.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectTaskRessource>()
+                .HasOne(ptr => ptr.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(ptr => ptr.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectTaskRessource>()
+                .HasOne(ptr => ptr.LatestModifier)
+                .WithMany()
+                .HasForeignKey(ptr => ptr.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Ressource>()
+                .HasOne(r => r.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(r => r.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Ressource>()
+                .HasOne(r => r.LatestModifier)
+                .WithMany()
+                .HasForeignKey(r => r.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RessourceType>()
+                .HasOne(rt => rt.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(rt => rt.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RessourceType>()
+                .HasOne(rt => rt.LatestModifier)
+                .WithMany()
+                .HasForeignKey(rt => rt.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Unit>()
+                .HasOne(u => u.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(u => u.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Unit>()
+                .HasOne(u => u.LatestModifier)
+                .WithMany()
+                .HasForeignKey(u => u.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Address>()
+                .HasOne(a => a.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(a => a.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Address>()
+                .HasOne(a => a.LatestModifier)
+                .WithMany()
+                .HasForeignKey(a => a.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Company>()
+                .HasOne(c => c.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(c => c.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Company>()
+                .HasOne(c => c.LatestModifier)
+                .WithMany()
+                .HasForeignKey(c => c.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Customer>()
+                .HasOne(cu => cu.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(cu => cu.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Customer>()
+                .HasOne(cu => cu.LatestModifier)
+                .WithMany()
+                .HasForeignKey(cu => cu.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<HourlyRateGroup>()
+                .HasOne(hrg => hrg.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(hrg => hrg.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<HourlyRateGroup>()
+                .HasOne(hrg => hrg.LatestModifier)
+                .WithMany()
+                .HasForeignKey(hrg => hrg.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

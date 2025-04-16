@@ -66,7 +66,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 Project.CompanyId = companyuser.CompanyId;
 
                 // LatestModification Attribut hinzufügen
-                Project = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User,"Projekt angelegt", Project);
+                Project = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User,"Projekt angelegt", Project, true);
 
                 _context.Project.Add(Project);
                 await _context.SaveChangesAsync();

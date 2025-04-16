@@ -1,0 +1,66 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.HourlyRateGroup[0].Company)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HourlyRateGroup[0].HourlyRate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HourlyRateGroup[0].HourlyRateGroupName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HourlyRateGroup[0].LatestModifier)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HourlyRateGroup[0].LatestModificationTimestamp)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HourlyRateGroup[0].LatestModificationText)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.HourlyRateGroup) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Company.CompanyId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.HourlyRate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.HourlyRateGroupName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LatestModifier.EmployeeId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LatestModificationTimestamp)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LatestModificationText)
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.HourlyRateGroupId">Edit</a> |
+                <a asp-page="./Details" asp-route-id="@item.HourlyRateGroupId">Details</a> |
+                <a asp-page="./Delete" asp-route-id="@item.HourlyRateGroupId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

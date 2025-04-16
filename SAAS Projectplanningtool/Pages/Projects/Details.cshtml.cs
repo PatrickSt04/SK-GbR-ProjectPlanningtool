@@ -39,6 +39,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var project = await _context.Project
                 .Include(p => p.LatestModifier)
                 .Include(p => p.Company)
+                .Include(p => p.CreatedByEmployee)
                 .Include(p => p.Customer)
                 .Include(p => p.ProjectBudget)
                 .Include(p => p.ResponsiblePerson)

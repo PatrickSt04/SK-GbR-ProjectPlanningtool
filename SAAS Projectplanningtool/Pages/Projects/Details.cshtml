@@ -7,23 +7,67 @@
 
 <link rel="stylesheet" href="~/css/progress.css">
 <h3>@Model.Project.ProjectName</h3>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <span style="color: grey; font-size: 0.9em;">
+        Ersteller: @Model.Project.CreatedByEmployee.EmployeeDisplayName
+        | Erstellt am: @Model.Project.CreatedTimestamp
+    </span>
+</div>
 <hr />
 
+
 <div class="row">
-    @*Hier kann das Projekt archiviert werden*@
-    @*Die Entsprechenden Methoden sind im ProjectPageModel gekapselt um Redundanz zu vermeiden*@
-    @if (Model.Project.IsArchived != true)
-    {
-        <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
-            <button type="submit" class="btn btn-danger">Projekt archivieren</button>
-        </form>
-    }
-    else
-    {
-        <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
-            <button type="submit" class="btn btn-danger">Projekt wiederherstellen</button>
-        </form>
-    }
+    <!-- Karte 1: Projektstatus -->
+    <div class="col-md-2">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Projektstatus</h5>
+                <p class="card-text">
+                    @{
+                        bool isArchived = Model.Project.IsArchived == true;
+                    }
+                    @if (!isArchived)
+                    {
+                        <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-archive"></i> Projekt archivieren
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-arrow-counterclockwise"></i> Projekt wiederherstellen
+                            </button>
+                        </form>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Karte 2: Letzte Änderung -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Letzte Änderung</h5>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Änderer</dt>
+                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Project.LatestModifier.EmployeeDisplayName)</dd>
+
+                    <dt class="col-sm-4">Zeitpunkt</dt>
+                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Project.LatestModificationTimestamp)</dd>
+                </dl>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Änderung</dt>
+                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Project.LatestModificationText)</dd>
+
+                </dl>
+            </div>
+        </div>
+    </div>
+
 
     <div class="col-md-7">
         <hr />

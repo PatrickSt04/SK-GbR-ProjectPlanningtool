@@ -1,0 +1,62 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups.CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>HourlyRateGroup</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="HourlyRateGroup.HourlyRateGroupId" class="control-label"></label>
+                <input asp-for="HourlyRateGroup.HourlyRateGroupId" class="form-control" />
+                <span asp-validation-for="HourlyRateGroup.HourlyRateGroupId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HourlyRateGroup.CompanyId" class="control-label"></label>
+                <select asp-for="HourlyRateGroup.CompanyId" class ="form-control" asp-items="ViewBag.CompanyId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="HourlyRateGroup.HourlyRate" class="control-label"></label>
+                <input asp-for="HourlyRateGroup.HourlyRate" class="form-control" />
+                <span asp-validation-for="HourlyRateGroup.HourlyRate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HourlyRateGroup.HourlyRateGroupName" class="control-label"></label>
+                <input asp-for="HourlyRateGroup.HourlyRateGroupName" class="form-control" />
+                <span asp-validation-for="HourlyRateGroup.HourlyRateGroupName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HourlyRateGroup.LatestModifierId" class="control-label"></label>
+                <select asp-for="HourlyRateGroup.LatestModifierId" class ="form-control" asp-items="ViewBag.LatestModifierId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="HourlyRateGroup.LatestModificationTimestamp" class="control-label"></label>
+                <input asp-for="HourlyRateGroup.LatestModificationTimestamp" class="form-control" />
+                <span asp-validation-for="HourlyRateGroup.LatestModificationTimestamp" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HourlyRateGroup.LatestModificationText" class="control-label"></label>
+                <input asp-for="HourlyRateGroup.LatestModificationText" class="form-control" />
+                <span asp-validation-for="HourlyRateGroup.LatestModificationText" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -45,8 +45,8 @@ public static class DbInitializer
         userManager.CreateAsync(adminUser, "Password123!").Wait();
         userManager.AddToRoleAsync(adminUser, "Admin").Wait();
         var plannerUser = new IdentityUser { UserName = "planner@company.com", Email = "planner@company.com", EmailConfirmed = true };
-        userManager.CreateAsync(adminUser, "Password123!").Wait();
-        userManager.AddToRoleAsync(adminUser, "Planner").Wait();
+        userManager.CreateAsync(plannerUser, "Password123!").Wait();
+        userManager.AddToRoleAsync(plannerUser, "Planner").Wait();
 
         var company = new Company { CompanyName = "Innovatec UG" };
         await context.Company.AddAsync(company);
@@ -59,15 +59,15 @@ public static class DbInitializer
         var employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Admin", IdentityRole = await roleManager.FindByNameAsync("Admin") };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync(); 
-         employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRole = await roleManager.FindByNameAsync("Planner") };
+         employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRole = await roleManager.FindByNameAsync("Planner"), CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
 
         var addresses = new[] {
-        new Address { City = "Julbach", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "1", Street = "Mooswinkl" },
-        new Address { City = "Frankfurt",  Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "1a", Street = "Fliegenweg" },
-         new Address { City = "München", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "13b", Street = "Blumenstraße" },
-        new Address { City = "Straubing", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "2a", Street = "Vorstraße" }
+        new Address { City = "Julbach", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "1", Street = "Mooswinkl", CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now },
+        new Address { City = "Frankfurt",  Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "1a", Street = "Fliegenweg", CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now },
+         new Address { City = "München", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "13b", Street = "Blumenstraße", CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now },
+        new Address { City = "Straubing", Company = company, PostalCode = "84387", Country = "Deutschland", HouseNumber = "2a", Street = "Vorstraße", CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now }
         };
         await context.Address.AddRangeAsync(addresses);
         await context.SaveChangesAsync();
@@ -81,9 +81,9 @@ public static class DbInitializer
 
         var customers = new[]
        {
-            new Customer { CustomerName = "Schmidt Bau AG", Company = company, Address = addresses[1] },
-            new Customer { CustomerName = "Mayer Immobilien GmbH", Company = company, Address = addresses[2] },
-            new Customer { CustomerName = "Kraus Bauunternehmen", Company = company, Address = addresses[3] }
+            new Customer { CustomerName = "Schmidt Bau AG", Company = company, Address = addresses[1], CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now },
+            new Customer { CustomerName = "Mayer Immobilien GmbH", Company = company, Address = addresses[2], CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now },
+            new Customer { CustomerName = "Kraus Bauunternehmen", Company = company, Address = addresses[3], CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now }
         };
         await context.Customer.AddRangeAsync(customers);
         await context.SaveChangesAsync();
@@ -126,6 +126,8 @@ public static class DbInitializer
                     Company = company,
                     StartDate = startDate,
                     EndDate = dueDate,
+                    CreatedByEmployee = employee,
+                    CreatedTimestamp = DateTime.Now
                 };
                 projects.Add(project);
                 context.Set<Project>().Add(project);
@@ -153,6 +155,8 @@ public static class DbInitializer
                         ProjectSectionName = sectionName,
                         Project = project,
                         Company = company,
+                        CreatedByEmployee = employee,
+                        CreatedTimestamp = DateTime.Now
                     };
                     context.Set<ProjectSection>().Add(section);
                     context.SaveChanges();
@@ -173,7 +177,9 @@ public static class DbInitializer
                             Company = company,
                             State = GetRandomState(),
                             StartDate = taskStartDate,
-                            EndDate = taskDueDate
+                            EndDate = taskDueDate,
+                            CreatedByEmployee = employee,
+                            CreatedTimestamp = DateTime.Now
                         };
                         context.Set<ProjectTask>().Add(projectTask);
                         context.SaveChanges();

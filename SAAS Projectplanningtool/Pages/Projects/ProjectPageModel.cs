@@ -44,7 +44,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     return NotFound();
                 }
                 project.IsArchived = true;
-                project = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Projekt wurde archiviert", project);
+                project = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Projekt wurde archiviert", project, false);
 
                 _context.Update(project);
                 await _context.SaveChangesAsync();
@@ -78,7 +78,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 project.IsArchived = false;
                 project = await new CustomObjectModifier(_context, _userManager)
-                    .AddLatestModificationAsync(User, "Projekt wurde wieder hergestellt", project);
+                    .AddLatestModificationAsync(User, "Projekt wurde wieder hergestellt", project, false);
 
                 _context.Update(project);
                 await _context.SaveChangesAsync();

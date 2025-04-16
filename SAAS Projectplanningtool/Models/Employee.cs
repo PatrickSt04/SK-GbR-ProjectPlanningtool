@@ -31,9 +31,14 @@ namespace SAAS_Projectplanningtool.Models
         // Latest Modification Attributes
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]
-        public Employee? LatestModifier { get; set; }
+        public Employee? LatestModifierEmployee { get; set; }
 
         public DateTime? LatestModificationTimestamp { get; set; }
         public string? LatestModificationText { get; set; }
+
+        public string? CreatedById { get; set; }
+        [ForeignKey(nameof(CreatedById))]
+        public Employee? CreatedByEmployee { get; set; }
+        public DateTime? CreatedTimestamp { get; set; }
     }
 }
