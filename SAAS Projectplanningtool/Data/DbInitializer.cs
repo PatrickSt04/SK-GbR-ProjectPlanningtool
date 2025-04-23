@@ -51,15 +51,15 @@ public static class DbInitializer
         var company = new Company { CompanyName = "Innovatec UG" };
         await context.Company.AddAsync(company);
         await context.SaveChangesAsync();
-        
+
         var hourlyRateGroup = new HourlyRateGroup { Company = company, HourlyRate = 35, HourlyRateGroupName = "Maler" };
         await context.HourlyRateGroup.AddAsync(hourlyRateGroup);
         await context.SaveChangesAsync();
 
-        var employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Admin", IdentityRole = await roleManager.FindByNameAsync("Admin") };
+        var employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Admin", IdentityRoleId = await roleManager.GetRoleIdAsync(await roleManager.FindByNameAsync("Admin")) };
         await context.Employee.AddAsync(employee);
-        await context.SaveChangesAsync(); 
-         employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRole = await roleManager.FindByNameAsync("Planner"), CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now };
+        await context.SaveChangesAsync();
+        employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRoleId = await roleManager.GetRoleIdAsync(await roleManager.FindByNameAsync("Planner")), CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
 

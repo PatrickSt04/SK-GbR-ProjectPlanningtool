@@ -6,57 +6,15 @@
 }
 
 <h1>Mitarbeiterverwaltung</h1>
-
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
+<hr />
 <div class="row">
-<div class="col-md-8">
-    <h3>Mitarbeiter</h3>
-    <hr/>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Name
-            </th>
-            <th>
-                EMail
-            </th>
-            <th>
-                Stundensatzgruppe
-            </th>
-            <th>
-               Rolle
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.Employee) {
-        <tr>
-            <td>
-                            <a asp-page="./Details" asp-route-id="@item.EmployeeId">@Html.DisplayFor(modelItem => item.EmployeeDisplayName)</a> 
-                
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdentityUser.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HourlyRateGroup.HourlyRateGroupName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdentityRole.Name)
-            </td>
-            <td>
-                
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
-</div>
-<div class="col-md-4">
-    <h3>Stundensatzgruppen</h3>
+    <div class="col-md-8">
+        <h3>Mitarbeiter</h3>
+        <a asp-page="./Employees/Create">
+            <div class="btn btn-secondary">
+                Anlegen
+            </div>
+        </a>
         <hr />
         <table class="table">
             <thead>
@@ -65,7 +23,55 @@
                         Name
                     </th>
                     <th>
-                        Stundensatz in € 
+                        EMail
+                    </th>
+                    <th>
+                        Stundensatzgruppe
+                    </th>
+                    <th>
+                        Rolle
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Employee)
+                {
+                    <tr>
+                        <td>
+                            <a asp-page="./Details" asp-route-id="@item.EmployeeId">@Html.DisplayFor(modelItem => item.EmployeeDisplayName)</a>
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IdentityUser.Email)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.HourlyRateGroup.HourlyRateGroupName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IdentityRole.Name)
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-4">
+        <h3>Stundensatzgruppen</h3>
+        <a asp-page="./Employees/Create">
+            <div class="btn btn-secondary">
+                Anlegen
+            </div>
+        </a>
+        <hr />
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Stundensatz in €
                     </th>
                 </tr>
             </thead>
@@ -75,7 +81,6 @@
                     <tr>
                         <td>
                             <a asp-page="./HourlyRateGroups/Details" asp-route-id="@item.HourlyRateGroupId">@Html.DisplayFor(modelItem => item.HourlyRateGroupName)</a>
-
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.HourlyRate)
@@ -84,7 +89,7 @@
                 }
             </tbody>
         </table>
-</div>
+    </div>
 </div>
 
 

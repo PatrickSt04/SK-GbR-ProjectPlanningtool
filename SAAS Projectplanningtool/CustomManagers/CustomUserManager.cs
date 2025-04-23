@@ -72,7 +72,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
 
         private async Task<string> CreateNewIdentityUserAsync(string email, string roleId, RoleManager<IdentityRole> roleManager)
         {
-            var initialPassword = "12343";
+            var initialPassword = "Password123!";
             var userToBeCreated = new IdentityUser { UserName = email, Email = email };
 
             var result = await _userManager.CreateAsync(userToBeCreated, initialPassword);

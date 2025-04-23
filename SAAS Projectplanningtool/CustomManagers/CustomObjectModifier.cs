@@ -56,17 +56,20 @@ namespace SAAS_Projectplanningtool.CustomManagers
             //Creating User Attribut holen
             property = ModifiedObject.GetType().GetProperty("CreatedByEmployee");
             //Creating User Attribut setzen
-            if (property != null && property.CanWrite && property.PropertyType == typeof(string))
+            if (property != null && property.CanWrite && property.PropertyType == typeof(Employee))
             {
                 property.SetValue(ModifiedObject, employee);
             }
             //Creating Timestamp Attribut holen
             property = ModifiedObject.GetType().GetProperty("CreatedTimestamp");
             //Creating Timestamp Attribut setzen
-            if (property != null && property.CanWrite && property.PropertyType == typeof(string))
+            if (property != null && property.CanWrite &&
+                (property.PropertyType == typeof(DateTime) ||
+                 Nullable.GetUnderlyingType(property.PropertyType) == typeof(DateTime)))
             {
                 property.SetValue(ModifiedObject, DateTime.Now);
             }
+
 
 
             // zurückgeben des modifizierten Objekts
