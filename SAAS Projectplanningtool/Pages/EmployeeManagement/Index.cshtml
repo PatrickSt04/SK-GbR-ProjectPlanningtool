@@ -38,7 +38,7 @@
                 {
                     <tr>
                         <td>
-                            <a asp-page="./Details" asp-route-id="@item.EmployeeId">@Html.DisplayFor(modelItem => item.EmployeeDisplayName)</a>
+                            <a asp-page="./Employees/Details" asp-route-id="@item.EmployeeId">@Html.DisplayFor(modelItem => item.EmployeeDisplayName)</a>
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.IdentityUser.Email)
@@ -80,7 +80,7 @@
                 {
                     <tr>
                         <td>
-                            <a asp-page="./HourlyRateGroups/Details" asp-route-id="@item.HourlyRateGroupId">@Html.DisplayFor(modelItem => item.HourlyRateGroupName)</a>
+                            <a asp-page="/HourlyRateGroups/Details" asp-route-id="@item.HourlyRateGroupId">@Html.DisplayFor(modelItem => item.HourlyRateGroupName)</a>
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.HourlyRate)

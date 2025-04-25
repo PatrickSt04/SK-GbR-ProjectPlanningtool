@@ -28,7 +28,14 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 return NotFound();
             }
 
-            var employee = await _context.Employee.FirstOrDefaultAsync(m => m.EmployeeId == id);
+            var employee = await _context.Employee
+                .Include(e => e.IdentityRole)
+                .Include(employee => employee.Company)
+                .Include(employee => employee.HourlyRateGroup)
+                .Include(employee => employee.CreatedByEmployee)
+                .Include(employee => employee.LatestModifierEmployee)
+                .Include(employee => employee.IdentityUser)
+                .FirstOrDefaultAsync(m => m.EmployeeId == id);
             if (employee == null)
             {
                 return NotFound();

@@ -26,6 +26,7 @@ namespace SAAS_Projectplanningtool.Models
         [ForeignKey(nameof(HourlyRateGroupId))]
         public HourlyRateGroup? HourlyRateGroup { get; set; }
 
+        public bool DeleteFlag { get; set; } = false;
         public required string EmployeeDisplayName { get; set; }
 
         // Latest Modification Attributes
