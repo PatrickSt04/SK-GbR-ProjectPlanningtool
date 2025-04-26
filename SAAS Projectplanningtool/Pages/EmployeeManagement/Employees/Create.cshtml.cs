@@ -70,19 +70,20 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 {
                     var newIdentityUser = await customUserManager.CreateIdentityUser(Email, Employee.IdentityRoleId, _roleManager);
                     Employee.IdentityUserId = newIdentityUser.Id;
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     ModelState.AddModelError(string.Empty, ex.Message);
                     return Page();
                 }
 
-                
+
                 Employee.CompanyId = excecutingEmployee.CompanyId;
                 var customObjectModifier = new CustomObjectModifier(_context, _userManager);
                 // Latest modifier & Created attributes are filled
                 Employee = await customObjectModifier.AddLatestModificationAsync(User, "Benutzer wurde angelegt", Employee, true);
 
-                
+
 
                 _context.Employee.Add(Employee);
                 await _context.SaveChangesAsync();

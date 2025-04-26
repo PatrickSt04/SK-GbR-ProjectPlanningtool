@@ -57,7 +57,7 @@ namespace SAAS_Projectplanningtool.Data
             .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
 
             modelBuilder.Entity<Employee>()
-                .HasOne(e => e.LatestModifierEmployee)
+                .HasOne(e => e.LatestModifier)
                 .WithMany()
                 .HasForeignKey(e => e.LatestModifierId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete

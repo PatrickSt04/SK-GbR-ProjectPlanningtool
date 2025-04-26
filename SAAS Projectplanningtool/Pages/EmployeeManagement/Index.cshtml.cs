@@ -39,7 +39,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement
                 .Include(e => e.HourlyRateGroup)
                 .Include(e => e.IdentityRole)
                 .Include(e => e.IdentityUser)
-                .Include(e => e.LatestModifierEmployee)
+                .Include(e => e.LatestModifier)
                 .Where(e => e.CompanyId == employee.CompanyId)
                 .ToListAsync();
 
