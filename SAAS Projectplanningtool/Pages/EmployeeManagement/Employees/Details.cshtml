@@ -33,8 +33,37 @@
                 </dl>
             </div>
         </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Status</h5>
+                <p class="card-text">
+                    @{
+                        bool isDeleteFlag = Model.Employee.DeleteFlag == true;
+                    }
+                    @if (!isDeleteFlag)
+                    {
+                        <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Employee.EmployeeId" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-archive"></i> Löschkennzeichen setzen
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Employee.EmployeeId" style="display:inline;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-arrow-counterclockwise"></i> Wiederherstellen
+                            </button>
+                        </form>
+                    }
 
-
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
         <dt class="col-sm-4">
             Email Adresse
         </dt>

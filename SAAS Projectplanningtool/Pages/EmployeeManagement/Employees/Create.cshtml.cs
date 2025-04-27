@@ -34,8 +34,10 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
             try
             {
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Create<OnGet>Begin");
-                ViewData["HourlyRateGroupId"] = new SelectList(_context.HourlyRateGroup, "HourlyRateGroupId", "HourlyRateGroupName");
-                ViewData["IdentityRoleId"] = new SelectList(_context.Roles, "Id", "Name");
+                //ViewData["HourlyRateGroupId"] = new SelectList(_context.HourlyRateGroup, "HourlyRateGroupId", "HourlyRateGroupName");
+                //ViewData["IdentityRoleId"] = new SelectList(_context.Roles, "Id", "Name");
+                await PublishHourlyRateGroupsAsync();
+                await PublishRolesAsync(_roleManager);
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Create<OnGet>End");
                 return Page();
             }

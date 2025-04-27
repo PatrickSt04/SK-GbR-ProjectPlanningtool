@@ -23,11 +23,12 @@
             </div>
             <div class="form-group">
                 <label asp-for="Employee.HourlyRateGroupId" class="control-label">Stundensatzgruppe</label>
-                <select asp-for="Employee.HourlyRateGroupId" class="form-control" asp-items="ViewBag.HourlyRateGroupId"></select>
+                <select asp-for="Employee.HourlyRateGroupId" class="form-control" asp-items="Model.HourlyRateGroups"></select>
+                <span asp-validation-for="Employee.HourlyRateGroupId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Employee.IdentityRoleId" class="control-label">Rolle</label>
-                <select asp-for="Employee.IdentityRoleId" class="form-control" asp-items="ViewBag.IdentityRoleId"></select>
+                <select asp-for="Employee.IdentityRoleId" class="form-control" asp-items="Model.IdentityRoles"></select>
             </div>
             <div class="form-group">
                 <input type="submit" value="Anlegen" class="btn btn-primary" />

@@ -31,6 +31,8 @@
                     <th>
                         Rolle
                     </th>
+                    <th>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -50,9 +52,14 @@
                             @Html.DisplayFor(modelItem => item.IdentityRole.Name)
                         </td>
                         <td>
+                            @if (item.DeleteFlag)
+                            {
+                                <span class="badge bg-danger">Löschvermerk</span>
+                            }
                         </td>
                     </tr>
                 }
+
             </tbody>
         </table>
     </div>
@@ -73,6 +80,9 @@
                     <th>
                         Stundensatz in €
                     </th>
+                    <th>
+
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -84,6 +94,12 @@
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.HourlyRate)
+                        </td>
+                        <td>
+                            @if(item.DeleteFlag)
+                            {
+                                <span class="badge bg-danger">Löschvermerk</span>
+                            }
                         </td>
                     </tr>
                 }

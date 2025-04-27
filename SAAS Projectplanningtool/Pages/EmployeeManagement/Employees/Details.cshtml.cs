@@ -24,6 +24,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
         }
+        [BindProperty]
 
         public Employee Employee { get; set; } = default!;
 
@@ -61,5 +62,66 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, null, null) });
             }
         }
+        public async Task<IActionResult> OnPostSetDeleteFlagAsync(string? id)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Details<OnSetDeleteFlag>Begin");
+                if (id == null)
+                {
+                    return NotFound();
+                }
+
+                var employee = await _context.Employee.FirstOrDefaultAsync(e => e.EmployeeId == id);
+                if (employee == null)
+                {
+                    return NotFound();
+                }
+
+                employee.DeleteFlag = true;
+                employee = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Löschkennzeichen gesetzt", employee, false);
+                _context.Employee.Update(employee);
+                await _context.SaveChangesAsync();
+
+                await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Details<OnSetDeleteFlag>End");
+                return RedirectToPage("/EmployeeManagement/Index");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, null, null) });
+            }
+        }
+
+        public async Task<IActionResult> OnPostUndoDeleteFlagAsync(string? id)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Details<OnUndoDeleteFlag>Begin");
+                if (id == null)
+                {
+                    return NotFound();
+                }
+
+                var employee = await _context.Employee.FirstOrDefaultAsync(e => e.EmployeeId == id);
+                if (employee == null)
+                {
+                    return NotFound();
+                }
+
+                employee.DeleteFlag = false;
+                employee = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Löschkennzeichen gesetzt", employee, false);
+
+                _context.Employee.Update(employee);
+                await _context.SaveChangesAsync();
+
+                await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Details<OnUndoDeleteFlag>End");
+                return RedirectToPage("/EmployeeManagement/Index");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, null, null) });
+            }
+        }
+
     }
 }

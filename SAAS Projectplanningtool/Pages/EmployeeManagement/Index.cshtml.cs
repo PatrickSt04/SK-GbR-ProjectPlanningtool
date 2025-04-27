@@ -41,11 +41,13 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement
                 .Include(e => e.IdentityUser)
                 .Include(e => e.LatestModifier)
                 .Where(e => e.CompanyId == employee.CompanyId)
+                .OrderBy(e => e.DeleteFlag)
                 .ToListAsync();
 
                 HourlyRateGroup = await _context.HourlyRateGroup
                     .Include(e => e.Company)
                     .Where(e => e.CompanyId == employee.CompanyId)
+                    .OrderBy(e => e.DeleteFlag)
                     .ToListAsync();
                 await _logger.Log(null, User, null, "Employees/Index<OnGet>End");
             }
