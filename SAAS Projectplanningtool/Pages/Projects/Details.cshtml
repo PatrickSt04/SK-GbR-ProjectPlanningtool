@@ -90,35 +90,22 @@
                 <h4>Abgeschlossene Aufgaben</h4>
                 <h6>@Model.CompletetedTasks / @Model.TotalTasks</h6>
                 <hr />
-                @{
-                    double progress = (Model.TotalTasks == 0) ? 0 : ((double)Model.CompletetedTasks / Model.TotalTasks) * 100;
-                    double rotation = (progress / 100) * 360; // Berechnet den Drehwinkel von 0° bis 360°
-                }
 
-                <div class="pie-wrapper">
-                    <span class="label">@(progress.ToString("0"))<span class="smaller">%</span></span>
-                        <div class="pie">
-                        <div class="left-side half-circle" style="transform: rotate(@(rotation > 180 ? 180 : rotation)deg)"></div>
-                        <div class="right-side half-circle" style="transform: rotate(@(rotation > 180 ? (rotation - 180) : 0)deg)"></div>
-                        </div>
-                </div>
+                @{
+                    double circleFillTasks = ((double)Model.CompletetedTasks / (double)Model.TotalTasks)*100;
+                }
+                @await Html.PartialAsync("_ProgressCircle", (int)circleFillTasks) @* Kreisdiagramm *@
+                
             </div>
             <div class="col-md-6">
                 <h4>Budgetübersicht</h4>
-                <h6>20.000€/100.000€</h6>
+                @* <h6>@Model.Project.ProjectBudget.UsedBudget / @Model.Project.ProjectBudget.InitialBudget</h6>
                 <hr/>
-                @{
-                    double pr = ((double)20000 / 100000) * 100;
-                    double ro = (progress / 100) * 360; // Berechnet den Drehwinkel von 0° bis 360°
-                }
-
-                <div class="pie-wrapper">
-                    <span class="label">@(pr.ToString("0"))<span class="smaller">%</span></span>
-                    <div class="pie">
-                        <div class="left-side half-circle" style="transform: rotate(@(ro > 180 ? 180 : ro)deg)"></div>
-                        <div class="right-side half-circle" style="transform: rotate(@(ro > 180 ? (ro - 180) : 0)deg)"></div>
-                    </div>
-                </div>
+                
+               @{
+                    var circleFillBudget = (Model.Project.ProjectBudget.UsedBudget/ Model.Project.ProjectBudget.InitialBudget) * 100;
+                } 
+                @await Html.PartialAsync("_ProgressCircle", circleFillBudget) @* Kreisdiagramm *@
 
             </div>
         </div>
@@ -164,18 +151,6 @@
 
 </div>
 
-<script>
-    function toggleRow(rowId) {
-    const tr = document.getElementById(rowId);
-    if (!tr) return;
-
-    if (tr.style.display === 'none' || tr.style.display === '') {
-    tr.style.display = 'table-row';  // <--- WICHTIG
-    } else {
-    tr.style.display = 'none';
-    }
-    }
-</script>
 
 
 

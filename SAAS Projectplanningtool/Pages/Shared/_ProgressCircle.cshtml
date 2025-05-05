@@ -1,0 +1,37 @@
+﻿@using System.Globalization
+@model int  /* Übergabe: Prozentwert (0–100) */
+@{
+    /* Konfiguration */
+    int strokeWidth = 12;                    // Ringbreite
+    int radius = 50 - strokeWidth / 2;  // Radius, sodass der gesamte Ring (inkl. Strich) in 100×100 passt
+    double circumference = 2 * Math.PI * radius; // Umfang des Kreises
+    double offset = circumference * (100 - Model) / 100.0; // unbemalter Anteil
+    string trackColor = "#ECECEC";            // Hintergrund
+    string fillColor = "#2C3E50";            // Fortschritt
+
+    // Zahlen als SVG‑konforme Dezimal‑Strings mit Punkt statt Komma
+    string circStr = circumference.ToString("0.###", CultureInfo.InvariantCulture);
+    string offsetStr = offset.ToString("0.###", CultureInfo.InvariantCulture);
+}
+<svg width="160" height="160" viewBox="0 0 100 100" class="progress-circle">
+    <!-- Hintergrundring -->
+    <circle cx="50" cy="50" r="@radius"
+            stroke="@trackColor"
+            stroke-width="@strokeWidth"
+            fill="none" />
+
+    <!-- Fortschrittsring -->
+    <circle cx="50" cy="50" r="@radius"
+            stroke="@fillColor"
+            stroke-width="@strokeWidth"
+            stroke-linecap="round"
+            fill="none"
+            transform="rotate(-90 50 50)" /* Start bei 12 Uhr * /
+            stroke-dasharray="@circStr"
+            stroke-dashoffset="@offsetStr" />
+
+    <!-- Prozentzahl in der Mitte -->
+    <text x="50" y="55" font-size="24" font-family="Arial, sans-serif"
+          text-anchor="middle" dominant-baseline="middle"
+          fill="@fillColor" font-weight="700">@Model%</text>
+</svg>

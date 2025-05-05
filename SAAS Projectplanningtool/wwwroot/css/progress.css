@@ -1,4 +1,39 @@
-﻿.pie-wrapper {
+﻿:root {
+    --size: 160px; /* Durchmesser */
+    --thickness: 22px; /* Ringbreite  */
+    --track: #ECECEC; /* Hintergrundring */
+    --fill: #2C3E50; /* Fortschrittsring */
+    --font: 2rem/1 "Arial", sans-serif;
+}
+
+.progress {
+    display: inline-grid;
+    place-content: center;
+    width: var(--size);
+    aspect-ratio: 1 / 1; /* Fallback: Höhe = Breite */
+    font: var(--font);
+    font-weight: 700;
+    color: var(--fill);
+    position: relative;
+    border-radius: 50%;
+    background: var(--track); /* Fallback, wenn conic‑gradient fehlt */
+}
+
+    /* Loch in der Mitte */
+    .progress::before {
+        content: "";
+        position: absolute;
+        inset: calc(var(--thickness) / 2);
+        background: #fff;
+        border-radius: 50%;
+    }
+
+    .progress span {
+        position: relative;
+    }
+
+
+.pie-wrapper {
     width: 10em;
     height: 10em;
     float: left;

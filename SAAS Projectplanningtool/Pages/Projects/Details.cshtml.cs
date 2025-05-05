@@ -100,10 +100,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     .Where(pt => pt.StateId == completedState.StateId)
                     .CountAsync();
             }
+
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, CompletetedTasks, null) });
             }
+
             if (Project.ProjectSections != null)
             {
                 foreach (var section in Project.ProjectSections)
