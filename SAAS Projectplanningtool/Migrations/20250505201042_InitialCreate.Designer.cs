@@ -12,8 +12,8 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250324132703_initial")]
-    partial class initial
+    [Migration("20250505201042_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -241,6 +241,12 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("Country")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("HouseNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -266,6 +272,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("LatestModifierId");
 
                     b.ToTable("Address");
@@ -278,6 +286,12 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CustomerId")
                         .IsRequired()
@@ -322,6 +336,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("LatestModifierId");
@@ -343,6 +359,12 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
                     b.Property<float>("InitialBudget")
                         .HasColumnType("real");
 
@@ -362,6 +384,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("LatestModifierId");
 
                     b.ToTable("ProjectBudget");
@@ -374,6 +398,12 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");
@@ -404,6 +434,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("LatestModifierId");
 
                     b.HasIndex("ParentSectionId");
@@ -425,6 +457,15 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");
 
@@ -440,12 +481,17 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("ProjectTaskName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("StateId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ProjectTaskId");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("LatestModifierId");
 
@@ -467,6 +513,12 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DefaultWorkDays")
                         .HasColumnType("nvarchar(max)");
@@ -490,6 +542,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("AddressId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("LatestModifierId");
 
                     b.HasIndex("LicenseId");
@@ -510,6 +564,12 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CustomerName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -529,6 +589,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("LatestModifierId");
 
                     b.ToTable("Customer");
@@ -542,6 +604,15 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("DeleteFlag")
+                        .HasColumnType("bit");
+
                     b.Property<string>("EmployeeDisplayName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -550,6 +621,7 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("IdentityRoleId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("IdentityUserId")
@@ -567,6 +639,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasKey("EmployeeId");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("HourlyRateGroupId");
 
@@ -587,6 +661,15 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("DeleteFlag")
+                        .HasColumnType("bit");
+
                     b.Property<float>("HourlyRate")
                         .HasColumnType("real");
 
@@ -606,6 +689,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasKey("HourlyRateGroupId");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("LatestModifierId");
 
@@ -702,6 +787,12 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");
 
@@ -720,6 +811,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasKey("ProjectTaskRessourceId");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("LatestModifierId");
 
@@ -740,6 +833,12 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Property<float>("CostsPerUnit")
                         .HasColumnType("real");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");
@@ -764,6 +863,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("LatestModifierId");
 
                     b.HasIndex("RessourceTypeId");
@@ -780,6 +881,12 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsEmployeeRessourceType")
                         .HasColumnType("bit");
@@ -801,6 +908,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("LatestModifierId");
 
                     b.ToTable("RessourceType");
@@ -814,6 +923,12 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CompanyId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");
 
@@ -826,6 +941,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasKey("UnitId");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("LatestModifierId");
 
@@ -890,12 +1007,19 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
                 });
@@ -907,6 +1031,11 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
@@ -916,7 +1045,7 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectBudget", "ProjectBudget")
                         .WithMany()
@@ -934,6 +1063,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("Customer");
 
@@ -953,12 +1084,19 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
                 });
@@ -970,10 +1108,15 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection", "ParentSection")
                         .WithMany("SubSections")
@@ -981,7 +1124,7 @@ namespace SAAS_Projectplanningtool.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.Project", "Project")
-                        .WithMany()
+                        .WithMany("ProjectSections")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.NoAction);
 
@@ -995,6 +1138,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("SubSectionId");
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
 
@@ -1014,13 +1159,18 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection", "ProjectSection")
-                        .WithMany()
+                        .WithMany("ProjectTasks")
                         .HasForeignKey("ProjectSectionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
@@ -1030,6 +1180,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
 
@@ -1045,10 +1197,15 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.LicenseModel", "License")
                         .WithMany()
@@ -1061,6 +1218,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Address");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
 
@@ -1081,14 +1240,21 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Address");
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
                 });
@@ -1097,18 +1263,22 @@ namespace SAAS_Projectplanningtool.Migrations
                 {
                     b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
                         .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("CompanyId");
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.HourlyRateGroup", "HourlyRateGroup")
                         .WithMany()
-                        .HasForeignKey("HourlyRateGroupId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("HourlyRateGroupId");
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "IdentityRole")
                         .WithMany()
                         .HasForeignKey("IdentityRoleId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
                         .WithMany()
@@ -1118,9 +1288,11 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("HourlyRateGroup");
 
@@ -1138,12 +1310,19 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
                 });
@@ -1165,10 +1344,15 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask", "ProjectTask")
                         .WithMany()
@@ -1181,6 +1365,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
 
@@ -1196,10 +1382,15 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Ressourceplanning.RessourceType", "RessourceType")
                         .WithMany()
@@ -1212,6 +1403,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
 
@@ -1227,12 +1420,19 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
                 });
@@ -1244,18 +1444,32 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
                         .WithMany()
                         .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
                 });
 
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.Project", b =>
+                {
+                    b.Navigation("ProjectSections");
+                });
+
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection", b =>
                 {
+                    b.Navigation("ProjectTasks");
+
                     b.Navigation("SubSections");
                 });
 #pragma warning restore 612, 618

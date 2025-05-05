@@ -35,27 +35,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return NotFound();
             }
-
-            var project = await _context.Project
-                .Include(p => p.LatestModifier)
-                .Include(p => p.Company)
-                .Include(p => p.CreatedByEmployee)
-                .Include(p => p.Customer)
-                .Include(p => p.ProjectBudget)
-                .Include(p => p.ResponsiblePerson)
-                .Include(p => p.State)
-                // Projectsections lesen
-                .Include(p => p.ProjectSections)
-                //deren Tasks
-                .ThenInclude(ps => ps.ProjectTasks)
-                .ThenInclude(pt => pt.State)
-                // Projectsections lesen
-                .Include(p => p.ProjectSections)
-                // deren Subsections    
-                .ThenInclude(ps => ps.SubSections)
-                //deren Tasks
-                .ThenInclude(ss => ss.ProjectTasks)
-                .FirstOrDefaultAsync(m => m.ProjectId == id);
+            var project = await GetProjectAsync(id);
             if (project == null)
             {
                 return NotFound();
@@ -103,21 +83,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, CompletetedTasks, null) });
-            }
-            if (Project.ProjectSections != null)
-            {
-                foreach (var section in Project.ProjectSections)
-                {
-                    section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
-
-                    if (section.SubSections != null)
-                    {
-                        foreach (var subsection in section.SubSections)
-                        {
-                            subsection.State = await new StateManager(_context).GetSectionState(subsection.ProjectSectionId);
-                        }
-                    }
-                }
             }
             await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
             return Page();

@@ -146,11 +146,15 @@ namespace SAAS_Projectplanningtool.CustomManagers
             }
         }
 
-        public async Task<State> getState(string name)
+        private async Task<State> getState(string name)
         {
             return await _context.State
                 .Where(s => s.StateName.Equals(name))
                 .FirstOrDefaultAsync();
+        }
+        public async Task<State> getOpenState()
+        {
+            return await getState("Offen");
         }
     }
 }

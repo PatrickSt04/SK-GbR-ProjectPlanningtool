@@ -14,18 +14,18 @@ using SAAS_Projectplanningtool.Models.Budgetplanning;
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
     // This file is used for editing the schedule of a project.
-    public class EditModel : PageModel
+    public class EditModel : ProjectPageModel
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
 
-        public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
-  
+
         }
 
         [BindProperty]
@@ -41,25 +41,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     return NotFound();
                 }
 
-                var project = await _context.Project
-                    .Include(p => p.LatestModifier)
-                    .Include(p => p.Company)
-                    .Include(p => p.Customer)
-                    .Include(p => p.ProjectBudget)
-                    .Include(p => p.ResponsiblePerson)
-                    .Include(p => p.State)
-                    // Projectsections lesen
-                    .Include(p => p.ProjectSections)
-                    //deren Tasks
-                    .ThenInclude(ps => ps.ProjectTasks)
-                    .ThenInclude(pt => pt.State)
-                    // Projectsections lesen
-                    .Include(p => p.ProjectSections)
-                    // deren Subsections    
-                    .ThenInclude(ps => ps.SubSections)
-                    //deren Tasks
-                    .ThenInclude(ss => ss.ProjectTasks)
-                    .FirstOrDefaultAsync(m => m.ProjectId == id);
+                var project = await GetProjectAsync(id);
                 if (project == null)
                 {
                     return NotFound();
@@ -108,17 +90,21 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return _context.Project.Any(e => e.ProjectId == id);
         }
 
-        public async Task<IActionResult> CreateProjectTask(string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
+        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
         {
-            await _logger.Log(null, User, null, "Projects.Scheduling<CreateProjectTask>Begin");
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
             try
             {
                 var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
-                var pt = new ProjectTask { CompanyId = excecutingUser.CompanyId,
-                                           StartDate = startDate,
-                                           EndDate = endDate, 
-                                           ProjectTaskName = Name,
-                                           ProjectSectionId = SectionId };
+                var pt = new ProjectTask
+                {
+                    CompanyId = excecutingUser.CompanyId,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    ProjectTaskName = Name,
+                    ProjectSectionId = SectionId
+                };
+                pt.State = await new StateManager(_context).getOpenState();
                 pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
                 _context.ProjectTask.Add(pt);
                 await _context.SaveChangesAsync();
@@ -127,12 +113,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
-            await _logger.Log(null, User, null, "Projects.Scheduling<CreateProjectTask>End");
-            return Page();
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>End");
+            return RedirectToPage(new { id = Project.ProjectId });
         }
-        public async Task<IActionResult> EditProjectTask(string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
+
+        public async Task<IActionResult> OnPostEditProjectTaskAsync(string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
         {
-            await _logger.Log(null, User, null, "Projects.Scheduling<EditProjectTask>Begin");
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>Begin");
             try
             {
                 var pt = await _context.ProjectTask.FirstOrDefaultAsync(pt => pt.ProjectTaskId == taskId);
@@ -148,7 +135,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     pt.ProjectTaskName = name;
                 }
-                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe angelegt", pt, false);
+                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe bearbeitet", pt, false);
 
                 _context.ProjectTask.Update(pt);
                 await _context.SaveChangesAsync();
@@ -157,13 +144,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
-            await _logger.Log(null, User, null, "Projects.Scheduling<EditProjectTask>End");
-            return Page();
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>End");
+            return RedirectToPage(new { id = Project.ProjectId });
         }
 
-        public async Task<IActionResult> CreateProjectSection(string projectId, string Name)
+        public async Task<IActionResult> OnPostCreateProjectSectionAsync(string projectId, string Name)
         {
-            await _logger.Log(null, User, null, "Projects.Scheduling<CreateProjectSection>Begin");
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectSectionAsync>Begin");
             try
             {
                 var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
@@ -181,13 +168,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
-            await _logger.Log(null, User, null, "Projects.Scheduling<CreateProjectSection>End");
-            return Page();
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectSectionAsync>End");
+            return RedirectToPage(new { id = Project.ProjectId });
         }
 
-        public async Task<IActionResult> EditProjectSection(string sectionId, string? Name)
+        public async Task<IActionResult> OnPostEditProjectSectionAsync(string sectionId, string? Name)
         {
-            await _logger.Log(null, User, null, "Projects.Scheduling<EditProjectSection>Begin");
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectSectionAsync>Begin");
             try
             {
                 var section = await _context.ProjectSection.FirstOrDefaultAsync(s => s.ProjectSectionId == sectionId);
@@ -203,13 +190,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
-            await _logger.Log(null, User, null, "Projects.Scheduling<EditProjectSection>End");
-            return Page();
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectSectionAsync>End");
+            return RedirectToPage(new { id = Project.ProjectId });
         }
 
-        public async Task<IActionResult> CreateSubSection(string parentSectionId, string Name)
+        public async Task<IActionResult> OnPostCreateSubSectionAsync(string parentSectionId, string Name)
         {
-            await _logger.Log(null, User, null, "Projects.Scheduling<CreateSubSection>Begin");
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateSubSectionAsync>Begin");
             try
             {
                 var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
@@ -227,30 +214,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
-            await _logger.Log(null, User, null, "Projects.Scheduling<CreateSubSection>End");
-            return Page();
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateSubSectionAsync>End");
+            return RedirectToPage(new { id = Project.ProjectId });
         }
 
-        public async Task<IActionResult> EditSubSection(string subSectionId, string? Name)
-        {
-            await _logger.Log(null, User, null, "Projects.Scheduling<EditSubSection>Begin");
-            try
-            {
-                var sub = await _context.ProjectSection.FirstOrDefaultAsync(s => s.ProjectSectionId == subSectionId);
-                if (Name != null)
-                {
-                    sub.ProjectSectionName = Name;
-                }
-                sub = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unterabschnitt bearbeitet", sub, false);
-                _context.ProjectSection.Update(sub);
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
-            }
-            await _logger.Log(null, User, null, "Projects.Scheduling<EditSubSection>End");
-            return Page();
-        }
     }
 }
