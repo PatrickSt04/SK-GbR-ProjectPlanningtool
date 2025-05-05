@@ -116,9 +116,21 @@ public static class DbInitializer
                 var startDateTime = DateTime.Now.AddDays(i * 10);
                 var startDate = DateOnly.FromDateTime(startDateTime);
                 var dueDate = startDate.AddMonths(6); // Projekte dauern etwa 6 Monate
+                var projectBudget = new ProjectBudget
+                {
 
+                    CreatedByEmployee = employee,
+                    CreatedTimestamp = DateTime.Now,
+                    Company = company,
+                    LatestModifier = employee,
+                    LatestModificationTimestamp = DateTime.Now,
+                    LatestModificationText = "Projektbudget erstellt",
+                };
+                context.Add(projectBudget);
+                await context.SaveChangesAsync();
                 var project = new Project
                 {
+                    ProjectBudget = projectBudget,
                     ProjectName = projectName,
                     ResponsiblePerson = employee,
                     ProjectDescription = $"Projekt für {customer.CustomerName} mit dem Schwerpunkt auf {GetProjectFocus(projectName)}.",

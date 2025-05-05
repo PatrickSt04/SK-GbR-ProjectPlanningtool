@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SAAS_Projectplanningtool.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -201,7 +201,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -220,7 +222,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     DefaultWorkDays = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -252,7 +256,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -276,12 +282,15 @@ namespace SAAS_Projectplanningtool.Migrations
                     EmployeeId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     IdentityUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    IdentityRoleId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    IdentityRoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     HourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    DeleteFlag = table.Column<bool>(type: "bit", nullable: false),
                     EmployeeDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -302,10 +311,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_Employee_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Employee_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -318,7 +334,10 @@ namespace SAAS_Projectplanningtool.Migrations
                     HourlyRateGroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeleteFlag = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -329,10 +348,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_HourlyRateGroup_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_HourlyRateGroup_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -368,7 +394,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     UsedBudget = table.Column<float>(type: "real", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -379,10 +407,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_ProjectBudget_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_ProjectBudget_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -395,7 +430,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     IsEmployeeRessourceType = table.Column<bool>(type: "bit", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -406,10 +443,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_RessourceType_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_RessourceType_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -420,7 +464,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -431,10 +477,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_Unit_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Unit_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -454,7 +507,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -470,10 +525,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Customer",
                         principalColumn: "CustomerId");
                     table.ForeignKey(
+                        name: "FK_Project_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Project_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Project_Employee_ResponsiblePersonId",
                         column: x => x.ResponsiblePersonId,
@@ -503,7 +565,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     RessourceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -514,10 +578,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_Ressource_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Ressource_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Ressource_RessourceType_RessourceTypeId",
                         column: x => x.RessourceTypeId,
@@ -543,7 +614,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -554,10 +627,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_ProjectSection_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_ProjectSection_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ProjectSection_ProjectSection_ParentSectionId",
                         column: x => x.ParentSectionId,
@@ -588,10 +668,14 @@ namespace SAAS_Projectplanningtool.Migrations
                     ProjectTaskName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ProjectSectionId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
                     StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -602,10 +686,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_ProjectTask_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_ProjectTask_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ProjectTask_ProjectSection_ProjectSectionId",
                         column: x => x.ProjectSectionId,
@@ -629,7 +720,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     AmountPerUnit = table.Column<float>(type: "real", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -640,10 +733,17 @@ namespace SAAS_Projectplanningtool.Migrations
                         principalTable: "Company",
                         principalColumn: "CompanyId");
                     table.ForeignKey(
+                        name: "FK_ProjectTaskRessource_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_ProjectTaskRessource_Employee_LatestModifierId",
                         column: x => x.LatestModifierId,
                         principalTable: "Employee",
-                        principalColumn: "EmployeeId");
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ProjectTaskRessource_ProjectTask_ProjectTaskId",
                         column: x => x.ProjectTaskId,
@@ -660,6 +760,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IX_Address_CompanyId",
                 table: "Address",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Address_CreatedById",
+                table: "Address",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Address_LatestModifierId",
@@ -711,6 +816,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "AddressId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Company_CreatedById",
+                table: "Company",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Company_LatestModifierId",
                 table: "Company",
                 column: "LatestModifierId");
@@ -736,6 +846,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Customer_CreatedById",
+                table: "Customer",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Customer_LatestModifierId",
                 table: "Customer",
                 column: "LatestModifierId");
@@ -744,6 +859,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IX_Employee_CompanyId",
                 table: "Employee",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employee_CreatedById",
+                table: "Employee",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employee_HourlyRateGroupId",
@@ -771,6 +891,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HourlyRateGroup_CreatedById",
+                table: "HourlyRateGroup",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HourlyRateGroup_LatestModifierId",
                 table: "HourlyRateGroup",
                 column: "LatestModifierId");
@@ -784,6 +909,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IX_Project_CompanyId",
                 table: "Project",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Project_CreatedById",
+                table: "Project",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Project_CustomerId",
@@ -816,6 +946,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProjectBudget_CreatedById",
+                table: "ProjectBudget",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProjectBudget_LatestModifierId",
                 table: "ProjectBudget",
                 column: "LatestModifierId");
@@ -824,6 +959,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IX_ProjectSection_CompanyId",
                 table: "ProjectSection",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProjectSection_CreatedById",
+                table: "ProjectSection",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProjectSection_LatestModifierId",
@@ -856,6 +996,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProjectTask_CreatedById",
+                table: "ProjectTask",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProjectTask_LatestModifierId",
                 table: "ProjectTask",
                 column: "LatestModifierId");
@@ -874,6 +1019,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IX_ProjectTaskRessource_CompanyId",
                 table: "ProjectTaskRessource",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProjectTaskRessource_CreatedById",
+                table: "ProjectTaskRessource",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProjectTaskRessource_LatestModifierId",
@@ -896,6 +1046,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Ressource_CreatedById",
+                table: "Ressource",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Ressource_LatestModifierId",
                 table: "Ressource",
                 column: "LatestModifierId");
@@ -916,6 +1071,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RessourceType_CreatedById",
+                table: "RessourceType",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RessourceType_LatestModifierId",
                 table: "RessourceType",
                 column: "LatestModifierId");
@@ -924,6 +1084,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IX_Unit_CompanyId",
                 table: "Unit",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Unit_CreatedById",
+                table: "Unit",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Unit_LatestModifierId",
@@ -938,25 +1103,52 @@ namespace SAAS_Projectplanningtool.Migrations
                 principalColumn: "CompanyId");
 
             migrationBuilder.AddForeignKey(
+                name: "FK_Address_Employee_CreatedById",
+                table: "Address",
+                column: "CreatedById",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_Address_Employee_LatestModifierId",
                 table: "Address",
                 column: "LatestModifierId",
                 principalTable: "Employee",
-                principalColumn: "EmployeeId");
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Company_Employee_CreatedById",
+                table: "Company",
+                column: "CreatedById",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Company_Employee_LatestModifierId",
                 table: "Company",
                 column: "LatestModifierId",
                 principalTable: "Employee",
-                principalColumn: "EmployeeId");
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Customer_Employee_CreatedById",
+                table: "Customer",
+                column: "CreatedById",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Customer_Employee_LatestModifierId",
                 table: "Customer",
                 column: "LatestModifierId",
                 principalTable: "Employee",
-                principalColumn: "EmployeeId");
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Employee_HourlyRateGroup_HourlyRateGroupId",
@@ -979,6 +1171,10 @@ namespace SAAS_Projectplanningtool.Migrations
 
             migrationBuilder.DropForeignKey(
                 name: "FK_HourlyRateGroup_Company_CompanyId",
+                table: "HourlyRateGroup");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_HourlyRateGroup_Employee_CreatedById",
                 table: "HourlyRateGroup");
 
             migrationBuilder.DropForeignKey(

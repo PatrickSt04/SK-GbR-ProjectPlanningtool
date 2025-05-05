@@ -62,6 +62,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     InitialBudget = InitialBudget,
                     CompanyId = companyuser.CompanyId,
                 };
+                projectBudget = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Projektbudget angelegt", projectBudget, true);
                 Project.ProjectBudget = projectBudget;
                 Project.CompanyId = companyuser.CompanyId;
 

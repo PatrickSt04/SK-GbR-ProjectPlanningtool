@@ -6,6 +6,7 @@ using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using Microsoft.AspNetCore.Mvc;
+using SAAS_Projectplanningtool.Models.Budgetplanning;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
@@ -57,7 +58,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, null, "Projects/Details<SetProjectArchived>End") });
             }
-                 }
+        }
         public async Task<IActionResult> OnPostUndoProjectArchivedAsync(string id, string origin)
         {
             await _logger.Log(null, User, null, "Projects/Details<UndoProjectArchived>Beginn");
@@ -177,6 +178,45 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 await _logger.Log(ex, User, null, "EXCEPTION: Projects/ProjectPageModel<GetEmployeeAsync>");
                 return null;
             }
+        }
+        public async Task<Project?> GetProjectAsync(string projectId)
+        {
+            var Project = await _context.Project
+                .Include(p => p.LatestModifier)
+                .Include(p => p.Company)
+                .Include(p => p.CreatedByEmployee)
+                .Include(p => p.Customer)
+                .Include(p => p.ProjectBudget)
+                .Include(p => p.ResponsiblePerson)
+                .Include(p => p.State)
+                // Projectsections lesen
+                .Include(p => p.ProjectSections)
+                //deren Tasks
+                .ThenInclude(ps => ps.ProjectTasks)
+                .ThenInclude(pt => pt.State)
+                // Projectsections lesen
+                .Include(p => p.ProjectSections)
+                // deren Subsections    
+                .ThenInclude(ps => ps.SubSections)
+                //deren Tasks
+                .ThenInclude(ss => ss.ProjectTasks)
+                .FirstOrDefaultAsync(m => m.ProjectId == projectId);
+            if (Project.ProjectSections != null)
+            {
+                foreach (var section in Project.ProjectSections)
+                {
+                    section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
+
+                    if (section.SubSections != null)
+                    {
+                        foreach (var subsection in section.SubSections)
+                        {
+                            subsection.State = await new StateManager(_context).GetSectionState(subsection.ProjectSectionId);
+                        }
+                    }
+                }
+            }
+            return Project;
         }
     }
 }

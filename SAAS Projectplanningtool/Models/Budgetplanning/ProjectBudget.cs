@@ -14,9 +14,9 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         [ForeignKey(nameof(CompanyId))]
         public Company? Company { get; set; }
         // The Initial Budget
-        public float InitialBudget { get; set; }
+        public float InitialBudget { get; set; } = 0.0f;
         // The current Budget which is already used
-        public float UsedBudget { get; set; }
+        public float UsedBudget { get; set; } = 0.0f;
 
         // Latest Modification Attributes
         public string? LatestModifierId { get; set; }
