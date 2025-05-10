@@ -33,6 +33,48 @@
                 </dl>
             </div>
         </div>
+        <div class="col-md-2">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Status</h5>
+                    <p class="card-text">
+                        @{
+                            bool isDeleteFlag = Model.HourlyRateGroup.DeleteFlag == true;
+                        }
+                        @if (!isDeleteFlag)
+                        {
+                            if (Model.isUsedInEmployee)
+                            {
+                                <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bi bi-archive"></i> Löschkennzeichen setzen
+                                    </button>
+                                </form>
+
+                            <p>Stundensatzgruppe wird bereits von Mitarbeitern verwendet. Zum Löschen darf keine Verwendung vorliegen</p>
+                            }
+                            else
+                            {
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId" style="display:inline;">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-archive"></i> Stundensatzgruppe Löschen
+                                </button>
+                            </form>
+                            }
+                        }
+                        else
+                        {
+                        <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId" style="display:inline;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-arrow-counterclockwise"></i> Wiederherstellen
+                            </button>
+                        </form>
+                        }
+
+                    </p>
+                </div>
+            </div>
+        </div>
         <dt class="col-sm-2">
             Stundensatz
         </dt>
@@ -49,5 +91,5 @@
 </div>
 <div>
     <a asp-page="./Edit" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId">Edit</a> |
-    <a asp-page="./Index">Back to List</a>
+    <a asp-page="/EmployeeManagement/Index">Back to List</a>
 </div>
