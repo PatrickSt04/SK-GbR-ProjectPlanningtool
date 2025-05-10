@@ -28,7 +28,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
 
         public Employee Employee { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(string id)
+        public async Task<IActionResult> OnGetAsync(string? id)
         {
             try
             {
@@ -80,6 +80,16 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
 
                 employee.DeleteFlag = true;
                 employee = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Löschkennzeichen gesetzt", employee, false);
+
+                // Login wird deaktiviert wenn Benutzer gelöscht wird
+                var identityUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == employee.IdentityUserId);
+                if (identityUser != null)
+                {
+                    identityUser.LockoutEnabled = true;
+                    identityUser.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100);
+                    _context.Users.Update(identityUser);
+                }
+
                 _context.Employee.Update(employee);
                 await _context.SaveChangesAsync();
 
@@ -113,6 +123,15 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
 
                 _context.Employee.Update(employee);
                 await _context.SaveChangesAsync();
+
+                //Login wird aktiviert wenn Benutzer gelöscht wird
+                var identityUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == employee.IdentityUserId);
+                if (identityUser != null)
+                {
+                    identityUser.LockoutEnabled = false;
+                    identityUser.LockoutEnd = null;
+                    _context.Users.Update(identityUser);
+                }
 
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Details<OnUndoDeleteFlag>End");
                 return RedirectToPage("/EmployeeManagement/Index");

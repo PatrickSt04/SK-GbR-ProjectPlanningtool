@@ -62,7 +62,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                 {
                     return Page();
                 }
-
+                HourlyRateGroup = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Stundensatzgruppe geändert", HourlyRateGroup, false);
                 _context.Attach(HourlyRateGroup).State = EntityState.Modified;
 
                 try
