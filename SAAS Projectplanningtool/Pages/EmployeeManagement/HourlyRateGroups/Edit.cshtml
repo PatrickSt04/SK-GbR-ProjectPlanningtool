@@ -15,11 +15,6 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="HourlyRateGroup.HourlyRateGroupId" />
             <div class="form-group">
-                <label asp-for="HourlyRateGroup.CompanyId" class="control-label"></label>
-                <select asp-for="HourlyRateGroup.CompanyId" class="form-control" asp-items="ViewBag.CompanyId"></select>
-                <span asp-validation-for="HourlyRateGroup.CompanyId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="HourlyRateGroup.HourlyRate" class="control-label"></label>
                 <input asp-for="HourlyRateGroup.HourlyRate" class="form-control" />
                 <span asp-validation-for="HourlyRateGroup.HourlyRate" class="text-danger"></span>
@@ -28,21 +23,6 @@
                 <label asp-for="HourlyRateGroup.HourlyRateGroupName" class="control-label"></label>
                 <input asp-for="HourlyRateGroup.HourlyRateGroupName" class="form-control" />
                 <span asp-validation-for="HourlyRateGroup.HourlyRateGroupName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HourlyRateGroup.LatestModifierId" class="control-label"></label>
-                <select asp-for="HourlyRateGroup.LatestModifierId" class="form-control" asp-items="ViewBag.LatestModifierId"></select>
-                <span asp-validation-for="HourlyRateGroup.LatestModifierId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HourlyRateGroup.LatestModificationTimestamp" class="control-label"></label>
-                <input asp-for="HourlyRateGroup.LatestModificationTimestamp" class="form-control" />
-                <span asp-validation-for="HourlyRateGroup.LatestModificationTimestamp" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HourlyRateGroup.LatestModificationText" class="control-label"></label>
-                <input asp-for="HourlyRateGroup.LatestModificationText" class="form-control" />
-                <span asp-validation-for="HourlyRateGroup.LatestModificationText" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
