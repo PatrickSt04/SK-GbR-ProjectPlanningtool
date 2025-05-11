@@ -115,6 +115,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 var employee = await GetEmployeeAsync();
                 var customers = await _context.Customer
                     .Where(c => c.CompanyId == employee.CompanyId) // Hier wird die CompanyId gefiltert
+                    .Where(c => c.DeleteFlag == false)
                     .OrderBy(c => c.CustomerName)
                     .ToListAsync();
 

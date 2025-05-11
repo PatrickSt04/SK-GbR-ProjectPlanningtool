@@ -42,11 +42,9 @@
                     @Html.DisplayFor(modelItem => item.Address.Street) @Html.DisplayFor(modelItem => item.Address.HouseNumber)
                 </td>
                 <td>
-                    @if (item.DeleteFlag == true)
+                    @if (item.DeleteFlag)
                     {
-                        <div class="badge">
-                            Löschvermerk
-                        </div>
+                                        <span class="badge bg-danger">Löschvermerk</span>
                     }
                 </td>
             </tr>

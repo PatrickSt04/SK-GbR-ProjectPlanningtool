@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.VisualStudio.Web.CodeGeneration;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
@@ -75,9 +76,17 @@ namespace SAAS_Projectplanningtool.CustomManagers
             // zurückgeben des modifizierten Objekts
 
             return ModifiedObject;
-
-
         }
+        public async Task<TObject> SetDeleteFlagAsync<TObject>(bool DeleteFlag, TObject ModifiedObject,ClaimsPrincipal User )
+        {
+            PropertyInfo property = ModifiedObject.GetType().GetProperty("DeleteFlag");
+            if (property != null && property.CanWrite)
+            {
+                property.SetValue(ModifiedObject, DeleteFlag);
+            }
+            ModifiedObject = await AddLatestModificationAsync(User, "Löschkennzeichen gesetzt", ModifiedObject, false);
 
+            return ModifiedObject;
+        }
     }
 }

@@ -87,8 +87,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                     return NotFound();
                 }
 
-                hourlyRateGroup.DeleteFlag = true;
-                hourlyRateGroup = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Löschkennzeichen gesetzt", hourlyRateGroup, false);
+                hourlyRateGroup = await new CustomObjectModifier(_context, _userManager).SetDeleteFlagAsync(true, hourlyRateGroup, User);
                 _context.HourlyRateGroup.Update(hourlyRateGroup);
                 await _context.SaveChangesAsync();
 
@@ -117,8 +116,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                     return NotFound();
                 }
 
-                hourlyRateGroup.DeleteFlag = false;
-                hourlyRateGroup = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Löschkennzeichen gesetzt", hourlyRateGroup, false);
+                hourlyRateGroup = await new CustomObjectModifier(_context, _userManager).SetDeleteFlagAsync(false, hourlyRateGroup, User);
 
                 _context.HourlyRateGroup.Update(hourlyRateGroup);
                 await _context.SaveChangesAsync();

@@ -5,60 +5,105 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
-
+<h1>@Model.Customer.CustomerName</h1>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <span style="color: grey; font-size: 0.9em;">
+        Ersteller: @Model.Customer.CreatedByEmployee.EmployeeDisplayName
+        | Erstellt am: @Model.Customer.CreatedTimestamp
+    </span>
+</div>
+<hr />
 <div>
-    <h4>Customer</h4>
-    <hr />
     <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.Company)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.Company.CompanyId)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.Address)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.Address.AddressId)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.CustomerName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.CustomerName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.LatestModifier)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.LatestModifier.EmployeeId)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.LatestModificationTimestamp)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.LatestModificationTimestamp)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.LatestModificationText)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.LatestModificationText)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.CreatedByEmployee)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.CreatedByEmployee.EmployeeId)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Customer.CreatedTimestamp)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Customer.CreatedTimestamp)
-        </dd>
+        <div class="col-md-2">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Projektstatus</h5>
+                    <p class="card-text">
+                        @{
+                            bool isArchived = Model.Customer.DeleteFlag == true;
+                        }
+                        @if (!isArchived)
+                        {
+                            <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Customer.CustomerId" style="display:inline;">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-archive"></i> Löschkennzeichen setzen
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Customer.CustomerId" asp-route-origin="Details" style="display:inline;">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Kunde wiederherstellen
+                                </button>
+                            </form>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karte 2: Letzte Änderung -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Letzte Änderung</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Änderer</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Customer.LatestModifier.EmployeeDisplayName)</dd>
+
+                        <dt class="col-sm-4">Zeitpunkt</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Customer.LatestModificationTimestamp)</dd>
+                    </dl>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Änderung</dt>
+                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Customer.LatestModificationText)</dd>
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <dt class="col-sm-2">
+                Name
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Customer.CustomerName)
+            </dd>
+
+            <h3>Adressdaten</h3>
+            <hr />
+
+            @* Adresse einmal vorbereiten *@
+            @{
+                var address = Model.Customer.Address;
+                var country = address?.Country ?? "nicht gepflegt";
+                var postalCode = address?.PostalCode ?? "nicht gepflegt";
+                var city = address?.City ?? "nicht gepflegt";
+                var street = address?.Street ?? "nicht gepflegt";
+                var houseNumber = address?.HouseNumber ?? "nicht gepflegt";
+            }
+
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <strong>Straße / Nr.</strong><br />
+                    @street @houseNumber
+                </div>
+                <div class="col-sm-6">
+                    <strong>PLZ / Stadt</strong><br />
+                    @postalCode @city
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <strong>Land</strong><br />
+                    @country
+                </div>
+            </div>
+        </div>
+
     </dl>
 </div>
 <div>
