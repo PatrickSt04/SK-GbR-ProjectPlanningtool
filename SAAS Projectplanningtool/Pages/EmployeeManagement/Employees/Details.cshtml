@@ -46,7 +46,7 @@
                     {
                         <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Employee.EmployeeId" style="display:inline;">
                             <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-archive"></i> Löschkennzeichen setzen
+                                <i class="bi bi-archive"></i> Sperren
                             </button>
                         </form>
                     }
@@ -54,7 +54,7 @@
                     {
                         <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Employee.EmployeeId" style="display:inline;">
                             <button type="submit" class="btn btn-success">
-                                <i class="bi bi-arrow-counterclockwise"></i> Wiederherstellen
+                                <i class="bi bi-arrow-counterclockwise"></i> Entsperren
                             </button>
                         </form>
                     }

@@ -77,7 +77,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
 
             return ModifiedObject;
         }
-        public async Task<TObject> SetDeleteFlagAsync<TObject>(bool DeleteFlag, TObject ModifiedObject,ClaimsPrincipal User )
+        public async Task<TObject> SetDeleteFlagAsync<TObject>(bool DeleteFlag, TObject ModifiedObject, ClaimsPrincipal User)
         {
             PropertyInfo property = ModifiedObject.GetType().GetProperty("DeleteFlag");
             if (property != null && property.CanWrite)

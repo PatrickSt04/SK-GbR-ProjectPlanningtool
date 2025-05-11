@@ -47,7 +47,7 @@
                         {
                             <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId" style="display:inline;">
                                 <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-archive"></i> Löschkennzeichen setzen
+                                    <i class="bi bi-archive"></i> Sperren
                                 </button>
                             </form>
 
@@ -57,7 +57,7 @@
                         {
                             <form method="post" asp-page-handler="Delete" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId" style="display:inline;">
                                 <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-archive"></i> Stundensatzgruppe Löschen
+                                    <i class="bi bi-archive"></i> Entsperren
                                 </button>
                             </form>
                         }

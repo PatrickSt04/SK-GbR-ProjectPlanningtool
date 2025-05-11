@@ -37,14 +37,14 @@
                     </a>
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Address.Country),
+                    @Html.DisplayFor(modelItem => item.Address.Country) @Html.DisplayFor(modelItem => item.Address.Region),
                     @Html.DisplayFor(modelItem => item.Address.PostalCode) @Html.DisplayFor(modelItem => item.Address.City),
                     @Html.DisplayFor(modelItem => item.Address.Street) @Html.DisplayFor(modelItem => item.Address.HouseNumber)
                 </td>
                 <td>
                     @if (item.DeleteFlag)
                     {
-                                        <span class="badge bg-danger">Löschvermerk</span>
+                        <span class="badge bg-danger">gesperrt</span>
                     }
                 </td>
             </tr>
