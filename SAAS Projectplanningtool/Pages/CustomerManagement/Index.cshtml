@@ -1,0 +1,55 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.CustomerManagement.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Kundenverwaltung</h1>
+<hr />
+<p>
+    <a asp-page="Create">
+        <button class="btn btn-secondary">
+            Neuen Kunden anlegen
+        </button>
+    </a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Adresse
+            </th>
+            <th>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Customer)
+        {
+            <tr>
+                <td>
+                    <a asp-page="Details" asp-route-id="@item.CustomerId">
+                        @Html.DisplayFor(modelItem => item.CustomerName)
+                    </a>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Address.Country),
+                    @Html.DisplayFor(modelItem => item.Address.PostalCode) @Html.DisplayFor(modelItem => item.Address.City),
+                    @Html.DisplayFor(modelItem => item.Address.Street) @Html.DisplayFor(modelItem => item.Address.HouseNumber)
+                </td>
+                <td>
+                    @if (item.DeleteFlag == true)
+                    {
+                        <div class="badge">
+                            Löschvermerk
+                        </div>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

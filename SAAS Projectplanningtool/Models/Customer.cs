@@ -31,5 +31,7 @@ namespace SAAS_Projectplanningtool.Models
         [ForeignKey(nameof(CreatedById))]
         public Employee? CreatedByEmployee { get; set; }
         public DateTime? CreatedTimestamp { get; set; }
+
+        public bool DeleteFlag { get; set; } = false;
     }
 }
