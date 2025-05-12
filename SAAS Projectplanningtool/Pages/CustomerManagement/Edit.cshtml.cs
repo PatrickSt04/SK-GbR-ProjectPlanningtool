@@ -29,8 +29,6 @@ namespace SAAS_Projectplanningtool.Pages.CustomerManagement
 
         [BindProperty]
         public Customer Customer { get; set; } = default!;
-        [BindProperty]
-        public Address Address { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
