@@ -12,8 +12,8 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250505201042_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250512194334_initialCreate")]
+    partial class initialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -573,6 +573,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("CustomerName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("DeleteFlag")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");

@@ -8,9 +8,10 @@
 <h1>@Model.Customer.CustomerName</h1>
 <div style="display: flex; justify-content: space-between; align-items: center;">
     <span style="color: grey; font-size: 0.9em;">
-        Ersteller: @Model.Customer.CreatedByEmployee.EmployeeDisplayName
-        | Erstellt am: @Model.Customer.CreatedTimestamp
+        Ersteller: @(Model.Customer.CreatedByEmployee != null ? Model.Customer.CreatedByEmployee.EmployeeDisplayName : "Unbekannt")
+        | Erstellt am: @(Model.Customer.CreatedTimestamp.HasValue ? Model.Customer.CreatedTimestamp.Value.ToString("dd.MM.yyyy HH:mm") : "Unbekannt")
     </span>
+
 </div>
 <hr />
 <div>
@@ -51,19 +52,25 @@
                     <h5 class="card-title">Letzte Änderung</h5>
                     <dl class="row mb-0">
                         <dt class="col-sm-4">Änderer</dt>
-                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Customer.LatestModifier.EmployeeDisplayName)</dd>
+                        <dd class="col-sm-8">
+                            @(Model.Customer.LatestModifier != null ? Model.Customer.LatestModifier.EmployeeDisplayName : "Unbekannt")
+                        </dd>
 
                         <dt class="col-sm-4">Zeitpunkt</dt>
-                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Customer.LatestModificationTimestamp)</dd>
+                        <dd class="col-sm-8">
+                            @(Model.Customer.LatestModificationTimestamp.HasValue ? Model.Customer.LatestModificationTimestamp.Value.ToString("dd.MM.yyyy HH:mm") : "Unbekannt")
+                        </dd>
                     </dl>
                     <dl class="row mb-0">
                         <dt class="col-sm-4">Änderung</dt>
-                        <dd class="col-sm-8">@Html.DisplayFor(model => model.Customer.LatestModificationText)</dd>
-
+                        <dd class="col-sm-8">
+                            @(string.IsNullOrWhiteSpace(Model.Customer.LatestModificationText) ? "Keine Angabe" : Model.Customer.LatestModificationText)
+                        </dd>
                     </dl>
                 </div>
             </div>
         </div>
+
         <div class="col-md-12">
             <dt class="col-sm-2">
                 Name
@@ -79,6 +86,7 @@
             @{
                 var address = Model.Customer.Address;
                 var country = address?.Country ?? "nicht gepflegt";
+                var region = address?.Region ?? "nicht gepflegt";
                 var postalCode = address?.PostalCode ?? "nicht gepflegt";
                 var city = address?.City ?? "nicht gepflegt";
                 var street = address?.Street ?? "nicht gepflegt";
@@ -99,7 +107,7 @@
             <div class="row mb-2">
                 <div class="col-sm-6">
                     <strong>Land</strong><br />
-                    @country
+                    @country @region
                 </div>
             </div>
         </div>

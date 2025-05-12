@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SAAS_Projectplanningtool.Migrations
 {
     /// <inheritdoc />
-    public partial class initial_create : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -258,7 +258,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeleteFlag = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

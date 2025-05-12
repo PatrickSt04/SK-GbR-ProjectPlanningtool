@@ -37,9 +37,12 @@
                     </a>
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Address.Country),
-                    @Html.DisplayFor(modelItem => item.Address.PostalCode) @Html.DisplayFor(modelItem => item.Address.City),
-                    @Html.DisplayFor(modelItem => item.Address.Street) @Html.DisplayFor(modelItem => item.Address.HouseNumber)
+                        <td>
+                        @(item.Address != null ? item.Address.Country : "") @(item.Address != null ? item.Address.Region : ""), 
+                        @(item.Address != null ? item.Address.PostalCode : "") @(item.Address != null ? item.Address.City : ""), 
+                        @(item.Address != null ? item.Address.Street : "") @(item.Address != null ? item.Address.HouseNumber : "")
+    </td>
+
                 </td>
                 <td>
                     @if (item.DeleteFlag)
