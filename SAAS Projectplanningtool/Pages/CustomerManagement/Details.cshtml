@@ -6,6 +6,12 @@
 }
 
 <h1>@Model.Customer.CustomerName</h1>
+@{
+    var creator = Model.Customer.CreatedByEmployee != null
+        ? Model.Customer.CreatedByEmployee.EmployeeDisplayName
+        : "Unbekannt";
+}
+
 <div style="display: flex; justify-content: space-between; align-items: center;">
     <span style="color: grey; font-size: 0.9em;">
         Ersteller: @(Model.Customer.CreatedByEmployee != null ? Model.Customer.CreatedByEmployee.EmployeeDisplayName : "Unbekannt")
@@ -13,6 +19,7 @@
     </span>
 
 </div>
+
 <hr />
 <div>
     <dl class="row">
@@ -28,7 +35,7 @@
                         {
                             <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Customer.CustomerId" style="display:inline;">
                                 <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-archive"></i> Löschkennzeichen setzen
+                                    <i class="bi bi-archive"></i> Sperren
                                 </button>
                             </form>
                         }
@@ -36,7 +43,7 @@
                         {
                             <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Customer.CustomerId" asp-route-origin="Details" style="display:inline;">
                                 <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Kunde wiederherstellen
+                                    <i class="bi bi-arrow-counterclockwise"></i> Entsperren
                                 </button>
                             </form>
                         }
@@ -46,6 +53,16 @@
         </div>
 
         <!-- Karte 2: Letzte Änderung -->
+        @{
+            var modifierName = Model.Customer.LatestModifier?.EmployeeDisplayName ?? "Unbekannt";
+            var modificationTimestamp = Model.Customer.LatestModificationTimestamp.HasValue
+            ? Model.Customer.LatestModificationTimestamp.Value.ToString("dd.MM.yyyy HH:mm")
+            : "Nicht verfügbar";
+            var modificationText = !string.IsNullOrWhiteSpace(Model.Customer.LatestModificationText)
+            ? Model.Customer.LatestModificationText
+            : "Keine Angabe";
+        }
+
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
@@ -91,6 +108,7 @@
                 var city = address?.City ?? "nicht gepflegt";
                 var street = address?.Street ?? "nicht gepflegt";
                 var houseNumber = address?.HouseNumber ?? "nicht gepflegt";
+                var region = address?.Region ?? "nicht gepflegt";
             }
 
             <div class="row mb-2">

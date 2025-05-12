@@ -23,81 +23,57 @@ namespace SAAS_Projectplanningtool.Pages.CustomerManagement
         public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
-            _userManager = userManager;
-            _logger = new Logger(context, userManager);
         }
 
         [BindProperty]
         public Customer Customer { get; set; } = default!;
-        [BindProperty]
-        public Address Address { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            try
+            if (id == null)
             {
-                await _logger.Log(null, User, null, "CustomerManagement/Edit<OnGet>Begin");
-                if (id == null)
-                {
-                    return NotFound();
-                }
+                return NotFound();
+            }
 
-                var customer = await _context.Customer
-                    .Include(c => c.Address)
-                    .FirstOrDefaultAsync(m => m.CustomerId == id);
-                if (customer == null)
-                {
-                    return NotFound();
-                }
-                Customer = customer;
-                Address = Customer.Address;
-                await _logger.Log(null, User, null, "CustomerManagement/Edit<OnGet>End" + Customer.CustomerId);
-                return Page();
-            }
-            catch (Exception ex)
+            var customer =  await _context.Customer.FirstOrDefaultAsync(m => m.CustomerId == id);
+            if (customer == null)
             {
-                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Customer, "ERROR: CustomerManagement/Edit<OnGet>") });
+                return NotFound();
             }
+            Customer = customer;
+           ViewData["AddressId"] = new SelectList(_context.Address, "AddressId", "AddressId");
+           ViewData["CompanyId"] = new SelectList(_context.Company, "CompanyId", "CompanyId");
+           ViewData["CreatedById"] = new SelectList(_context.Employee, "EmployeeId", "EmployeeId");
+           ViewData["LatestModifierId"] = new SelectList(_context.Employee, "EmployeeId", "EmployeeId");
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
+            _context.Attach(Customer).State = EntityState.Modified;
+
             try
             {
-                await _logger.Log(null, User, null, "CustomerManagement/Edit<OnPost>Begin");
-                if (!ModelState.IsValid)
-                {
-                    return Page();
-                }
-                _context.Address.Update(Address);
                 await _context.SaveChangesAsync();
-                // der Kunde muss seine Adresse wieder als Navigationselement erhalten
-                Customer.Address = Address;
-                Customer = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Kunde wurde geändert", Customer, false);
-                _context.Attach(Customer).State = EntityState.Modified;
-
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CustomerExists(Customer.CustomerId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                await _logger.Log(null, User, null, "CustomerManagement/Edit<OnPost>End");
-                return RedirectToPage("./Index");
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException)
             {
-                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Customer, "ERROR: CustomerManagement/Edit<OnPost>") });
+                if (!CustomerExists(Customer.CustomerId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
+
+            return RedirectToPage("./Index");
         }
 
         private bool CustomerExists(string id)

@@ -6,7 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SAAS_Projectplanningtool.Migrations
 {
     /// <inheritdoc />
+<<<<<<<< HEAD:SAAS Projectplanningtool/Migrations/20250512194334_initialCreate.cs
     public partial class initialCreate : Migration
+========
+    public partial class DatabaseMigration : Migration
+>>>>>>>> 1b0d86ffdfcdd5cfc9ae8e16952cbc1e458e48b1:SAAS Projectplanningtool/Migrations/20250511165937_DatabaseMigration.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

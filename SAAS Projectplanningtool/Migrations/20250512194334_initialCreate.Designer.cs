@@ -12,8 +12,13 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
+<<<<<<<< HEAD:SAAS Projectplanningtool/Migrations/20250512194334_initialCreate.Designer.cs
     [Migration("20250512194334_initialCreate")]
     partial class initialCreate
+========
+    [Migration("20250511165937_DatabaseMigration")]
+    partial class DatabaseMigration
+>>>>>>>> 1b0d86ffdfcdd5cfc9ae8e16952cbc1e458e48b1:SAAS Projectplanningtool/Migrations/20250511165937_DatabaseMigration.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

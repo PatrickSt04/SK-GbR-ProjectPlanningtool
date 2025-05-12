@@ -150,6 +150,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 var projectLeads = _context.Employee
                     .Where(e => e.IdentityRoleId == plannerRole.Id) // Hier wird die Rolle "Planner" gefiltert
                     .Where(e => e.CompanyId == employee.CompanyId) // Hier wird die CompanyId gefiltert
+                    .Where(e => e.DeleteFlag == false)
                     .Select(u => new
                     {
                         Id = u.EmployeeId,
