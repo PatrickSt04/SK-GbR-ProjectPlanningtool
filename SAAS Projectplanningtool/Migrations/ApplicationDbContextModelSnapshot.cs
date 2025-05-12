@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -12,16 +11,9 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:SAAS Projectplanningtool/Migrations/20250512194334_initialCreate.Designer.cs
-    [Migration("20250512194334_initialCreate")]
-    partial class initialCreate
-========
-    [Migration("20250511165937_DatabaseMigration")]
-    partial class DatabaseMigration
->>>>>>>> 1b0d86ffdfcdd5cfc9ae8e16952cbc1e458e48b1:SAAS Projectplanningtool/Migrations/20250511165937_DatabaseMigration.Designer.cs
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
