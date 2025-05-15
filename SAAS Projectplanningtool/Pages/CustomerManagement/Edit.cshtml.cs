@@ -33,50 +33,69 @@ namespace SAAS_Projectplanningtool.Pages.CustomerManagement
         public Address Address { get; set; } = default!;
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                await _logger.Log(null, User, null, "/CustomerManagement/Edit<OnGetAsync>Begin");
+                if (id == null)
+                {
+                    return NotFound();
+                }
 
-            var customer =  await _context.Customer.FirstOrDefaultAsync(m => m.CustomerId == id);
-            if (customer == null)
-            {
-                return NotFound();
+                var customer = await _context.Customer
+                    .Include(c => c.Address)
+                    .FirstOrDefaultAsync(m => m.CustomerId == id);
+                if (customer == null)
+                {
+                    return NotFound();
+                }
+                Customer = customer;
+                Address = Customer.Address;
+                await _logger.Log(null, User, Customer, "/CustomerManagement/Edit<OnGetAsync>End");
+                return Page();
             }
-            Customer = customer;
-           ViewData["AddressId"] = new SelectList(_context.Address, "AddressId", "AddressId");
-           ViewData["CompanyId"] = new SelectList(_context.Company, "CompanyId", "CompanyId");
-           ViewData["CreatedById"] = new SelectList(_context.Employee, "EmployeeId", "EmployeeId");
-           ViewData["LatestModifierId"] = new SelectList(_context.Employee, "EmployeeId", "EmployeeId");
-            return Page();
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Customer, "/CustomerManagement/Edit<OnGetAsync>") });
+            }
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
-
-            _context.Attach(Customer).State = EntityState.Modified;
-
             try
             {
+                await _logger.Log(null, User, Customer, "/CustomerManagement/Edit<OnPostAsync>Begin");
+                if (!ModelState.IsValid)
+                {
+                    return Page();
+                }
+                _context.Address.Update(Address);
                 await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CustomerExists(Customer.CustomerId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return RedirectToPage("./Index");
+                Customer = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Kunde geändert", Customer, false);
+                _context.Attach(Customer).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CustomerExists(Customer.CustomerId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                await _logger.Log(null, User, Customer, "/CustomerManagement/Edit<OnPostAsync>End");
+                return RedirectToPage("./Index");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Customer, "/CustomerManagement/Edit<OnPostAsync>ERROR") });
+            }
         }
 
         private bool CustomerExists(string id)
