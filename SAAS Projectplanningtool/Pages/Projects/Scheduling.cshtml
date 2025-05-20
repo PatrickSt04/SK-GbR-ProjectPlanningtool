@@ -1,114 +1,150 @@
-﻿@page
+﻿@page "{id}"
 @model SAAS_Projectplanningtool.Pages.Projects.EditModel
-
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using System.Text.Json
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Projekt‑Zeitplanung";
+
+    /**********************************************************************
+    * Build a combined task list (Sections **and** Tasks) for Frappe‑Gantt
+    **********************************************************************/
+                var ganttTasks = new List<object>();
+
+                (DateOnly? start, DateOnly? end) WalkSection(
+                    SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection sec,
+                    string path)
+                {
+        var currentPath = string.IsNullOrEmpty(path)
+            ? sec.ProjectSectionName
+            : $"{path} / {sec.ProjectSectionName}";
+
+        DateOnly? earliest = null;
+        DateOnly? latest = null;
+
+        // ---------- Tasks in this section ----------
+        if (sec.ProjectTasks != null)
+        {
+            foreach (var t in sec.ProjectTasks)
+            {
+                if (t.StartDate != null && t.EndDate != null)
+                {
+                    earliest = earliest == null || t.StartDate < earliest ? t.StartDate : earliest;
+                    latest = latest == null || t.EndDate > latest ? t.EndDate : latest;
+
+                    ganttTasks.Add(new
+                    {
+                        id = t.ProjectTaskId,
+                        name = $"{currentPath} / {t.ProjectTaskName}",
+                        start = t.StartDate!.Value.ToDateTime(new TimeOnly(0)).ToString("yyyy-MM-dd"),
+                        end = t.EndDate!.Value.ToDateTime(new TimeOnly(0)).ToString("yyyy-MM-dd"),
+                        progress = 0,
+                        dependencies = string.Empty,
+                        custom_class = "task-bar"
+                    });
+                }
+            }
+        }
+
+        // ---------- Recurse into subsections ----------
+        if (sec.SubSections != null)
+        {
+            foreach (var child in sec.SubSections)
+            {
+                var (childStart, childEnd) = WalkSection(child, currentPath);
+                earliest = childStart != null && (earliest == null || childStart < earliest) ? childStart : earliest;
+                latest = childEnd != null && (latest == null || childEnd > latest) ? childEnd : latest;
+            }
+        }
+
+        // ---------- Represent the section itself ----------
+        if (earliest != null && latest != null)
+        {
+            ganttTasks.Add(new
+            {
+                id = $"S_{sec.ProjectSectionId}",
+                name = currentPath,
+                start = earliest.Value.ToDateTime(new TimeOnly(0)).ToString("yyyy-MM-dd"),
+                end = latest.Value.ToDateTime(new TimeOnly(0)).ToString("yyyy-MM-dd"),
+                progress = 0,
+                dependencies = string.Empty,
+                custom_class = "section-bar"
+            });
+        }
+
+        return (earliest, latest);
+    }
+
+    if (Model.Project.ProjectSections != null)
+    {
+        foreach (var root in Model.Project.ProjectSections)
+        {
+            WalkSection(root, string.Empty);
+        }
+    }
+
+    var tasksJson = JsonSerializer.Serialize(ganttTasks);
 }
-<h1>Terminplanung</h1>
-<hr />
-<h4>@Model.Project.ProjectName</h4>
-<hr />
+
+<h2 class="mb-4">@Model.Project.ProjectName – Zeitplanung</h2>
+
+<!-- ================= Abschnitt anlegen ================= -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form method="post" asp-page-handler="CreateProjectSection" class="row gy-2 gx-3 align-items-center">
+            <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+            <input type="hidden" name="Project.ProjectId" value="@Model.Project.ProjectId" />
+            <div class="col-sm-9">
+                <input name="Name" class="form-control" placeholder="Neuen Abschnitt anlegen" required />
+            </div>
+            <div class="col-sm-3 d-grid">
+                <button class="btn btn-primary w-100" type="submit">Abschnitt hinzufügen</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div class="row">
-    @*WICHTIG: In jeder Formm input type hidden projectId mitgeben. Andernfalls wird die ProjectId falsch übergeben und der Redirect (als refresh) funktioniert nicht!!*@
-    <h5>Abschnitt anlegen</h5>
-    <form method="post" asp-page-handler="CreateProjectSection">
-        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-        <div class="form-group">
-            <label for="sectionName">Abschnittsname</label>
-            <input type="text" name="Name" class="form-control" required />
-        </div>
-        <button type="submit" class="btn btn-primary mt-2">Abschnitt anlegen</button>
-    </form>
+    <!-- ================= Baumstruktur ================= -->
+    <div class="col-lg-4 mb-4">
+        <h4>Struktur</h4>
+        <ul class="list-group" id="sectionTree">
+            @{
+                ViewData["ProjectId"] = Model.Project.ProjectId;
+            }
+            @foreach (var section in Model.Project.ProjectSections ?? Enumerable.Empty<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection>())
+            {
+                <partial name="_SectionNode" model="section" view-data="@ViewData" />
+            }
+        </ul>
+    </div>
 
-    <hr />
-
-    <h5>Abschnitt bearbeiten</h5>
-    <form method="post" asp-page-handler="EditProjectSection">
-        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-        <div class="form-group">
-            <label for="sectionId">Abschnitt auswählen (ID)</label>
-            <input type="text" name="sectionId" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label for="sectionName">Neuer Abschnittsname</label>
-            <input type="text" name="Name" class="form-control" />
-        </div>
-        <button type="submit" class="btn btn-primary mt-2">Abschnitt bearbeiten</button>
-    </form>
-
-    <hr />
-
-    <h5>Unterabschnitt anlegen</h5>
-    <form method="post" asp-page-handler="CreateSubSection">
-        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-        <div class="form-group">
-            <label for="parentSectionId">Übergeordneter Abschnitt (ID)</label>
-            <input type="text" name="parentSectionId" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label for="subSectionName">Unterabschnittsname</label>
-            <input type="text" name="Name" class="form-control" required />
-        </div>
-        <button type="submit" class="btn btn-primary mt-2">Unterabschnitt anlegen</button>
-    </form>
-
-    <hr />
-
-    <h5>Aufgabe anlegen</h5>
-    <form method="post" asp-page-handler="CreateProjectTask">
-        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-        <div class="form-group">
-            <label for="SectionId">Abschnitt (ID)</label>
-            <input type="text" name="SectionId" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label for="taskName">Aufgabenname</label>
-            <input type="text" name="Name" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label for="startDate">Startdatum</label>
-            <input type="date" name="startDate" class="form-control" />
-        </div>
-        <div class="form-group">
-            <label for="endDate">Enddatum</label>
-            <input type="date" name="endDate" class="form-control" />
-        </div>
-        <button type="submit" class="btn btn-primary mt-2">Aufgabe anlegen</button>
-    </form>
-
-    <hr />
-
-    <h5>Aufgabe bearbeiten</h5>
-    <form method="post" asp-page-handler="EditProjectTask">
-        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-        <div class="form-group">
-            <label for="taskId">Aufgabe auswählen (ID)</label>
-            <input type="text" name="taskId" class="form-control" required />
-        </div>
-        <div class="form-group">
-            <label for="taskName">Neuer Aufgabenname</label>
-            <input type="text" name="name" class="form-control" />
-        </div>
-        <div class="form-group">
-            <label for="startDate">Neues Startdatum</label>
-            <input type="date" name="startDate" class="form-control" />
-        </div>
-        <div class="form-group">
-            <label for="endDate">Neues Enddatum</label>
-            <input type="date" name="endDate" class="form-control" />
-        </div>
-        <button type="submit" class="btn btn-primary mt-2">Aufgabe bearbeiten</button>
-    </form>
-
+    <!-- ================= Gantt‑Diagramm ================= -->
+    <div class="col-lg-8">
+        <h4>Gantt</h4>
+        <div id="gantt" style="width: 100%; height: 600px;"></div>
+    </div>
 </div>
 
-<div class="mt-4">
-    <a asp-page="/Projects/Details" asp-route-id="@Model.Project.ProjectId">Zurück zur Projektübersicht</a>
-</div>
+<link href="https://unpkg.com/frappe-gantt@0.6.0/dist/frappe-gantt.css" rel="stylesheet" />
+<script src="https://unpkg.com/frappe-gantt@0.6.0/dist/frappe-gantt.js"></script>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+<style>
+    .bar.section-bar {
+        fill: #6c757d;
+        rx: 6px;
+        ry: 6px;
     }
-}
+
+    .bar.task-bar {
+        rx: 4px;
+        ry: 4px;
+    }
+</style>
+
+<script>
+    const tasks = @Html.Raw(tasksJson);
+    console.log('Gantt‑Tasks', tasks); // Debug‑Hilfe
+    const gantt = new Gantt("#gantt", tasks, { view_mode: "Day", language: "de" });
+</script>
+
+

@@ -1,0 +1,63 @@
+﻿@model SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<li class="list-group-item">
+    <div class="fw-semibold">@Model.ProjectSectionName</div>
+
+    @{
+        var projId = (string)ViewData["ProjectId"];
+    }
+
+    <!-- ---------- Unterabschnitt anlegen ---------- -->
+    <form method="post" asp-page-handler="CreateSubSection" class="input-group input-group-sm my-2">
+        <input type="hidden" name="parentSectionId" value="@Model.ProjectSectionId" />
+        <input type="hidden" name="Project.ProjectId" value="@projId" />
+        <input name="Name" class="form-control" placeholder="Unterabschnitt" required />
+        <button class="btn btn-outline-primary" type="submit">+</button>
+    </form>
+
+    <!-- ---------- Aufgabe anlegen ---------- -->
+    <form method="post" asp-page-handler="CreateProjectTask" class="row g-1 mb-2">
+        <input type="hidden" name="SectionId" value="@Model.ProjectSectionId" />
+        <input type="hidden" name="Project.ProjectId" value="@projId" />
+        <div class="col">
+            <input name="Name" class="form-control form-control-sm" placeholder="Aufgabe" required />
+        </div>
+        <div class="col">
+            <input name="startDate" type="date" class="form-control form-control-sm" required />
+        </div>
+        <div class="col">
+            <input name="endDate" type="date" class="form-control form-control-sm" required />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary btn-sm" type="submit">+</button>
+        </div>
+    </form>
+
+    <!-- ---------- Vorhandene Aufgaben ---------- -->
+    @if (Model.ProjectTasks != null && Model.ProjectTasks.Any())
+    {
+        <ul class="list-group list-group-flush ms-3 mb-2">
+            @foreach (var t in Model.ProjectTasks)
+            {
+                <li class="list-group-item py-1">
+                    <i class="bi bi-check-square me-1"></i>
+                    <span>@t.ProjectTaskName</span>
+                    <small class="text-muted ms-2">
+                        @t.StartDate?.ToString("dd.MM.") – @t.EndDate?.ToString("dd.MM.yyyy")
+                    </small>
+                </li>
+            }
+        </ul>
+    }
+
+    <!-- ---------- Unterabschnitte ---------- -->
+    @if (Model.SubSections != null && Model.SubSections.Any())
+    {
+        <ul class="list-group list-group-flush">
+            @foreach (var child in Model.SubSections)
+            {
+                <partial name="_SectionNode" model="child" view-data="@ViewData" />
+            }
+        </ul>
+    }
+</li>
