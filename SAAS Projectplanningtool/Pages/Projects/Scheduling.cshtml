@@ -2,18 +2,19 @@
 @model SAAS_Projectplanningtool.Pages.Projects.EditModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using System.Text.Json
+@using SAAS_Projectplanningtool.Pages.Projects
 @{
     ViewData["Title"] = "Projekt‑Zeitplanung";
 
     /**********************************************************************
     * Build a combined task list (Sections **and** Tasks) for Frappe‑Gantt
     **********************************************************************/
-                var ganttTasks = new List<object>();
+    var ganttTasks = new List<object>();
 
-                (DateOnly? start, DateOnly? end) WalkSection(
-                    SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection sec,
-                    string path)
-                {
+    (DateOnly? start, DateOnly? end) WalkSection(
+        SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection sec,
+        string path)
+    {
         var currentPath = string.IsNullOrEmpty(path)
             ? sec.ProjectSectionName
             : $"{path} / {sec.ProjectSectionName}";
@@ -86,6 +87,16 @@
 }
 
 <h2 class="mb-4">@Model.Project.ProjectName – Zeitplanung</h2>
+<!-- TEST: Delete Fehlerhandling-->
+@{
+    var message = TempData.GetMessage();
+}
+@if (message != null)
+{
+    <div class="alert alert-@message.Type.ToLower()">
+        @message.Message
+    </div>
+}
 
 <!-- ================= Abschnitt anlegen ================= -->
 <div class="card mb-4 shadow-sm">
@@ -114,6 +125,7 @@
             @foreach (var section in Model.Project.ProjectSections ?? Enumerable.Empty<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection>())
             {
                 <partial name="_SectionNode" model="section" view-data="@ViewData" />
+
             }
         </ul>
     </div>

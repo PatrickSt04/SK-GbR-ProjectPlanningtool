@@ -1,8 +1,28 @@
-﻿@model SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection
+﻿@using System.Text.Json
+@model SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 <li class="list-group-item">
     <div class="fw-semibold">@Model.ProjectSectionName</div>
+    <!-- TEST DELETE eines Objekts -->
+    <form method="post" asp-page-handler="DeleteSelected">
+        <input type="hidden" name="projectId" value="@Model.Project?.ProjectId" />
+        <input type="hidden" name="Project.ProjectId" value="@Model.Project?.ProjectId" />
+        @{
+            var flatSection = new
+            {
+                Model.ProjectSectionId,
+                Model.ProjectSectionName
+                // alles, was du brauchst, aber OHNE section.Project oder section.ProjectTasks
+            };
+            var json = JsonSerializer.Serialize(new { Type = "ProjectSection", Data = flatSection });
+        }
+        <input type="hidden" name="ObjectJson" value='@json' />
+        <button type="submit" class="btn btn-link p-0 ms-2" title="Abschnitt löschen">
+            <i class="bi bi-trash text-danger"></i>
+        </button>
 
+    </form>
+    <!--END TEST-->
     @{
         var projId = (string)ViewData["ProjectId"];
     }
@@ -45,6 +65,26 @@
                     <small class="text-muted ms-2">
                         @t.StartDate?.ToString("dd.MM.") – @t.EndDate?.ToString("dd.MM.yyyy")
                     </small>
+                    <!-- TEST DELETE eines Objekts -->
+                    <form method="post" asp-page-handler="DeleteSelected">
+                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                        <input type="hidden" name="Project.ProjectId" value="@Model.Project.ProjectId" />
+                        @{
+                            var flatSection = new
+                            {
+                                t.ProjectTaskId,
+                                t.ProjectTaskName
+                                // alles, was du brauchst, aber OHNE section.Project oder section.ProjectTasks
+                            };
+                            var json = JsonSerializer.Serialize(new { Type = "ProjectTask", Data = flatSection });
+                        }
+                        <input type="hidden" name="ObjectJson" value='@json' />
+                        <button type="submit" class="btn btn-link p-0 ms-2" title="Abschnitt löschen">
+                            <i class="bi bi-trash text-danger"></i>
+                        </button>
+
+                    </form>
+                    <!--END TEST-->
                 </li>
             }
         </ul>
@@ -57,6 +97,7 @@
             @foreach (var child in Model.SubSections)
             {
                 <partial name="_SectionNode" model="child" view-data="@ViewData" />
+                
             }
         </ul>
     }
