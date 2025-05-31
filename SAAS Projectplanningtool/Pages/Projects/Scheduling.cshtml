@@ -1,4 +1,5 @@
 ﻿@page
+@using SAAS_Projectplanningtool.Pages.Projects
 @model SAAS_Projectplanningtool.Pages.Projects.EditModel
 @{
     ViewData["Title"] = "Projektterminplanung - " + Model.Project?.ProjectName;
@@ -16,6 +17,27 @@
             </nav>
         </div>
     </div>
+    <!-- Delete Feedbackhandling (should only be displayed for certain amount of seconds-->
+@{
+    var message = TempData.GetMessage();
+}
+@if (message != null)
+{
+    <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
+        @message.Message
+    </div>
+
+    <script>
+        setTimeout(function () {
+            var msg = document.getElementById('feedback-message');
+            if (msg) {
+                msg.style.transition = "opacity 0.5s ease";
+                msg.style.opacity = 0;
+                setTimeout(() => msg.remove(), 500); // Remove after fade
+            }
+        }, 3000); // Display for 3 seconds
+    </script>
+}
 
     <!-- Toolbar -->
     <div class="row mb-3">
@@ -230,6 +252,7 @@
                 <div class="modal-body">
                     <p id="deleteConfirmText">Sind Sie sicher, dass Sie dieses Element löschen möchten?</p>
                     <input type="hidden" id="deleteObjectJson" name="objectJson" />
+                    <input type="hidden" name="Project.ProjectId" value="@Model.Project?.ProjectId" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
@@ -560,11 +583,15 @@ function deleteItem(itemId, itemType, itemName) {
     
     const jsonData = {
         Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
-        Data: itemType === 'task' ? 
-            { ProjectTaskId: itemId } : 
-            { ProjectSectionId: itemId }
+        Data: { itemId, itemName }
+    // const jsonData = {
+    //     Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
+    //     Data: itemType === 'task' ? 
+    //         { ProjectTaskId: itemId } : 
+    //         { ProjectSectionId: itemId }
     };
     
+    // document.getElementById('deleteObjectJson').value = jsonData;
     document.getElementById('deleteObjectJson').value = JSON.stringify(jsonData);
     
     new bootstrap.Modal(document.getElementById('deleteModal')).show();

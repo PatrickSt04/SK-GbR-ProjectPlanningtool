@@ -265,7 +265,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             try
             {
-                var sectionId = data.GetProperty("ProjectSectionId").GetString();
+                var sectionId = data.GetProperty("itemId").GetString();
                 if (string.IsNullOrWhiteSpace(sectionId))
                 {
                     TempData.SetMessage("Danger", "Ungültiger Abschnittsbezeichner.");
@@ -306,7 +306,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
         private async Task<IActionResult?> HandleDeleteProjectTask(JsonElement data)
         {
-            var taskId = data.GetProperty("ProjectTaskId").GetString();
+            var taskId = data.GetProperty("itemId").GetString();
             if (string.IsNullOrWhiteSpace(taskId))
             {
                 TempData.SetMessage("Danger", "Ungültiger Aufgabenbezeichner.");
