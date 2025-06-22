@@ -322,7 +322,16 @@
 
 
 <script>
-    // Project data from server
+
+    document.addEventListener('click', e=>{
+        if (e.target.classList.contains('caret')){
+            e.stopPropagation();                    // keine Zeilen-Clicks auslösen
+            toggleCollapse(e.target.dataset.id);
+        }
+    });
+
+    const collapsed = new Map(); 
+
     const projectData = {
         project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
             Id = Model.Project?.ProjectId,
@@ -364,8 +373,19 @@
         initializeGanttChart();
     });
 
+    function preloadCollapse(){
+        function walk(node){
+            if(node.Type !== 'task'){                  // nur Section/Subsection
+                collapsed.set(node.Id, true);         // ← als eingeklappt merken
+                if(node.SubSections) node.SubSections.forEach(walk);
+            }
+        }
+        projectData.project.Sections?.forEach(walk);
+    }
+
     function initializeGanttChart() {
         calculateDateRange();
+        preloadCollapse();
         renderTaskList();
         renderTimeline();
     }
@@ -391,50 +411,57 @@
         }
     }
 
-    // function renderTaskList() {
-    //     const taskListBody = document.getElementById('task-list-body');
-    //     taskListBody.innerHTML = '';
-    
-    //     if (!projectData.project.Sections) return;
-    
-    //     projectData.project.Sections.forEach(section => {
-    //         renderTaskRow(section, taskListBody);
-        
-    //         if (section.SubSections) {
-    //             section.SubSections.forEach(subSection => {
-    //                 renderTaskRow(subSection, taskListBody, true);
-                
-    //                 if (subSection.Tasks) {
-    //                     subSection.Tasks.forEach(task => {
-    //                         renderTaskRow(task, taskListBody, false, true);
-    //                     });
-    //                 }
-    //             });
-    //         }
-        
-    //         if (section.Tasks) {
-    //             section.Tasks.forEach(task => {
-    //                 renderTaskRow(task, taskListBody, false, true);
-    //             });
-    //         }
-    //     });
+    function isCollapsed(id){
+        return collapsed.has(id) && collapsed.get(id);   // true | false
+    }
 
-    //      const footer = document.createElement('div');
-    //     footer.className = 'task-row adder-row text-center';
-    //     footer.innerHTML = `
-    //          <button class="btn btn-sm btn-outline-primary"
-    //                  onclick="showAddSectionModal()">
-    //             <i class="fas fa-plus"></i> Neuer Abschnitt
-    //          </button>`;
-    //     taskListBody.appendChild(footer);
-    // }
+
+    function toggleCollapse(id){
+        collapsed.set(id, !isCollapsed(id));
+        renderTaskList();
+        renderTimeline();
+    }
+
+    /* Ermittelt frühesten Start / spätestes Ende unterhalb eines Knotens */
+    function getDateRange(node){
+        let min = node.StartDate ? new Date(node.StartDate) : null;
+        let max = node.EndDate   ? new Date(node.EndDate)   : null;
+
+        if(node.SubSections){
+            node.SubSections.forEach(sub=>{
+                const [s,e] = getDateRange(sub);
+                if(s && (!min || s<min)) min=s;
+                if(e && (!max || e>max)) max=e;
+            });
+        }
+        if(node.Tasks){
+            node.Tasks.forEach(t=>{
+                if(t.StartDate){
+                    const d=new Date(t.StartDate);
+                    if(!min || d<min) min=d;
+                }
+                if(t.EndDate){
+                    const d=new Date(t.EndDate);
+                    if(!max || d>max) max=d;
+                }
+            });
+        }
+        return [min,max];
+    }
+
     function renderTaskList() {
-        const body = document.getElementById('task-list-body');
-        body.innerHTML = '';
+        // const body = document.getElementById('task-list-body');
+        // body.innerHTML = '';
 
-        if (!projectData.project.Sections) return;
+        // if (!projectData.project.Sections) return;
 
-        projectData.project.Sections.forEach(sec => walk(sec, 0));
+        // projectData.project.Sections.forEach(sec => walk(sec, 0));
+
+        const body=document.getElementById('task-list-body');
+        body.innerHTML='';
+
+        if(!projectData.project.Sections) return;
+        projectData.project.Sections.forEach(sec=>walk(sec,0));
 
         /* Footer-Adder ganz unten */
         const footer = document.createElement('div');
@@ -452,6 +479,8 @@
         // ---------- rekursive Hilfsfunktion ----------
         function walk(node, depth){
             renderTaskRow(node, body, depth);
+
+            if(node.Type==='task' || isCollapsed(node.Id)) return;
 
             // Inline-Adder hinter jedem Nicht-Task
             if(node.Type !== 'task'){
@@ -479,30 +508,54 @@
     }
 
     function renderTaskRow(item, container, depth){
-        const row  = document.createElement('div');
-        row.className     = `task-row ${item.Type}`;
+        /* Grundgerüst */
+        const row = document.createElement('div');
+        row.className = `task-row ${item.Type}`;
         row.style.setProperty('--lvl', depth);
-        // row.dataset.level = depth;      // Einrückungs-Level
-        row.dataset.id    = item.Id;
-        row.dataset.type  = item.Type;
+        row.dataset.id   = item.Id;
+        row.dataset.type = item.Type;
+
+        /* ⬇︎  NEU: Datenbereich ermitteln  --------------------------- */
+        let start = item.StartDate;
+        let end   = item.EndDate;
+
+        if(item.Type !== 'task'){                   // Section / Subsection
+            const [min, max] = getDateRange(item);  // rekursive Suche
+            if(min && max){
+                start = min.toISOString().slice(0,10);   // "yyyy-mm-dd"
+                end   = max.toISOString().slice(0,10);
+            }
+        }
+
+        const duration = (start && end) ? calculateDuration(start, end) : '-';
+        const startStr = start ? formatDate(start) : '-';
+        const endStr   = end   ? formatDate(end)   : '-';
+
+        /* Pfeil & Aktionen bleiben wie zuvor ------------------------ */
+        const hasChildren =
+            (item.SubSections && item.SubSections.length) ||
+            (item.Tasks       && item.Tasks.length);
+
+        const folded = isCollapsed(item.Id);
+        const caret  = hasChildren
+            ? `<i class="fas fa-caret-down caret ${folded ? 'collapsed' : ''}"
+                  data-id="${item.Id}"></i>`
+            : '';
 
         const isTask = item.Type === 'task';
-        const duration     = calculateDuration(item.StartDate, item.EndDate);
-        const startDateStr = item.StartDate ? formatDate(item.StartDate) : '-';
-        const endDateStr   = item.EndDate   ? formatDate(item.EndDate)   : '-';
 
         row.innerHTML = `
-            <div class="task-name">${item.Name}</div>
+            <div class="task-name">${caret}${item.Name}</div>
             <div class="task-duration">${duration}</div>
-            <div class="task-start">${startDateStr}</div>
-            <div class="task-end">${endDateStr}</div>
+            <div class="task-start">${startStr}</div>
+            <div class="task-end">${endStr}</div>
             <div class="task-actions">
                 ${isTask ? `
-                   <button class="btn btn-sm btn-outline-primary me-1"
-                           onclick="editTask('${item.Id}', '${item.Name}',
-                                             '${item.StartDate || ''}', '${item.EndDate || ''}')">
-                       <i class="fas fa-edit"></i>
-                   </button>` : ''}
+                    <button class="btn btn-sm btn-outline-primary me-1"
+                            onclick="editTask('${item.Id}', '${item.Name}',
+                                              '${item.StartDate || ''}', '${item.EndDate || ''}')">
+                        <i class="fas fa-edit"></i>
+                    </button>` : ''}
                 <button class="btn btn-sm btn-outline-danger"
                         onclick="deleteItem('${item.Id}', '${item.Type}', '${item.Name}')">
                     <i class="fas fa-trash"></i>
@@ -510,6 +563,8 @@
             </div>`;
         container.appendChild(row);
     }
+
+
 
     function showAddSubSectionModal(parentId){
        document.getElementById('parentSubSectionId').value = parentId;
@@ -536,7 +591,7 @@
 
     function renderTimelineHeader(container) {
         const totalDays = Math.ceil((ganttEndDate - ganttStartDate) / (1000 * 60 * 60 * 24));
-        const dayWidth = 40; // pixels per day
+        const dayWidth = 48; // pixels per day
     
         for (let i = 0; i <= totalDays; i += (currentTimeScale === 'day' ? 1 : currentTimeScale === 'week' ? 7 : 30)) {
             const date = new Date(ganttStartDate);
@@ -591,46 +646,51 @@
     //     });
     // }
 
-    function renderTimelineBars(container) {
-        const totalDays = Math.ceil((ganttEndDate - ganttStartDate) / 86400000);
-        const dayWidth  = 40;
-        let rowIndex    = 0;
+    function renderTimelineBars(container){
+        const totalDays=Math.ceil((ganttEndDate-ganttStartDate)/86400000);
+        const dayWidth=48;
+        let row=0;
+        container.style.width=(totalDays*dayWidth)+'px';
+        container.style.height=(calculateTotalRows()*40)+'px';
 
-        container.style.width  = (totalDays * dayWidth) + 'px';
-        container.style.height = (calculateTotalRows() * 40) + 'px';
+        if(!projectData.project.Sections) return;
+        projectData.project.Sections.forEach(sec=>walk(sec,0));
 
-        if (!projectData.project.Sections) return;
+        /* ---------- rekursiv ---------- */
+        function walk(node,depth){
+            // const isCollapsed=collapsed.get(node.Id);
+            const fold = isCollapsed(node.Id)
 
-        projectData.project.Sections.forEach(section => {
-            draw(section);            // Section-Balken
-            rowIndex += 2;            // + Section-Adder-Row
-
-            if (section.SubSections) {
-                section.SubSections.forEach(sub => {
-                    draw(sub);        // Subsection-Balken
-                    rowIndex += 2;    // + Sub-Adder-Row
-
-                    if (sub.Tasks) {
-                        sub.Tasks.forEach(task => {
-                            draw(task);
-                            rowIndex++;           // Task-Row
-                        });
-                    }
-                });
+            if(node.Type!=='task' && fold){
+                const [min,max]=getDateRange(node);
+                if(min&&max) drawBar(node,min,max,row,dayWidth,'fold');
+                row++;                              // eigene Zeile
+                return;                             // Kinder überspringen
             }
 
-            if (section.Tasks) {
-                section.Tasks.forEach(task => {
-                    draw(task);
-                    rowIndex++;                   // Task-Row
-                });
-            }
-        });
+            if(node.StartDate&&node.EndDate)
+                drawBar(node,new Date(node.StartDate),new Date(node.EndDate),row,dayWidth,node.Type);
+            row++;                                  // eigene Zeile
 
-        /* Hilfsfunktion */
-        function draw(item){
-            if (!item.StartDate || !item.EndDate) return;
-            renderTimelineBar(item, container, rowIndex, dayWidth);
+            if(node.Type!=='task'){
+                /* Adder-Row überspringen => +1 */
+                row++;
+                if(node.SubSections) node.SubSections.forEach(sub=>walk(sub,depth+1));
+                if(node.Tasks)       node.Tasks.forEach(t  =>walk(t,  depth+1));
+            }
+        }
+
+        function drawBar(item,startDate,endDate,r,dayWidth,extraClass=''){
+            const startOff=Math.max(0,Math.ceil((startDate-ganttStartDate)/86400000));
+            const dur=Math.ceil((endDate-startDate)/86400000)+1;
+
+            const bar=document.createElement('div');
+            bar.className=`timeline-bar ${item.Type} ${extraClass}`;
+            bar.style.left =(startOff*dayWidth)+'px';
+            bar.style.width=(dur*dayWidth-4)+'px';
+            bar.style.top  =(r*40+10)+'px';
+            bar.textContent=item.Name;
+            container.appendChild(bar);
         }
     }
 
@@ -691,17 +751,19 @@
 //     return rows;
 // }
     function calculateTotalRows(){
-        if(!projectData.project.Sections) return 1; // Footer
-        let rows = 1;                               // Footer
+        let rows=1;                                // Footer
+        if(!projectData.project.Sections) return rows;
 
         function walk(node){
-            rows++;                                 // eigene Zeile
-            if(node.Type!=='task') rows++;          // Adder-Row
+            rows++;                                // eigene Zeile
+            if(node.Type==='task') return;         // fertig
 
+            if(collapsed.get(node.Id)) return;     // Kinder versteckt
+
+            rows++;                                // Adder
             if(node.SubSections) node.SubSections.forEach(walk);
             if(node.Tasks)       node.Tasks.forEach(walk);
         }
-
         projectData.project.Sections.forEach(walk);
         return rows;
     }

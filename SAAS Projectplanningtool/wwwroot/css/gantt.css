@@ -227,6 +227,21 @@
     flex: 1;
 }
 
+.task-name .caret {
+    cursor: pointer;
+    margin-right: .3rem;
+}
+
+.caret.collapsed {
+    transform: rotate(-90deg);
+}
+/* Pfeil nach rechts */
+.timeline-bar.fold {
+    background: #6c757d;
+    opacity: .75;
+}
+/* Sammel-Balken */
+
 .task-row {
     display: flex;
     border-bottom: 1px solid #dee2e6;
