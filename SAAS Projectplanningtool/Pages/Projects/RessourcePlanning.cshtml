@@ -1,0 +1,55 @@
+﻿@page
+@using SAAS_Projectplanningtool.Models.Budgetplanning
+@model SAAS_Projectplanningtool.Pages.Projects.RessourcePlanningModel
+
+@{
+    ViewData["Title"] = "Ressourcenplanung - " + Model.Project?.ProjectName;
+}
+
+<!-- Modals -->
+<!-- Planning Choice Modal -->
+<div class="modal fade" id="choosePlanningModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Was möchten Sie anlegen?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body d-grid gap-3">
+                <button id="chooseRessourceBtn" class="btn btn-outline-success btn-lg">
+                    <i class="fas fa-tasks me-2"></i> Ressourcen planen
+                </button>
+                <button id="chooseHourlyRateGroupBtn" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sitemap me-2"></i> Stundensatzgruppen planen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Ressource Modal -->
+<div class="modal fade" id="addRessourceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="">
+                <div class="modal-header"></div>
+                <div class="modal-body"></div>
+                <div class="modal-footer"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add HourlyRateGroups Modal -->
+<div class="modal fade" id="addHRGsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="">
+                <div class="modal-header"></div>
+                <div class="modal-body"></div>
+                <div class="modal-footer"></div>
+            </form>
+        </div>
+    </div>
+</div>
+

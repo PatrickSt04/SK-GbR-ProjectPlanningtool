@@ -149,7 +149,16 @@
                 </table>
         </div>
     </div> *@
-
+    <button type="button" class="btn btn-primary">
+        <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId">
+        Terminplanung
+        </a>
+    </button>
+    <button type="button" class="btn btn-primary">
+        <a asp-page="/Projects/Ressourceplanning" asp-route-id="@Model.Project.ProjectId">
+        Ressourcenplanung
+        </a>
+    </button>
     <div id="gantt-left">
         <div class="gantt-task-list">
             <div class="gantt-header">
