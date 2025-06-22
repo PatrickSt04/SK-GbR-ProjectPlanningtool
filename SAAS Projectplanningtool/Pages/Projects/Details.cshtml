@@ -5,7 +5,8 @@
     ViewData["Title"] = "Details";
 }
 
-<link rel="stylesheet" href="~/css/progress.css">
+@* <link rel="stylesheet" href="~/css/progress.css"> *@
+<link rel="stylesheet" href="/css/gantt.css">
 <h3>@Model.Project.ProjectName</h3>
 <div style="display: flex; justify-content: space-between; align-items: center;">
     <span style="color: grey; font-size: 0.9em;">
@@ -125,7 +126,7 @@
     </div>
 
      <div class="col-md-5">
-     <hr />
+     @* <hr />
         <div class="d-flex justify-content-between align-items-center">
      <h6><strong>@Model.Project.ProjectName</strong></h6>
             <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId">
@@ -146,6 +147,21 @@
                 }
                     </tbody>
                 </table>
+        </div>
+    </div> *@
+
+    <div id="gantt-left">
+        <div class="gantt-task-list">
+            <div class="gantt-header">
+                <div class="task-name-header">Aufgabe</div>
+                <div class="task-duration-header">Dauer</div>
+                <div class="task-start-header">Start</div>
+                <div class="task-end-header">Ende</div>
+                <div class="task-actions-header">Aktionen</div>
+            </div>
+            <div id="task-list-body" class="gantt-task-list-body">
+                <!-- Zeilen werden per JS gefüllt -->
+            </div>
         </div>
     </div>
 
@@ -253,3 +269,124 @@
         }
     }
 }
+
+<script>
+    /* ───────────────────────── Daten aus Razor ───────────────────────── */
+    const projectData = {
+        project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+            Id   = Model.Project.ProjectId,
+            Name = Model.Project.ProjectName,
+            Sections = Model.Project.ProjectSections?
+                       .Where(s => s.ParentSectionId == null).Select(s => new {
+                           Id   = s.ProjectSectionId,
+                           Name = s.ProjectSectionName,
+                           Type = "section",
+                           SubSections = s.SubSections?.Select(sub => new {
+                               Id   = sub.ProjectSectionId,
+                               Name = sub.ProjectSectionName,
+                               Type = "subsection",
+                               Tasks = sub.ProjectTasks?.Select(t => new {
+                                   Id   = t.ProjectTaskId,
+                                   Name = t.ProjectTaskName,
+                                   StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                                   EndDate   = t.EndDate?.ToString("yyyy-MM-dd"),
+                                   Type = "task"
+                               })
+                           }),
+                           Tasks = s.ProjectTasks?.Select(t => new {
+                               Id   = t.ProjectTaskId,
+                               Name = t.ProjectTaskName,
+                               StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                               EndDate   = t.EndDate?.ToString("yyyy-MM-dd"),
+                               Type = "task"
+                           })
+                       })
+        }))
+    };
+
+    /* ───────────────────── Collapse-State & Utils ────────────────────── */
+    const collapsed = new Map();          // alle zuerst eingeklappt
+    function isCollapsed(id){ return collapsed.get(id); }
+    function toggleCollapse(id){
+        collapsed.set(id,!isCollapsed(id));
+        renderTaskList();
+    }
+
+    /* Datumshilfen */
+    function calculateDuration(s,e){
+        if(!s||!e) return '-';
+        const d=Math.ceil((new Date(e)-new Date(s))/86400000)+1;
+        return d+'d';
+    }
+    function formatDate(d){ return new Date(d).toLocaleDateString('de-DE'); }
+
+    /* Frühester/Spätester Termin unterhalb eines Knotens */
+    function getRange(node){
+      let min=node.StartDate?new Date(node.StartDate):null;
+      let max=node.EndDate  ?new Date(node.EndDate)  :null;
+      if(node.SubSections) node.SubSections.forEach(s=>{
+            const [a,b]=getRange(s); if(a&&(!min||a<min))min=a; if(b&&(!max||b>max))max=b;
+      });
+      if(node.Tasks) node.Tasks.forEach(t=>{
+            if(t.StartDate){const d=new Date(t.StartDate);if(!min||d<min)min=d;}
+            if(t.EndDate  ){const d=new Date(t.EndDate); if(!max||d>max)max=d;}
+      });
+      return [min,max];
+    }
+
+    /* ───────────────────── Rendering der linken Liste ─────────────────── */
+    function renderTaskList(){
+        const body=document.getElementById('task-list-body');
+        body.innerHTML='';                                 // reset
+        projectData.project.Sections?.forEach(sec=>walk(sec,0));
+
+        function walk(node,depth){
+            addRow(node,depth);
+
+            if(node.Type==='task' || isCollapsed(node.Id)) return;
+            if(node.SubSections) node.SubSections.forEach(s => walk(s,depth+1));
+            if(node.Tasks)       node.Tasks.forEach (t => walk(t,depth+1));
+        }
+
+        function addRow(item,depth){
+            const row=document.createElement('div');
+            row.className=`task-row ${item.Type}`;
+            row.style.setProperty('--lvl',depth);
+
+            /* Pfeil */
+            const hasChildren =
+                 (item.SubSections && item.SubSections.length) ||
+                 (item.Tasks       && item.Tasks.length);
+            if(!collapsed.has(item.Id)) collapsed.set(item.Id,true);      // default zu
+            const fold = isCollapsed(item.Id);
+            const caret = hasChildren
+                ? `<i class="fas fa-caret-down caret ${fold?'collapsed':''}"
+                      data-id="${item.Id}"></i>` : '';
+
+            /* Daten für Section/Subsection berechnen */
+            let start=item.StartDate,end=item.EndDate;
+            if(item.Type!=='task'){
+                const [min,max]=getRange(item);
+                start=min?min.toISOString().slice(0,10):null;
+                end  =max?max.toISOString().slice(0,10):null;
+            }
+
+            row.innerHTML=`
+               <div class="task-name">${caret}${item.Name}</div>
+               <div class="task-duration">${calculateDuration(start,end)}</div>
+               <div class="task-start">${start?formatDate(start):'-'}</div>
+               <div class="task-end">${end?formatDate(end):'-'}</div>
+               <div class="task-actions"></div>`;
+            body.appendChild(row);
+        }
+    }
+
+    /* ───────── Klick-Delegation & Initiales Rendering ───────── */
+    document.addEventListener('click',ev=>{
+       if(ev.target.classList.contains('caret')){
+           toggleCollapse(ev.target.dataset.id);
+           ev.stopPropagation();
+       }
+    });
+    document.addEventListener('DOMContentLoaded',renderTaskList);
+</script>
