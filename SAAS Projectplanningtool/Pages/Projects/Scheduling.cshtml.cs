@@ -94,7 +94,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return _context.Project.Any(e => e.ProjectId == id);
         }
 
-        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
+        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
             try
@@ -118,10 +118,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>End");
-            return RedirectToPage(new { id = Project.ProjectId });
+            return RedirectToPage(new { id = projectId });
         }
 
-        public async Task<IActionResult> OnPostEditProjectTaskAsync(string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
+        public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>Begin");
             try
@@ -149,7 +149,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>End");
-            return RedirectToPage(new { id = Project.ProjectId });
+            return RedirectToPage(new { id = projectId });
         }
 
         public async Task<IActionResult> OnPostCreateProjectSectionAsync(string projectId, string Name)
@@ -173,7 +173,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectSectionAsync>End");
-            return RedirectToPage(new { id = Project.ProjectId });
+            return RedirectToPage(new { id = projectId });
         }
 
         public async Task<IActionResult> OnPostEditProjectSectionAsync(string sectionId, string? Name)
