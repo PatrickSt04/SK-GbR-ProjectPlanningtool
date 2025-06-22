@@ -246,6 +246,11 @@
         font-weight: 700;
     }
 
+    .task-row.subsection {
+        background: #f0f0f0;
+        font-weight: 700;
+    }
+
     .task-row.adder-row[data-level] {
         padding-left: inherit; /* gleiche Einrückung wie Eltern-Row */
     }
@@ -351,7 +356,7 @@
     }
 
     .timeline-bar.task {
-        height: 14px;
+        /*height: 14px;*/
         background: #007bff;
     }
     /* unverändert, nur Höhe kleiner */

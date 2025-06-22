@@ -15,7 +15,6 @@
 <body class="d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light box-shadow mb-3 ">
-            @* <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 "> *@
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-page="/Index">[Softwarename]</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -40,32 +39,8 @@
         </nav>
     </header>
     <div class="container-fluid flex-fill">
-        <main role="main" class="pb-3">
-            @*  <div class="row main-container">
-            <div class="col-2 left-menu">
-            <a class="left-menu-link" asp-area="" asp-page="/Projects/Create">
-            <div class="left-menu-item">
-            Projektanlage
-            </div>
-            </a>
-            <a class="left-menu-link" asp-area="" asp-page="/Projects/Archive">
-            <div class="left-menu-item">
-            Projektarchiv
-            </div>
-            </a>
-            <a class="left-menu-link" asp-area="" asp-page="/CustomerManagement/Index">
-            <div class="left-menu-item">
-            Kundenverwaltung
-            </div>
-            </a>
-            <div class="left-menu-item">
-            DASHBOARD
-            </div>
-            </div>
-            <div class="col-10 ">
-            @RenderBody()
-            </div>
-            </div>          *@
+        <main role="main" @* class="pb-3" *@>
+
             <div class="row main-container">
                 @if (User.Identity.IsAuthenticated)
                 {
