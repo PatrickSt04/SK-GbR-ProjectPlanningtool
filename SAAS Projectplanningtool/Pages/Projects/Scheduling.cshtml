@@ -156,6 +156,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="post" asp-page-handler="CreateProjectTask">
+       
                 <div class="modal-header">
                     <h5 class="modal-title">Neue Aufgabe hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -164,6 +165,7 @@
                     <div class="mb-3">
                         <label class="form-label">Aufgabenname</label>
                         <input type="text" class="form-control" name="Name" required />
+                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Abschnitt</label>
@@ -236,6 +238,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title">Neuen Unterabschnitt hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                 </div>
 
                 <div class="modal-body">
@@ -269,6 +272,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editTaskId" name="taskId" />
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                     <div class="mb-3">
                         <label class="form-label">Aufgabenname</label>
                         <input type="text" class="form-control" id="editTaskName" name="name" />
