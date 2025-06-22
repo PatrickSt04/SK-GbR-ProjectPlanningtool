@@ -20,11 +20,14 @@ html {
 body {
     height:100%
 }
-footer{
-    position:fixed;
-    bottom:0;
-    text-align:center;
-    width:100%;
-    display:block
+main{
+    height:100%
+}
+footer {
+
+    flex-shrink: 0;
+    width: 100%;
+    text-align: center;
+    padding: 0.5rem 0;
 }
 
