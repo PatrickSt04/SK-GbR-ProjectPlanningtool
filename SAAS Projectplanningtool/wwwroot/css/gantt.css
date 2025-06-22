@@ -306,7 +306,7 @@
 .gantt-timeline-header {
     background: #e9ecef;
     border-bottom: 2px solid #dee2e6;
-    height: 40px;
+    height:40px;
     position: relative;
     flex-shrink: 0;
 }
