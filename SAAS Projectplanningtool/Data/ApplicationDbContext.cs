@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 using SAAS_Projectplanningtool.Models;
-using SAAS_Projectplanningtool.Models.Ressourceplanning;
+using SAAS_Projectplanningtool.Models.RessourcePlanning;
 
 
 namespace SAAS_Projectplanningtool.Data
@@ -26,10 +26,8 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.IndustrySector> IndustrySector { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.LicenseModel> LicenseModel { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.State> State { get; set; } = default!;
-        public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.ProjectTaskRessource> ProjectTaskRessource { get; set; } = default!;
-        public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.Ressource> Ressource { get; set; } = default!;
-        public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.RessourceType> RessourceType { get; set; } = default!;
-        public DbSet<SAAS_Projectplanningtool.Models.Ressourceplanning.Unit> Unit { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource> ProjectTaskRessource { get; set; } = default!;
+
         public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -124,41 +122,7 @@ namespace SAAS_Projectplanningtool.Data
                 .HasForeignKey(ptr => ptr.LatestModifierId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Ressource>()
-                .HasOne(r => r.CreatedByEmployee)
-                .WithMany()
-                .HasForeignKey(r => r.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Ressource>()
-                .HasOne(r => r.LatestModifier)
-                .WithMany()
-                .HasForeignKey(r => r.LatestModifierId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<RessourceType>()
-                .HasOne(rt => rt.CreatedByEmployee)
-                .WithMany()
-                .HasForeignKey(rt => rt.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<RessourceType>()
-                .HasOne(rt => rt.LatestModifier)
-                .WithMany()
-                .HasForeignKey(rt => rt.LatestModifierId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Unit>()
-                .HasOne(u => u.CreatedByEmployee)
-                .WithMany()
-                .HasForeignKey(u => u.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Unit>()
-                .HasOne(u => u.LatestModifier)
-                .WithMany()
-                .HasForeignKey(u => u.LatestModifierId)
-                .OnDelete(DeleteBehavior.Restrict);
+           
 
             modelBuilder.Entity<Address>()
                 .HasOne(a => a.CreatedByEmployee)

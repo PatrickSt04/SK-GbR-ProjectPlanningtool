@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250622131612_ProjectTaskRess")]
+    partial class ProjectTaskRess
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -478,9 +481,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("ProjectTaskName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProjectTaskRessourceId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
@@ -496,8 +496,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("LatestModifierId");
 
                     b.HasIndex("ProjectSectionId");
-
-                    b.HasIndex("ProjectTaskRessourceId");
 
                     b.HasIndex("StateId");
 
@@ -1053,11 +1051,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("ProjectSectionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource", "ProjectTaskRessource")
-                        .WithMany()
-                        .HasForeignKey("ProjectTaskRessourceId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.State", "State")
                         .WithMany()
                         .HasForeignKey("StateId")
@@ -1070,8 +1063,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("LatestModifier");
 
                     b.Navigation("ProjectSection");
-
-                    b.Navigation("ProjectTaskRessource");
 
                     b.Navigation("State");
                 });
