@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
@@ -36,6 +37,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     return NotFound();
                 }
                 Project = project;
+                AllEmployees = await _context.Employee.ToListAsync();
+                AllHourlyRateGroups = await _context.HourlyRateGroup.ToListAsync();
             }
             catch (Exception ex)
             {
