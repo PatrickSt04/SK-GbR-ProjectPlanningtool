@@ -5,8 +5,8 @@
     ViewData["Title"] = "Details";
 }
 
-@* <link rel="stylesheet" href="~/css/progress.css"> *@
 <link rel="stylesheet" href="/css/gantt.css">
+
 <h3>@Model.Project.ProjectName</h3>
 <div style="display: flex; justify-content: space-between; align-items: center;">
     <span style="color: grey; font-size: 0.9em;">
@@ -16,6 +16,27 @@
 </div>
 <hr />
 
+<!-- Delete Feedbackhandling -->
+@{
+    var message = TempData.GetMessage();
+}
+@if (message != null)
+{
+    <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
+        @message.Message
+    </div>
+
+    <script>
+        setTimeout(function () {
+            var msg = document.getElementById('feedback-message');
+            if (msg) {
+                msg.style.transition = "opacity 0.5s ease";
+                msg.style.opacity = 0;
+                setTimeout(() => msg.remove(), 500);
+            }
+        }, 3000);
+    </script>
+}
 
 <div class="row">
     <!-- Karte 1: Projektstatus -->
@@ -63,12 +84,10 @@
                 <dl class="row mb-0">
                     <dt class="col-sm-4">Änderung</dt>
                     <dd class="col-sm-8">@Html.DisplayFor(model => model.Project.LatestModificationText)</dd>
-
                 </dl>
             </div>
         </div>
     </div>
-
 
     <div class="col-md-7">
         <hr />
@@ -93,30 +112,30 @@
                 <hr />
 
                 @{
-                    double circleFillTasks = ((double)Model.CompletetedTasks / (double)Model.TotalTasks)*100;
+                    double circleFillTasks = Model.TotalTasks > 0 ? ((double)Model.CompletetedTasks / (double)Model.TotalTasks) * 100 : 0;
                 }
-                @await Html.PartialAsync("_ProgressCircle", (int)circleFillTasks) @* Kreisdiagramm *@
-                
+                @await Html.PartialAsync("_ProgressCircle", (int)circleFillTasks)
+
             </div>
             <div class="col-md-6">
                 <h4>Budgetübersicht</h4>
                 @* <h6>@Model.Project.ProjectBudget.UsedBudget / @Model.Project.ProjectBudget.InitialBudget</h6>
                 <hr/>
-                
+
                @{
                     var circleFillBudget = (Model.Project.ProjectBudget.UsedBudget/ Model.Project.ProjectBudget.InitialBudget) * 100;
                 } 
-                @await Html.PartialAsync("_ProgressCircle", circleFillBudget) @* Kreisdiagramm *@
+                @await Html.PartialAsync("_ProgressCircle", circleFillBudget) *@
 
             </div>
         </div>
-        <hr/>
+        <hr />
         <dt class="col-sm-2">
             Startdatum
         </dt>
         <dd class="col-sm-12">
             @Html.DisplayFor(model => model.Project.StartDate)
-        </dd>       
+        </dd>
         <dt class="col-sm-2">
             Enddatum
         </dt>
@@ -125,277 +144,544 @@
         </dd>
     </div>
 
-     <div class="col-md-5">
-     @* <hr />
-        <div class="d-flex justify-content-between align-items-center">
-     <h6><strong>@Model.Project.ProjectName</strong></h6>
-            <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId">
-                <img src="~/edit_icon.png" alt="Dashboard" width="20" height="20" class="justify-content-md-between">
-            </a>
-     </div>
-        <div class="tree">
-            
-                <table class="table table-sm">
-                    <tbody>
-                @{
-                    // Nur die Top-Level-Abschnitte (ParentSectionId == null)
-                    var topSections = Model.Project.ProjectSections
-                    .Where(ps => ps.ParentSectionId == null)
-                    .OrderBy(ps => ps.ProjectSectionName);
+    <div class="col-md-5">
+        <!-- Toolbar -->
+        @* <div class="btn-group mb-3" role="group">
+            <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
+                <i class="fas fa-plus"></i> Abschnitt hinzufügen
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="showAddTaskModal()">
+                <i class="fas fa-tasks"></i> Aufgabe hinzufügen
+            </button>
+        </div> *@
 
-                    RenderSections(topSections, level: 0);
-                }
-                    </tbody>
-                </table>
+        <div class="mb-3">
+            <button type="button" class="btn btn-secondary">
+                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="">
+                    Terminplanung
+                </a>
+            </button>
+            <button type="button" class="btn btn-secondary">
+                <a asp-page="/Projects/Ressourceplanning" asp-route-id="@Model.Project.ProjectId" class="">
+                    Ressourcenplanung
+                </a>
+            </button>
         </div>
-    </div> *@
-    <button type="button" class="btn btn-primary">
-        <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId">
-        Terminplanung
-        </a>
-    </button>
-    <button type="button" class="btn btn-primary">
-        <a asp-page="/Projects/Ressourceplanning" asp-route-id="@Model.Project.ProjectId">
-        Ressourcenplanung
-        </a>
-    </button>
-    <div id="gantt-left">
-        <div class="gantt-task-list">
-            <div class="gantt-header">
-                <div class="task-name-header">Aufgabe</div>
-                <div class="task-duration-header">Dauer</div>
-                <div class="task-start-header">Start</div>
-                <div class="task-end-header">Ende</div>
-                <div class="task-actions-header">Aktionen</div>
-            </div>
-            <div id="task-list-body" class="gantt-task-list-body">
-                <!-- Zeilen werden per JS gefüllt -->
+
+        <div id="gantt-left">
+            <div class="gantt-task-list">
+                <div class="gantt-header">
+                    <div class="task-name-header">Aufgabe</div>
+                    <div class="task-duration-header">Dauer</div>
+                    <div class="task-start-header">Start</div>
+                    <div class="task-end-header">Ende</div>
+                    <div class="task-actions-header">Aktionen</div>
+                </div>
+                <div id="task-list-body" class="gantt-task-list-body">
+                    <!-- Tasks will be populated here -->
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 
-
-
-
-@functions {
-
-    private void RenderSections(IEnumerable<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection> sections, int level)
-    {
-        // Falls keine Abschnitte oder null, nichts tun
-        if (sections == null || !sections.Any())
-            return;
-
-        foreach (var ps in sections)
-        {
-            // Prüfen, ob dieser Abschnitt Kinder (SubSections) oder Tasks besitzt
-            bool hasChildren =
-                (ps.SubSections != null && ps.SubSections.Any()) ||
-                (ps.ProjectTasks != null && ps.ProjectTasks.Any());
-
-            // Erste Zeile: Sichtbare Zeile mit den Hauptinfos
-            <tr>
-                <td>
-                    @* Wenn es Kinder gibt, dann "Plus"-Symbol anzeigen *@
-                    @if (hasChildren)
-                    {
-                        <span style="cursor:pointer; color:blue; margin-left:@(level * 20)px;"
-                              onclick="toggleRow('row-@ps.ProjectSectionId')">
-                            +
-                        </span>
-                    }
-                    else
-                    {
-                        // Falls kein Child, nur "padding" um es einzurücken
-                        <span style="display:inline-block; margin-left:@(level * 20)px;"></span>
-                    }
-                        @ps.ProjectSectionName
-                </td>
-                <!-- Status -->
-                <td align="right">
-                    <div class="statecolorcontainer badge" style="background-color:@ps.State?.Color;">
-                        @(ps.State?.StateName ?? "Kein Status")
+<!-- Add Section Modal -->
+<div class="modal fade" id="addSectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="CreateProjectSection">
+                <div class="modal-header">
+                    <h5 class="modal-title">Neuen Abschnitt hinzufügen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="projectId" value="@Model.Project?.ProjectId" />
+                    <div class="mb-3">
+                        <label class="form-label">Abschnittsname</label>
+                        <input type="text" class="form-control" name="Name" required />
                     </div>
-
-                </td>
-            </tr>
-
-            // Zweite Zeile (versteckt), falls Tasks oder SubSections existieren
-            if (hasChildren)
-            {
-                <tr id="row-@ps.ProjectSectionId" style="display:none">
-                    <!-- colspan=4, damit wir in einer Zelle den Inhalt verbreiten -->
-                    <td colspan="4" style="background:#f9f9f9; padding-left:@((level + 1) * 20)px;">
-
-                        <!-- 1) Tasks dieses Abschnitts -->
-                        @if (ps.ProjectTasks != null && ps.ProjectTasks.Any())
-                        {
-                            <table class="table table-sm">
-                               
-                                <tbody>
-                                    @foreach (var task in ps.ProjectTasks)
+                    <div class="mb-3">
+                        <label class="form-label">Übergeordneter Abschnitt (optional)</label>
+                        <select class="form-select" id="parentSectionSelect" name="parentSectionId">
+                            <option value="">-- Hauptabschnitt --</option>
+                            @if (Model.Project?.ProjectSections != null)
+                            {
+                                @foreach (var projectSection in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
+                                {
+                                    <option value="@projectSection.ProjectSectionId">@projectSection.ProjectSectionName</option>
+                                    @if (projectSection.SubSections != null)
                                     {
-                                        <tr>
-                                            <td>@task.ProjectTaskName</td>
-                                            <td>@task.StartDate - </td>  
-                                            <td>@task.EndDate</td>
-                                            <td>
-                                                <!-- <span style="background-color:@task.State?.Color;"> -->
-                                                <!--    @task.State?.StateName -->
-                                                <!-- </span> -->
-                                                <div class="statecolorcontainer badge" style="background:@task.State?.Color;">
-                                                    @(task.State?.StateName ?? "Kein Status")
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        @foreach (var subSection in projectSection.SubSections)
+                                        {
+                                            <option value="@subSection.ProjectSectionId">-- @subSection.ProjectSectionName</option>
+                                        }
                                     }
-                                </tbody>
-                            </table>
-                        }
-                        else
-                        {
-                            <span>
-                                Keine Tasks
-                            </span>
-                        }
-                        @if (ps.SubSections != null && ps.SubSections.Any())
-                        {
-                            <h5>Unterabschnitte</h5>
-                            <table class="table table-sm" style="margin-left:20px;">
-                                <tbody>
-                                    <!-- Hier erzeugst du neue <tr> etc. -->
-                                    @{
-                                        RenderSections(ps.SubSections, level + 1);
-                                    }
-                                </tbody>
-                            </table>
-                        }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-                    </td>
-                </tr>
-            }
-        }
-    }
-}
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="CreateProjectTask">
+                <div class="modal-header">
+                    <h5 class="modal-title">Neue Aufgabe hinzufügen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Aufgabenname</label>
+                        <input type="text" class="form-control" name="Name" required />
+                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Abschnitt</label>
+                        <select class="form-select" id="taskSectionSelect" name="SectionId" required>
+                            <option value="">-- Abschnitt auswählen --</option>
+                            @if (Model.Project?.ProjectSections != null)
+                            {
+                                @foreach (var projectSection in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
+                                {
+                                    <option value="@projectSection.ProjectSectionId">@projectSection.ProjectSectionName</option>
+                                    @if (projectSection.SubSections != null)
+                                    {
+                                        @foreach (var subSection in projectSection.SubSections)
+                                        {
+                                            <option value="@subSection.ProjectSectionId">-- @subSection.ProjectSectionName</option>
+                                        }
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Startdatum</label>
+                            <input type="date" class="form-control" name="startDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Enddatum</label>
+                            <input type="date" class="form-control" name="endDate" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Was möchten Sie anlegen?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body d-grid gap-3">
+                <button id="chooseTaskBtn" class="btn btn-outline-success btn-lg">
+                    <i class="fas fa-tasks me-2"></i> Aufgabe
+                </button>
+                <button id="chooseSubBtn" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sitemap me-2"></i> Unterabschnitt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Sub-Section Modal -->
+<div class="modal fade" id="addSubSectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="CreateSubSection">
+                <div class="modal-header">
+                    <h5 class="modal-title">Neuen Unterabschnitt hinzufügen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="parentSubSectionId" name="parentSectionId" />
+                    <div class="mb-3">
+                        <label class="form-label">Unterabschnittsname</label>
+                        <input type="text" class="form-control" name="Name" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="EditProjectTask">
+                <div class="modal-header">
+                    <h5 class="modal-title">Aufgabe bearbeiten</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editTaskId" name="taskId" />
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                    <div class="mb-3">
+                        <label class="form-label">Aufgabenname</label>
+                        <input type="text" class="form-control" id="editTaskName" name="name" />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Startdatum</label>
+                            <input type="date" class="form-control" id="editTaskStartDate" name="startDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Enddatum</label>
+                            <input type="date" class="form-control" id="editTaskEndDate" name="endDate" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="DeleteSelected">
+                <div class="modal-header">
+                    <h5 class="modal-title">Löschen bestätigen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteConfirmText">Sind Sie sicher, dass Sie dieses Element löschen möchten?</p>
+                    <input type="hidden" id="deleteObjectJson" name="objectJson" />
+                    <input type="hidden" name="Project.ProjectId" value="@Model.Project?.ProjectId" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Löschen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
     /* ───────────────────────── Daten aus Razor ───────────────────────── */
     const projectData = {
-        project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
-            Id   = Model.Project.ProjectId,
+        project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Id = Model.Project.ProjectId,
             Name = Model.Project.ProjectName,
             Sections = Model.Project.ProjectSections?
-                       .Where(s => s.ParentSectionId == null).Select(s => new {
-                           Id   = s.ProjectSectionId,
-                           Name = s.ProjectSectionName,
-                           Type = "section",
-                           SubSections = s.SubSections?.Select(sub => new {
-                               Id   = sub.ProjectSectionId,
-                               Name = sub.ProjectSectionName,
-                               Type = "subsection",
-                               Tasks = sub.ProjectTasks?.Select(t => new {
-                                   Id   = t.ProjectTaskId,
-                                   Name = t.ProjectTaskName,
-                                   StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                                   EndDate   = t.EndDate?.ToString("yyyy-MM-dd"),
-                                   Type = "task"
-                               })
-                           }),
-                           Tasks = s.ProjectTasks?.Select(t => new {
-                               Id   = t.ProjectTaskId,
+                   .Where(s => s.ParentSectionId == null).Select(s => new
+                   {
+                       Id = s.ProjectSectionId,
+                       Name = s.ProjectSectionName,
+                       Type = "section",
+                       State = s.State != null ? new { StateName = s.State.StateName, Color = s.State.Color } : null,
+                       SubSections = s.SubSections?.Select(sub => new
+                       {
+                           Id = sub.ProjectSectionId,
+                           Name = sub.ProjectSectionName,
+                           Type = "subsection",
+                           State = sub.State != null ? new { StateName = sub.State.StateName, Color = sub.State.Color } : null,
+                           Tasks = sub.ProjectTasks?.Select(t => new
+                           {
+                               Id = t.ProjectTaskId,
                                Name = t.ProjectTaskName,
                                StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                               EndDate   = t.EndDate?.ToString("yyyy-MM-dd"),
-                               Type = "task"
+                               EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                               Type = "task",
+                               State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
                            })
+                       }),
+                       Tasks = s.ProjectTasks?.Select(t => new
+                       {
+                           Id = t.ProjectTaskId,
+                           Name = t.ProjectTaskName,
+                           StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                           EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                           Type = "task",
+                           State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
                        })
+                   })
         }))
     };
 
     /* ───────────────────── Collapse-State & Utils ────────────────────── */
-    const collapsed = new Map();          // alle zuerst eingeklappt
-    function isCollapsed(id){ return collapsed.get(id); }
-    function toggleCollapse(id){
-        collapsed.set(id,!isCollapsed(id));
+    const collapsed = new Map();
+
+    function isCollapsed(id) {
+        return collapsed.has(id) && collapsed.get(id);
+    }
+
+    function toggleCollapse(id) {
+        collapsed.set(id, !isCollapsed(id));
         renderTaskList();
     }
 
     /* Datumshilfen */
-    function calculateDuration(s,e){
-        if(!s||!e) return '-';
-        const d=Math.ceil((new Date(e)-new Date(s))/86400000)+1;
-        return d+'d';
+    function calculateDuration(s, e) {
+        if (!s || !e) return '-';
+        const d = Math.ceil((new Date(e) - new Date(s)) / 86400000) + 1;
+        return d + 'd';
     }
-    function formatDate(d){ return new Date(d).toLocaleDateString('de-DE'); }
+
+    function formatDate(d) {
+        if (!d) return '-';
+        return new Date(d).toLocaleDateString('de-DE');
+    }
 
     /* Frühester/Spätester Termin unterhalb eines Knotens */
-    function getRange(node){
-      let min=node.StartDate?new Date(node.StartDate):null;
-      let max=node.EndDate  ?new Date(node.EndDate)  :null;
-      if(node.SubSections) node.SubSections.forEach(s=>{
-            const [a,b]=getRange(s); if(a&&(!min||a<min))min=a; if(b&&(!max||b>max))max=b;
-      });
-      if(node.Tasks) node.Tasks.forEach(t=>{
-            if(t.StartDate){const d=new Date(t.StartDate);if(!min||d<min)min=d;}
-            if(t.EndDate  ){const d=new Date(t.EndDate); if(!max||d>max)max=d;}
-      });
-      return [min,max];
+    function getRange(node) {
+        let min = node.StartDate ? new Date(node.StartDate) : null;
+        let max = node.EndDate ? new Date(node.EndDate) : null;
+
+        if (node.SubSections) {
+            node.SubSections.forEach(s => {
+                const [a, b] = getRange(s);
+                if (a && (!min || a < min)) min = a;
+                if (b && (!max || b > max)) max = b;
+            });
+        }
+        if (node.Tasks) {
+            node.Tasks.forEach(t => {
+                if (t.StartDate) {
+                    const d = new Date(t.StartDate);
+                    if (!min || d < min) min = d;
+                }
+                if (t.EndDate) {
+                    const d = new Date(t.EndDate);
+                    if (!max || d > max) max = d;
+                }
+            });
+        }
+        return [min, max];
+    }
+
+    /* Standard: eingeklappt */
+    function preloadCollapse() {
+        function walk(node) {
+            if (node.Type !== 'task') {
+                collapsed.set(node.Id, true);
+                if (node.SubSections) node.SubSections.forEach(walk);
+            }
+        }
+        projectData.project.Sections?.forEach(walk);
     }
 
     /* ───────────────────── Rendering der linken Liste ─────────────────── */
-    function renderTaskList(){
-        const body=document.getElementById('task-list-body');
-        body.innerHTML='';                                 // reset
-        projectData.project.Sections?.forEach(sec=>walk(sec,0));
+    function renderTaskList() {
+        const body = document.getElementById('task-list-body');
+        body.innerHTML = '';
 
-        function walk(node,depth){
-            addRow(node,depth);
-
-            if(node.Type==='task' || isCollapsed(node.Id)) return;
-            if(node.SubSections) node.SubSections.forEach(s => walk(s,depth+1));
-            if(node.Tasks)       node.Tasks.forEach (t => walk(t,depth+1));
+        if (!projectData.project.Sections || projectData.project.Sections.length === 0) {
+            body.innerHTML = '<div class="empty-state">📋 Keine Abschnitte oder Aufgaben vorhanden</div>';
+            return;
         }
 
-        function addRow(item,depth){
-            const row=document.createElement('div');
-            row.className=`task-row ${item.Type}`;
-            row.style.setProperty('--lvl',depth);
+        projectData.project.Sections.forEach(sec => walk(sec, 0));
 
-            /* Pfeil */
-            const hasChildren =
-                 (item.SubSections && item.SubSections.length) ||
-                 (item.Tasks       && item.Tasks.length);
-            if(!collapsed.has(item.Id)) collapsed.set(item.Id,true);      // default zu
-            const fold = isCollapsed(item.Id);
-            const caret = hasChildren
-                ? `<i class="fas fa-caret-down caret ${fold?'collapsed':''}"
-                      data-id="${item.Id}"></i>` : '';
+        /* Footer-Adder ganz unten */
+        const footer = document.createElement('div');
+        footer.className = 'task-row adder-row';
+        footer.dataset.level = 0;
+        footer.innerHTML = `
+            <div class="task-name">
+                <button class="btn btn-sm btn-outline-primary"
+                        onclick="showAddSectionModal()">
+                   <i class="fas fa-plus"></i> Neuer Abschnitt
+                </button>
+            </div>`;
+        body.appendChild(footer);
 
-            /* Daten für Section/Subsection berechnen */
-            let start=item.StartDate,end=item.EndDate;
-            if(item.Type!=='task'){
-                const [min,max]=getRange(item);
-                start=min?min.toISOString().slice(0,10):null;
-                end  =max?max.toISOString().slice(0,10):null;
+        function walk(node, depth) {
+            addRow(node, depth);
+
+            if (node.Type === 'task' || isCollapsed(node.Id)) return;
+
+            /* Inline-Adder hinter jedem Nicht-Task */
+            if (node.Type !== 'task') {
+                const adder = document.createElement('div');
+                adder.className = 'task-row adder-row';
+                adder.style.setProperty('--lvl', depth);
+                adder.innerHTML = `
+                   <div class="task-name">
+                      <button class="btn btn-sm btn-outline-primary"
+                              onclick="showAddItemModal('${node.Id}','${node.Type}')">
+                          <i class="fas fa-plus"></i>
+                      </button>
+                   </div>`;
+                body.appendChild(adder);
             }
 
-            row.innerHTML=`
+            if (node.SubSections) {
+                node.SubSections.forEach(s => walk(s, depth + 1));
+            }
+            if (node.Tasks) {
+                node.Tasks.forEach(t => walk(t, depth + 1));
+            }
+        }
+
+        function addRow(item, depth) {
+            const row = document.createElement('div');
+            row.className = `task-row ${item.Type}`;
+            row.style.setProperty('--lvl', depth);
+
+            /* Pfeil für aufklappbare Elemente */
+            const hasChildren =
+                 (item.SubSections && item.SubSections.length) ||
+                 (item.Tasks && item.Tasks.length);
+
+            const fold = isCollapsed(item.Id);
+            const caret = hasChildren
+                ? `<i class="fas fa-caret-down caret ${fold ? 'collapsed' : ''}"
+                      data-id="${item.Id}"></i>`
+                : '';
+
+            /* Daten für Section/Subsection berechnen */
+            let start = item.StartDate;
+            let end = item.EndDate;
+
+            if (item.Type !== 'task') {
+                const [min, max] = getRange(item);
+                start = min ? min.toISOString().slice(0, 10) : null;
+                end = max ? max.toISOString().slice(0, 10) : null;
+            }
+
+            /* Status Badge */
+            const statusBadge = item.State
+                ? `<span class="statecolorcontainer badge" style="background-color: ${item.State.Color}">${item.State.StateName}</span>`
+                : '<span class="text-muted">Kein Status</span>';
+
+            const isTask = item.Type === 'task';
+
+            row.innerHTML = `
                <div class="task-name">${caret}${item.Name}</div>
-               <div class="task-duration">${calculateDuration(start,end)}</div>
-               <div class="task-start">${start?formatDate(start):'-'}</div>
-               <div class="task-end">${end?formatDate(end):'-'}</div>
-               <div class="task-actions"></div>`;
+               <div class="task-duration">${calculateDuration(start, end)}</div>
+               <div class="task-start">${formatDate(start)}</div>
+               <div class="task-end">${formatDate(end)}</div>
+               <div class="task-actions">
+                    ${isTask ? `
+                        <button class="btn btn-sm btn-outline-primary me-1"
+                                onclick="editTask('${item.Id}', '${item.Name}',
+                                                  '${item.StartDate || ''}', '${item.EndDate || ''}')">
+                            <i class="fas fa-edit"></i>
+                        </button>` : ''}
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="deleteItem('${item.Id}', '${item.Type}', '${item.Name}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>`;
+
             body.appendChild(row);
         }
     }
 
-    /* ───────── Klick-Delegation & Initiales Rendering ───────── */
-    document.addEventListener('click',ev=>{
-       if(ev.target.classList.contains('caret')){
+    /* ───────── Modal Functions ───────── */
+    function showAddSectionModal() {
+        new bootstrap.Modal(document.getElementById('addSectionModal')).show();
+    }
+
+    function showAddTaskModal(sectionId = null) {
+        if (sectionId) {
+            const sel = document.getElementById('taskSectionSelect');
+            if (sel) sel.value = sectionId;
+        }
+        new bootstrap.Modal(document.getElementById('addTaskModal')).show();
+    }
+
+    function showAddSubSectionModal(parentId) {
+        document.getElementById('parentSubSectionId').value = parentId;
+        new bootstrap.Modal(document.getElementById('addSubSectionModal')).show();
+    }
+
+    let addItemParentId = null;
+    let addItemParentType = null;
+
+    function showAddItemModal(parentId, parentType) {
+        addItemParentId = parentId;
+        addItemParentType = parentType;
+
+        const subBtn = document.getElementById('chooseSubBtn');
+        subBtn.disabled = (parentType !== 'section');
+
+        new bootstrap.Modal(document.getElementById('addItemModal')).show();
+    }
+
+    function editTask(taskId, taskName, startDate, endDate) {
+        document.getElementById('editTaskId').value = taskId;
+        document.getElementById('editTaskName').value = taskName;
+        document.getElementById('editTaskStartDate').value = startDate;
+        document.getElementById('editTaskEndDate').value = endDate;
+
+        new bootstrap.Modal(document.getElementById('editTaskModal')).show();
+    }
+
+    function deleteItem(itemId, itemType, itemName) {
+        document.getElementById('deleteConfirmText').textContent =
+            `Sind Sie sicher, dass Sie "${itemName}" löschen möchten?`;
+
+        const jsonData = {
+            Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
+            Data: { itemId, itemName }
+        };
+
+        document.getElementById('deleteObjectJson').value = JSON.stringify(jsonData);
+
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    /* ───────── Event Listeners ───────── */
+    document.addEventListener('click', ev => {
+       if (ev.target.classList.contains('caret')) {
            toggleCollapse(ev.target.dataset.id);
            ev.stopPropagation();
        }
     });
-    document.addEventListener('DOMContentLoaded',renderTaskList);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        preloadCollapse();
+        renderTaskList();
+
+        document.getElementById('chooseTaskBtn').addEventListener('click', () => {
+            bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
+            showAddTaskModal(addItemParentId);
+        });
+
+        document.getElementById('chooseSubBtn').addEventListener('click', () => {
+            bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
+            showAddSubSectionModal(addItemParentId);
+        });
+    });
 </script>
+
+<!-- Include Bootstrap and FontAwesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

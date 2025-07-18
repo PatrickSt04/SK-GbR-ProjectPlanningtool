@@ -609,43 +609,6 @@
         container.style.width = (totalDays * dayWidth) + 'px';
     }
 
-    // function renderTimelineBars(container) {
-    //     const totalDays = Math.ceil((ganttEndDate - ganttStartDate) / (1000 * 60 * 60 * 24));
-    //     const dayWidth = 40;
-    //     let rowIndex = 0;
-    
-    //     container.style.width = (totalDays * dayWidth) + 'px';
-    //     container.style.height = (calculateTotalRows() * 40) + 'px';
-    
-    //     if (!projectData.project.Sections) return;
-    
-    //     projectData.project.Sections.forEach(section => {
-    //         renderTimelineBar(section, container, rowIndex, dayWidth);
-    //         rowIndex++;
-        
-    //         if (section.SubSections) {
-    //             section.SubSections.forEach(subSection => {
-    //                 renderTimelineBar(subSection, container, rowIndex, dayWidth);
-    //                 rowIndex++;
-                
-    //                 if (subSection.Tasks) {
-    //                     subSection.Tasks.forEach(task => {
-    //                         renderTimelineBar(task, container, rowIndex, dayWidth);
-    //                         rowIndex++;
-    //                     });
-    //                 }
-    //             });
-    //         }
-        
-    //         if (section.Tasks) {
-    //             section.Tasks.forEach(task => {
-    //                 renderTimelineBar(task, container, rowIndex, dayWidth);
-    //                 rowIndex++;
-    //             });
-    //         }
-    //     });
-    // }
-
     function renderTimelineBars(container){
         const totalDays=Math.ceil((ganttEndDate-ganttStartDate)/86400000);
         const dayWidth=48;
@@ -733,23 +696,6 @@
         }
 
 
-//     function calculateTotalRows() {
-//     if (!projectData.project.Sections) return 1;   // nur Footer-Adder
-
-//     let rows = 1;                                  // Footer-Adder
-//     projectData.project.Sections.forEach(section => {
-//         rows += 2;                                 // 1 Section + 1 Adder
-
-//         if (section.SubSections) {
-//             section.SubSections.forEach(sub => {
-//                 rows += 2;                         // 1 Subsection + 1 Adder
-//                 if (sub.Tasks) rows += sub.Tasks.length;
-//             });
-//         }
-//         if (section.Tasks) rows += section.Tasks.length;
-//     });
-//     return rows;
-// }
     function calculateTotalRows(){
         let rows=1;                                // Footer
         if(!projectData.project.Sections) return rows;
@@ -810,10 +756,6 @@
         new bootstrap.Modal(document.getElementById('addSectionModal')).show();
     }
 
-    // function showAddTaskModal(sectionId){
-    //    document.querySelector('#addTaskModal input[name=SectionId]').value = sectionId;
-    //    new bootstrap.Modal(document.getElementById('addTaskModal')).show();
-    // }
     function showAddTaskModal(sectionId = null) {
         // Section-Dropdown im Modal auf gewünschten Abschnitt setzen
         if (sectionId){
@@ -841,11 +783,6 @@
         const jsonData = {
             Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
             Data: { itemId, itemName }
-        // const jsonData = {
-        //     Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
-        //     Data: itemType === 'task' ? 
-        //         { ProjectTaskId: itemId } : 
-        //         { ProjectSectionId: itemId }
         };
     
         // document.getElementById('deleteObjectJson').value = jsonData;

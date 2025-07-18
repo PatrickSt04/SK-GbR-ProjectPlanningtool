@@ -414,3 +414,48 @@
         min-height: 300px;
     }
 }
+
+
+/*Auf Projec Details*/
+.caret {
+    cursor: pointer;
+    margin-right: 8px;
+    color: #6c757d;
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+}
+
+    .caret.collapsed {
+        transform: rotate(-90deg);
+    }
+
+    .caret:hover {
+        color: #495057;
+    }
+
+.statecolorcontainer {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+}
+
+/* Button styling fix */
+.btn a {
+    color: white;
+    text-decoration: none;
+}
+
+.btn:hover a {
+    color: white;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+    font-style: italic;
+}

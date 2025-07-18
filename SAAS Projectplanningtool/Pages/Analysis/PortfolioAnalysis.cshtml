@@ -1,0 +1,535 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Analysis.PortfolioAnalysisModel
+@{
+    ViewData["Title"] = "Portfolio Analysis - Projektstatus & Fortschritt";
+}
+
+<div class="portfolio-analysis">
+    <div class="page-header">
+        <h1>Portfolio Analysis</h1>
+        <div class="header-controls">
+            <div class="time-filter">
+                <label>Zeitraum:</label>
+                <select id="timeFilter" class="form-control">
+                    <option value="week">Woche</option>
+                    <option value="month" selected>Monat</option>
+                    <option value="quarter">Quartal</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="exportReport()">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Row 1: KPI Strip -->
+    <div class="kpi-strip">
+        <div class="kpi-card">
+            <div class="kpi-value">@Model.ActiveProjects</div>
+            <div class="kpi-label">Aktive Projekte</div>
+            <div class="kpi-trend neutral">
+                <i class="fas fa-minus"></i>
+            </div>
+        </div>
+        <div class="kpi-card @(Model.DelayRate <= 10 ? "green" : Model.DelayRate <= 20 ? "yellow" : "red")">
+            <div class="kpi-value">@Model.DelayRate.ToString("F1")%</div>
+            <div class="kpi-label">Verzugsquote</div>
+            <div class="kpi-indicator">
+                <i class="fas fa-circle"></i>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">@Model.CompletionRate.ToString("F1")%</div>
+            <div class="kpi-label">Fertigstellungsgrad</div>
+            <div class="kpi-progress">
+                <div class="progress-bar" style="width: @Model.CompletionRate%"></div>
+            </div>
+        </div>
+        <div class="kpi-card @(Model.MedianRemainingDays < 7 ? "red" : Model.MedianRemainingDays < 14 ? "yellow" : "green")">
+            <div class="kpi-value">@Model.MedianRemainingDays</div>
+            <div class="kpi-label">Median Restlaufzeit (Tage)</div>
+            <div class="kpi-indicator">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+        <div class="kpi-card @(Model.ChangeIntensity <= 5 ? "green" : Model.ChangeIntensity <= 8 ? "yellow" : "red")">
+            <div class="kpi-value">@Model.ChangeIntensity.ToString("F1")</div>
+            <div class="kpi-label">Änderungsintensität (avg/7 Tage)</div>
+            <div class="kpi-indicator">
+                <i class="fas fa-edit"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Status Distribution & Change Hotspots -->
+    <div class="dashboard-row">
+        <div class="chart-container wide">
+            <h3>Statusverteilung</h3>
+            <div class="status-distribution">
+                <canvas id="statusChart"></canvas>
+                <div class="status-legend">
+                    @foreach (var status in Model.StatusDistribution.Labels.Select((value, index) => new { value, index }))
+                    {
+                        <div class="legend-item" data-status="@status.value">
+                            <span class="legend-color" style="background-color: @GetStatusColor(status.index)"></span>
+                            <span class="legend-label">@status.value</span>
+                            <span class="legend-value">@Model.StatusDistribution.Values[status.index]</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="chart-container narrow">
+            <h3>Änderungs-Hotspots (30 Tage)</h3>
+            <div class="hotspot-list">
+                @foreach (var hotspot in Model.ChangeHotspots)
+                {
+                    <div class="hotspot-item">
+                        <div class="hotspot-name">@hotspot.ProjectName</div>
+                        <div class="hotspot-bar">
+                            <div class="bar-fill" style="width: @(hotspot.ChangeCount * 10)%"></div>
+                            <span class="bar-value">@hotspot.ChangeCount</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Progress vs Time Scatter & Risk Projects -->
+    <div class="dashboard-row">
+        <div class="chart-container wide">
+            <h3>Fortschritt vs. Zeitverlauf</h3>
+            <canvas id="progressScatter"></canvas>
+            <div class="scatter-legend">
+                <span class="legend-note">Bubble-Größe = Initialbudget | Farbe = Budgetnutzung</span>
+            </div>
+        </div>
+        <div class="chart-container narrow">
+            <h3>Rote Projekte (Top 5 Risiko)</h3>
+            <div class="risk-list">
+                @foreach (var risk in Model.RiskProjects)
+                {
+                    <div class="risk-item" data-project-id="@risk.ProjectId">
+                        <div class="risk-header">
+                            <span class="risk-name">@risk.ProjectName</span>
+                            <span class="risk-score">@risk.RiskScore.ToString("F1")</span>
+                        </div>
+                        <div class="risk-details">
+                            <span class="risk-status">@risk.Status</span>
+                            <span class="risk-person">@risk.ResponsiblePerson</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 4: Lifecycle Trend & Overdue Heatmap -->
+    <div class="dashboard-row">
+        <div class="chart-container half">
+            <h3>Projekt-Lebenszyklus Trend</h3>
+            <canvas id="lifecycleTrend"></canvas>
+        </div>
+        <div class="chart-container half">
+            <h3>Überfällige Projekte</h3>
+            <div class="overdue-table-container">
+                <table class="overdue-table">
+                    <thead>
+                        <tr>
+                            <th>Projekt</th>
+                            <th>Tage überfällig</th>
+                            <th>Fortschritt</th>
+                            <th>Restbudget</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var overdue in Model.OverdueProjects.Take(10))
+                        {
+                            <tr class="@GetOverdueClass(overdue.DaysOverdue)"
+                                data-project-id="@overdue.ProjectId"
+                                data-responsible="@overdue.ResponsiblePerson">
+                                <td class="project-name">@overdue.ProjectName</td>
+                                <td class="days-overdue">@overdue.DaysOverdue</td>
+                                <td class="completion-rate">
+                                    <div class="mini-progress">
+                                        <div class="mini-progress-bar" style="width: @overdue.CompletionRate%"></div>
+                                        <span>@overdue.CompletionRate.ToString("F0")%</span>
+                                    </div>
+                                </td>
+                                <td class="budget-remaining">€ @overdue.BudgetRemaining.ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Panel for Details -->
+    <div id="detailPanel" class="detail-panel">
+        <div class="panel-header">
+            <h3 id="panelTitle">Projektdetails</h3>
+            <button class="close-btn" onclick="closeDetailPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content" id="panelContent">
+            <!-- Dynamic content loaded here -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart color schemes
+        const statusColors = ['#4CAF50', '#2196F3', '#FF9800', '#9E9E9E', '#F44336'];
+        const budgetColorScale = [
+            { threshold: 0, color: 'rgba(76, 175, 80, 0.6)' },
+            { threshold: 50, color: 'rgba(255, 152, 0, 0.6)' },
+            { threshold: 80, color: 'rgba(244, 67, 54, 0.6)' },
+            { threshold: 100, color: 'rgba(183, 28, 28, 0.6)' }
+        ];
+
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            initStatusChart();
+            initProgressScatter();
+            initLifecycleTrend();
+            setupInteractions();
+        });
+
+        function initStatusChart() {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            const statusLabels = @Html.Raw(Json.Serialize(Model.StatusDistribution.Labels));
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(Model.StatusDistribution.Values)),
+                        backgroundColor: statusColors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / @Model.StatusDistribution.Total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    onClick: function(event, elements) {
+                        if (elements.length > 0) {
+                            const clickedIndex = elements[0].index;
+                            const status = statusLabels[clickedIndex];
+                            filterByStatus(status);
+                        }
+                    }
+                }
+            });
+        }
+
+        function initProgressScatter() {
+            const ctx = document.getElementById('progressScatter').getContext('2d');
+            const data = @Html.Raw(Json.Serialize(Model.ProgressVsTime));
+
+            const scatterData = data.map(p => ({
+                x: p.timeProgress,
+                y: p.taskProgress,
+                projectName: p.projectName,
+                budgetUsage: p.budgetUsage,
+                r: Math.max(5, Math.min(20, p.initialBudget / 10000))
+            }));
+
+            new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Projekte',
+                        data: scatterData,
+                        backgroundColor: scatterData.map(p => getBudgetColor(p.budgetUsage))
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Zeitfortschritt (%)'
+                            },
+                            min: 0,
+                            max: 100
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Aufgabenfortschritt (%)'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const data = context.raw;
+                                    return [
+                                        data.projectName,
+                                        'Zeit: ' + data.x.toFixed(1) + '%',
+                                        'Fortschritt: ' + data.y.toFixed(1) + '%',
+                                        'Budget: ' + data.budgetUsage.toFixed(1) + '%'
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    onClick: function(event, elements) {
+                        if (elements.length > 0) {
+                            const clickedIndex = elements[0].index;
+                            const project = data[clickedIndex];
+                            showProjectDetails(project.projectId);
+                        }
+                    }
+                }
+            });
+
+            // Add diagonal reference line
+            const canvas = ctx.canvas;
+            const chartArea = ctx.chart.chartArea;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(chartArea.left, chartArea.bottom);
+            ctx.lineTo(chartArea.right, chartArea.top);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function initLifecycleTrend() {
+            const ctx = document.getElementById('lifecycleTrend').getContext('2d');
+            const data = @Html.Raw(Json.Serialize(Model.LifecycleTrend));
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.week),
+                    datasets: [
+                        {
+                            label: 'Planung',
+                            data: data.map(d => d.planning),
+                            borderColor: statusColors[0],
+                            backgroundColor: statusColors[0] + '20',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'In Bearbeitung',
+                            data: data.map(d => d.inProgress),
+                            borderColor: statusColors[1],
+                            backgroundColor: statusColors[1] + '20',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Review',
+                            data: data.map(d => d.review),
+                            borderColor: statusColors[2],
+                            backgroundColor: statusColors[2] + '20',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Abgeschlossen',
+                            data: data.map(d => d.completed),
+                            borderColor: statusColors[3],
+                            backgroundColor: statusColors[3] + '20',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Anzahl Projekte'
+                            },
+                            stacked: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function setupInteractions() {
+            // Status legend click
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const status = this.dataset.status;
+                    filterByStatus(status);
+                });
+            });
+
+            // Risk project click
+            document.querySelectorAll('.risk-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const projectId = this.dataset.projectId;
+                    showProjectDetails(projectId);
+                });
+            });
+
+            // Overdue table hover
+            document.querySelectorAll('.overdue-table tr').forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    const responsible = this.dataset.responsible;
+                    const projectId = this.dataset.projectId;
+                    showTooltip(this, `Verantwortlich: ${responsible}`);
+                });
+                row.addEventListener('mouseleave', hideTooltip);
+                row.addEventListener('click', function() {
+                    const projectId = this.dataset.projectId;
+                    showProjectDetails(projectId);
+                });
+            });
+
+            // Time filter
+            document.getElementById('timeFilter').addEventListener('change', function() {
+                window.location.href = '?timeFilter=' + this.value;
+            });
+        }
+
+        function getBudgetColor(usage) {
+            for (let i = budgetColorScale.length - 1; i >= 0; i--) {
+                if (usage >= budgetColorScale[i].threshold) {
+                    return budgetColorScale[i].color;
+                }
+            }
+            return budgetColorScale[0].color;
+        }
+
+        function filterByStatus(status) {
+            // Add visual feedback
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.status === status);
+            });
+
+            // In production, this would filter all charts
+            console.log('Filtering by status:', status);
+            // Implement actual filtering logic
+        }
+
+        function showProjectDetails(projectId) {
+            const panel = document.getElementById('detailPanel');
+            const content = document.getElementById('panelContent');
+
+            // In production, fetch actual project details
+            content.innerHTML = `
+                <div class="detail-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Lade Projektdetails...</p>
+                </div>
+            `;
+
+            panel.classList.add('open');
+
+            // Simulate loading
+            setTimeout(() => {
+                content.innerHTML = `
+                    <div class="detail-section">
+                        <h4>Offene Aufgaben</h4>
+                        <ul class="task-list">
+                            <li>Task 1 - Fällig in 3 Tagen</li>
+                            <li>Task 2 - Überfällig seit 2 Tagen</li>
+                            <li>Task 3 - Fällig in 1 Woche</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <h4>Budget Status</h4>
+                        <div class="budget-chart">
+                            <div class="budget-used" style="width: 75%"></div>
+                        </div>
+                        <p>75% verbraucht (€75.000 von €100.000)</p>
+                    </div>
+                    <div class="detail-section">
+                        <h4>Letzte Änderungen</h4>
+                        <ul class="change-list">
+                            <li>15.07.2025 - Status geändert</li>
+                            <li>14.07.2025 - Budget aktualisiert</li>
+                            <li>12.07.2025 - Neue Aufgabe hinzugefügt</li>
+                        </ul>
+                    </div>
+                `;
+            }, 500);
+        }
+
+        function closeDetailPanel() {
+            document.getElementById('detailPanel').classList.remove('open');
+        }
+
+        function showTooltip(element, text) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'custom-tooltip';
+            tooltip.textContent = text;
+            document.body.appendChild(tooltip);
+
+            const rect = element.getBoundingClientRect();
+            tooltip.style.left = rect.left + 'px';
+            tooltip.style.top = (rect.top - 30) + 'px';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.querySelector('.custom-tooltip');
+            if (tooltip) tooltip.remove();
+        }
+
+        function exportReport() {
+            // In production, generate PDF or Excel report
+            alert('Export-Funktion wird implementiert...');
+        }
+
+        function getStatusColor(index) {
+            return statusColors[index % statusColors.length];
+        }
+    </script>
+}
+
+@functions {
+    private string GetStatusColor(int index)
+    {
+        string[] colors = { "#4CAF50", "#2196F3", "#FF9800", "#9E9E9E", "#F44336" };
+        return colors[index % colors.Length];
+    }
+
+    private string GetOverdueClass(int daysOverdue)
+    {
+        if (daysOverdue > 30) return "overdue-critical";
+        if (daysOverdue > 14) return "overdue-high";
+        if (daysOverdue > 7) return "overdue-medium";
+        return "overdue-low";
+    }
+}
