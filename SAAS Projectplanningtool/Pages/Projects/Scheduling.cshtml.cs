@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
@@ -14,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Project = SAAS_Projectplanningtool.Models.Budgetplanning.Project;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
@@ -23,17 +25,21 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
+        private readonly CustomObjectModifier _customObjectModifier;
 
         public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
-
+            _customObjectModifier = new CustomObjectModifier(_context, _userManager);
         }
 
         [BindProperty]
         public Project Project { get; set; } = default!;
+
+        [BindProperty]
+        public string? Origin { get; set; } = null;
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -109,16 +115,24 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     ProjectSectionId = SectionId
                 };
                 pt.State = await new StateManager(_context).getOpenState();
-                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
+                pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
                 _context.ProjectTask.Add(pt);
                 await _context.SaveChangesAsync();
+                TempData.SetMessage("Success", "Aufgabe erfolgreich angelegt.");
             }
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>End");
-            return RedirectToPage(new { id = projectId });
+            if (Origin != null && Origin == "Details")
+            {
+                return RedirectToPage("/Projects/Details", new { id = projectId });
+            }
+            else
+            {
+                return RedirectToPage(new { id = projectId });
+            }
         }
 
         public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
@@ -139,41 +153,67 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     pt.ProjectTaskName = name;
                 }
-                pt = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Aufgabe bearbeitet", pt, false);
+                pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe bearbeitet", pt, false);
 
                 _context.ProjectTask.Update(pt);
                 await _context.SaveChangesAsync();
+                TempData.SetMessage("Success", "Aufgabe erfolgreich geändert.");
             }
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>End");
-            return RedirectToPage(new { id = projectId });
+            if (Origin != null && Origin == "Details")
+            {
+                return RedirectToPage("/Projects/Details", new { id = projectId });
+            }
+            else
+            {
+                return RedirectToPage(new { id = projectId });
+            }
         }
 
-        public async Task<IActionResult> OnPostCreateProjectSectionAsync(string projectId, string Name)
+        public async Task<IActionResult> OnPostCreateProjectSectionAsync(string projectId, string? parentSectionId, string Name)
         {
-            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectSectionAsync>Begin");
             try
             {
-                var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
-                var section = new ProjectSection
+                if (parentSectionId != null)
                 {
-                    ProjectId = projectId,
-                    ProjectSectionName = Name,
-                    CompanyId = excecutingUser.CompanyId
-                };
-                section = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Abschnitt angelegt", section, true);
-                _context.ProjectSection.Add(section);
-                await _context.SaveChangesAsync();
+                   await OnPostCreateSubSectionAsync(parentSectionId, Name);
+                }
+                else
+                {
+                    await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectSectionAsync>Begin");
+
+
+                    var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                    var section = new ProjectSection
+                    {
+                        ProjectId = projectId,
+                        ProjectSectionName = Name,
+                        CompanyId = excecutingUser.CompanyId
+                    };
+                    section = await _customObjectModifier.AddLatestModificationAsync(User, "Abschnitt angelegt", section, true);
+                    _context.ProjectSection.Add(section);
+                    await _context.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectSectionAsync>End");
-            return RedirectToPage(new { id = projectId });
+            TempData.SetMessage("Success", "Abschnitt erfolgreich angelegt.");
+            if (Origin != null && Origin == "Details")
+            {
+                return RedirectToPage("/Projects/Details", new { id = projectId });
+            }
+            else
+            {
+                return RedirectToPage(new { id = projectId });
+            }
+
         }
 
         public async Task<IActionResult> OnPostEditProjectSectionAsync(string sectionId, string? Name)
@@ -186,7 +226,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     section.ProjectSectionName = Name;
                 }
-                section = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Abschnitt bearbeitet", section, false);
+                section = await _customObjectModifier.AddLatestModificationAsync(User, "Abschnitt bearbeitet", section, false);
                 _context.ProjectSection.Update(section);
                 await _context.SaveChangesAsync();
             }
@@ -195,10 +235,18 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectSectionAsync>End");
-            return RedirectToPage(new { id = Project.ProjectId });
+            TempData.SetMessage("Success", "Abschnitt erfolgreich geändert.");
+            if (Origin != null && Origin == "Details")
+            {
+                return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+            }
+            else
+            {
+                return RedirectToPage(new { id = Project.ProjectId });
+            }
         }
 
-        public async Task<IActionResult> OnPostCreateSubSectionAsync(string parentSectionId, string Name)
+        private async Task OnPostCreateSubSectionAsync(string parentSectionId, string Name)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateSubSectionAsync>Begin");
             try
@@ -209,19 +257,18 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     ParentSectionId = parentSectionId,
                     ProjectSectionName = Name,
-                    Project = parentSection.Project,
+                    ProjectId = parentSection.Project.ProjectId,
                     CompanyId = excecutingUser.CompanyId
                 };
-                sub = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unterabschnitt angelegt", sub, true);
-                _context.ProjectSection.Add(sub);
+                sub = await _customObjectModifier.AddLatestModificationAsync(User, "Unterabschnitt angelegt", sub, true);
+                await _context.ProjectSection.AddAsync(sub);
                 await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
+                throw;
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateSubSectionAsync>End");
-            return RedirectToPage(new { id = Project.ProjectId });
         }
         public async Task<IActionResult> OnPostDeleteSelectedAsync(string? objectJson)
         {
@@ -232,14 +279,28 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 if (string.IsNullOrWhiteSpace(objectJson))
                 {
                     TempData.SetMessage("Danger", "Ungültige Anfrage: Kein JSON übergeben.");
-                    return RedirectToPage(new { id = Project.ProjectId });
+                    if (Origin != null && Origin == "Details")
+                    {
+                        return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                    }
+                    else
+                    {
+                        return RedirectToPage(new { id = Project.ProjectId });
+                    }
                 }
 
                 var wrapper = JsonSerializer.Deserialize<JsonWrapper>(objectJson);
                 if (wrapper == null)
                 {
                     TempData.SetMessage("Danger", "Fehler beim Deserialisieren des Objekts.");
-                    return RedirectToPage(new { id = Project.ProjectId });
+                    if (Origin != null && Origin == "Details")
+                    {
+                        return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                    }
+                    else
+                    {
+                        return RedirectToPage(new { id = Project.ProjectId });
+                    }
                 }
 
                 IActionResult? result = wrapper.Type switch
@@ -251,7 +312,19 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 await _logger.Log(null, User, objectJson, "Projects.Scheduling<OnDeleteSelectedAsync>End");
 
-                return result ?? RedirectToPage(new { id = Project.ProjectId });
+                if (result != null)
+                {
+                    return result;
+                }
+
+                if (Origin != null && Origin == "Details")
+                {
+                    return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                }
+                else
+                {
+                    return RedirectToPage(new { id = Project.ProjectId });
+                }
             }
             catch (Exception ex)
             {
@@ -269,7 +342,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 if (string.IsNullOrWhiteSpace(sectionId))
                 {
                     TempData.SetMessage("Danger", "Ungültiger Abschnittsbezeichner.");
-                    return RedirectToPage(new { id = Project.ProjectId });
+                    if (Origin != null && Origin == "Details")
+                    {
+                        return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                    }
+                    else
+                    {
+                        return RedirectToPage(new { id = Project.ProjectId });
+                    }
                 }
 
                 var section = await _context.ProjectSection
@@ -280,13 +360,27 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 if (section == null)
                 {
                     TempData.SetMessage("Danger", "Projektabschnitt nicht gefunden.");
-                    return RedirectToPage(new { id = Project.ProjectId });
+                    if (Origin != null && Origin == "Details")
+                    {
+                        return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                    }
+                    else
+                    {
+                        return RedirectToPage(new { id = Project.ProjectId });
+                    }
                 }
 
                 if ((section.SubSections?.Any() ?? false) || (section.ProjectTasks?.Any() ?? false))
                 {
                     TempData.SetMessage("Warning", "Der Abschnitt enthält noch Unterabschnitte oder Aufgaben und kann daher nicht gelöscht werden.");
-                    return RedirectToPage(new { id = Project.ProjectId });
+                    if (Origin != null && Origin == "Details")
+                    {
+                        return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                    }
+                    else
+                    {
+                        return RedirectToPage(new { id = Project.ProjectId });
+                    }
                 }
 
                 _context.ProjectSection.Remove(section);
@@ -302,7 +396,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private async Task<IActionResult> HandleUnknownType(string? type)
         {
             TempData.SetMessage("Danger", $"Unbekannter Objekttyp: {type}");
-            return RedirectToPage(new { id = Project.ProjectId });
+            if (Origin != null && Origin == "Details")
+            {
+                return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+            }
+            else
+            {
+                return RedirectToPage(new { id = Project.ProjectId });
+            }
         }
         private async Task<IActionResult?> HandleDeleteProjectTask(JsonElement data)
         {
@@ -310,14 +411,28 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             if (string.IsNullOrWhiteSpace(taskId))
             {
                 TempData.SetMessage("Danger", "Ungültiger Aufgabenbezeichner.");
-                return RedirectToPage(new { id = Project.ProjectId });
+                if (Origin != null && Origin == "Details")
+                {
+                    return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                }
+                else
+                {
+                    return RedirectToPage(new { id = Project.ProjectId });
+                }
             }
 
             var task = await _context.ProjectTask.FirstOrDefaultAsync(pt => pt.ProjectTaskId == taskId);
             if (task == null)
             {
                 TempData.SetMessage("Danger", "Aufgabe nicht gefunden.");
-                return RedirectToPage(new { id = Project.ProjectId });
+                if (Origin != null && Origin == "Details")
+                {
+                    return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                }
+                else
+                {
+                    return RedirectToPage(new { id = Project.ProjectId });
+                }
             }
 
             _context.ProjectTask.Remove(task);

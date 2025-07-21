@@ -34,7 +34,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
             };
 
-            _context.Logfile.Add(log);
+            await _context.Logfile.AddAsync(log);
             await _context.SaveChangesAsync();
 
             return log.LogfileId;
@@ -55,7 +55,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
             };
 
-            _context.Logfile.Add(log);
+            await _context.Logfile.AddAsync(log);
             await _context.SaveChangesAsync();
 
             return log.LogfileId;

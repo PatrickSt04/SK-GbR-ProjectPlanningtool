@@ -17,27 +17,27 @@
             </nav>
         </div>
     </div>
-    <!-- Delete Feedbackhandling (should only be displayed for certain amount of seconds-->
-@{
-    var message = TempData.GetMessage();
-}
-@if (message != null)
-{
-    <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
-        @message.Message
-    </div>
+    <!--  Feedbackhandling (should only be displayed for certain amount of seconds)-->
+    @{
+        var message = TempData.GetMessage();
+    }
+    @if (message != null)
+    {
+        <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
+            @message.Message
+        </div>
 
-    <script>
-        setTimeout(function () {
-            var msg = document.getElementById('feedback-message');
-            if (msg) {
-                msg.style.transition = "opacity 0.5s ease";
-                msg.style.opacity = 0;
-                setTimeout(() => msg.remove(), 500); // Remove after fade
-            }
-        }, 3000); // Display for 3 seconds
-    </script>
-}
+        <script>
+            setTimeout(function () {
+                var msg = document.getElementById('feedback-message');
+                if (msg) {
+                    msg.style.transition = "opacity 0.5s ease";
+                    msg.style.opacity = 0;
+                    setTimeout(() => msg.remove(), 500); // Remove after fade
+                }
+            }, 3000); // Display for 3 seconds
+        </script>
+    }
 
     <!-- Toolbar -->
     <div class="row mb-3">
@@ -156,7 +156,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="post" asp-page-handler="CreateProjectTask">
-       
+
                 <div class="modal-header">
                     <h5 class="modal-title">Neue Aufgabe hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -234,7 +234,7 @@
 <div class="modal fade" id="addSubSectionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="CreateSubSection">
+            <form method="post" asp-page-handler="CreateProjectSection">
                 <div class="modal-header">
                     <h5 class="modal-title">Neuen Unterabschnitt hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -330,23 +330,27 @@
         }
     });
 
-    const collapsed = new Map(); 
+    const collapsed = new Map();
 
     const projectData = {
-        project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+        project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+        {
             Id = Model.Project?.ProjectId,
             Name = Model.Project?.ProjectName,
             StartDate = Model.Project?.StartDate?.ToString("yyyy-MM-dd"),
             EndDate = Model.Project?.EndDate?.ToString("yyyy-MM-dd"),
-            Sections = Model.Project?.ProjectSections?.Where(s => s.ParentSectionId == null).Select(s => new {
+            Sections = Model.Project?.ProjectSections?.Where(s => s.ParentSectionId == null).Select(s => new
+            {
                 Id = s.ProjectSectionId,
                 Name = s.ProjectSectionName,
                 Type = "section",
-                SubSections = s.SubSections?.Select(sub => new {
+                SubSections = s.SubSections?.Select(sub => new
+                {
                     Id = sub.ProjectSectionId,
                     Name = sub.ProjectSectionName,
                     Type = "subsection",
-                    Tasks = sub.ProjectTasks?.Select(t => new {
+                    Tasks = sub.ProjectTasks?.Select(t => new
+                    {
                         Id = t.ProjectTaskId,
                         Name = t.ProjectTaskName,
                         StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
@@ -354,7 +358,8 @@
                         Type = "task"
                     })
                 }),
-                Tasks = s.ProjectTasks?.Select(t => new {
+                Tasks = s.ProjectTasks?.Select(t => new
+                {
                     Id = t.ProjectTaskId,
                     Name = t.ProjectTaskName,
                     StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
@@ -394,7 +399,7 @@
         const today = new Date();
         ganttStartDate = new Date(today.getFullYear(), today.getMonth(), 1);
         ganttEndDate = new Date(today.getFullYear(), today.getMonth() + 6, 0);
-    
+
         // Adjust based on project dates if available
         if (projectData.project.StartDate) {
             const projectStart = new Date(projectData.project.StartDate);
@@ -402,7 +407,7 @@
                 ganttStartDate = new Date(projectStart.getFullYear(), projectStart.getMonth(), 1);
             }
         }
-    
+
         if (projectData.project.EndDate) {
             const projectEnd = new Date(projectData.project.EndDate);
             if (projectEnd > ganttEndDate) {
@@ -574,10 +579,10 @@
     function renderTimeline() {
         const timelineHeader = document.getElementById('timeline-header');
         const timelineBody = document.getElementById('timeline-body');
-    
+
         timelineHeader.innerHTML = '';
         timelineBody.innerHTML = '';
-    
+
         //renderTimelineHeader(timelineHeader);
         //renderTimelineBars(timelineBody);
         renderTimelineHeader(timelineHeader);
@@ -592,20 +597,20 @@
     function renderTimelineHeader(container) {
         const totalDays = Math.ceil((ganttEndDate - ganttStartDate) / (1000 * 60 * 60 * 24));
         const dayWidth = 48; // pixels per day
-    
+
         for (let i = 0; i <= totalDays; i += (currentTimeScale === 'day' ? 1 : currentTimeScale === 'week' ? 7 : 30)) {
             const date = new Date(ganttStartDate);
             date.setDate(date.getDate() + i);
-        
+
             const headerDiv = document.createElement('div');
             headerDiv.className = 'timeline-header-day';
             headerDiv.style.left = (i * dayWidth) + 'px';
             headerDiv.style.width = (dayWidth * (currentTimeScale === 'day' ? 1 : currentTimeScale === 'week' ? 7 : 30)) + 'px';
             headerDiv.textContent = formatHeaderDate(date);
-        
+
             container.appendChild(headerDiv);
         }
-    
+
         container.style.width = (totalDays * dayWidth) + 'px';
     }
 
@@ -660,13 +665,13 @@
 
     function renderTimelineBar(item, container, rowIndex, dayWidth) {
         if (!item.StartDate || !item.EndDate) return;
-    
+
         const startDate = new Date(item.StartDate);
         const endDate = new Date(item.EndDate);
-    
+
         const startOffset = Math.max(0, Math.ceil((startDate - ganttStartDate) / (1000 * 60 * 60 * 24)));
         const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-    
+
         const bar = document.createElement('div');
         bar.className = `timeline-bar ${item.Type}`;
         bar.style.left = (startOffset * dayWidth) + 'px';
@@ -674,7 +679,7 @@
         bar.style.top = (rowIndex * 40 + 10) + 'px'; // 10px offset to center in 40px row
         bar.textContent = item.Name;
         bar.title = `${item.Name} (${formatDate(item.StartDate)} - ${formatDate(item.EndDate)})`;
-    
+
         container.appendChild(bar);
     }
 
@@ -717,17 +722,17 @@
 
     function calculateDuration(startDate, endDate) {
         if (!startDate || !endDate) return '-';
-    
+
         const start = new Date(startDate);
         const end = new Date(endDate);
         const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-    
+
         return days + 'd';
     }
 
     function formatDate(dateString) {
         if (!dateString) return '-';
-    
+
         const date = new Date(dateString);
         return date.toLocaleDateString('de-DE');
     }
@@ -772,34 +777,34 @@
         document.getElementById('editTaskName').value = taskName;
         document.getElementById('editTaskStartDate').value = startDate;
         document.getElementById('editTaskEndDate').value = endDate;
-    
+
         new bootstrap.Modal(document.getElementById('editTaskModal')).show();
     }
 
     function deleteItem(itemId, itemType, itemName) {
-        document.getElementById('deleteConfirmText').textContent = 
+        document.getElementById('deleteConfirmText').textContent =
             `Sind Sie sicher, dass Sie "${itemName}" löschen möchten?`;
-    
+
         const jsonData = {
             Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
             Data: { itemId, itemName }
         };
-    
+
         // document.getElementById('deleteObjectJson').value = jsonData;
         document.getElementById('deleteObjectJson').value = JSON.stringify(jsonData);
-    
+
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
 
     function changeTimeScale(scale) {
         currentTimeScale = scale;
-    
+
         // Update active button
         document.querySelectorAll('.btn-group button').forEach(btn => {
             btn.classList.remove('active');
         });
         event.target.classList.add('active');
-    
+
         renderTimeline();
     }
 
@@ -849,5 +854,5 @@
 <!-- Include Bootstrap and FontAwesome if not already included -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link href="/css/gantt.css" rel="stylesheet"/>
+<link href="/css/gantt.css" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

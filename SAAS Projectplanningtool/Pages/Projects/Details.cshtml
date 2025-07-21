@@ -16,27 +16,7 @@
 </div>
 <hr />
 
-<!-- Delete Feedbackhandling -->
-@{
-    var message = TempData.GetMessage();
-}
-@if (message != null)
-{
-    <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
-        @message.Message
-    </div>
 
-    <script>
-        setTimeout(function () {
-            var msg = document.getElementById('feedback-message');
-            if (msg) {
-                msg.style.transition = "opacity 0.5s ease";
-                msg.style.opacity = 0;
-                setTimeout(() => msg.remove(), 500);
-            }
-        }, 3000);
-    </script>
-}
 
 <div class="row">
     <!-- Karte 1: Projektstatus -->
@@ -167,7 +147,27 @@
                 </a>
             </button>
         </div>
+        <!-- Feedbackhandling -->
+        @{
+            var message = TempData.GetMessage();
+        }
+        @if (message != null)
+        {
+            <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
+                @message.Message
+            </div>
 
+            <script>
+                setTimeout(function () {
+                    var msg = document.getElementById('feedback-message');
+                    if (msg) {
+                        msg.style.transition = "opacity 0.5s ease";
+                        msg.style.opacity = 0;
+                        setTimeout(() => msg.remove(), 500);
+                    }
+                }, 3000);
+            </script>
+        }
         <div id="gantt-left">
             <div class="gantt-task-list">
                 <div class="gantt-header">
@@ -189,7 +189,7 @@
 <div class="modal fade" id="addSectionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="CreateProjectSection">
+            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="CreateProjectSection">
                 <div class="modal-header">
                     <h5 class="modal-title">Neuen Abschnitt hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -234,7 +234,7 @@
 <div class="modal fade" id="addTaskModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="CreateProjectTask">
+            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="CreateProjectTask">
                 <div class="modal-header">
                     <h5 class="modal-title">Neue Aufgabe hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -309,7 +309,7 @@
 <div class="modal fade" id="addSubSectionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="CreateSubSection">
+            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="CreateSubSection">
                 <div class="modal-header">
                     <h5 class="modal-title">Neuen Unterabschnitt hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -335,7 +335,7 @@
 <div class="modal fade" id="editTaskModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="EditProjectTask">
+            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="EditProjectTask">
                 <div class="modal-header">
                     <h5 class="modal-title">Aufgabe bearbeiten</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -371,7 +371,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="DeleteSelected">
+            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="DeleteSelected">
                 <div class="modal-header">
                     <h5 class="modal-title">Löschen bestätigen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -398,38 +398,38 @@
             Id = Model.Project.ProjectId,
             Name = Model.Project.ProjectName,
             Sections = Model.Project.ProjectSections?
-                   .Where(s => s.ParentSectionId == null).Select(s => new
+           .Where(s => s.ParentSectionId == null).Select(s => new
+           {
+               Id = s.ProjectSectionId,
+               Name = s.ProjectSectionName,
+               Type = "section",
+               State = s.State != null ? new { StateName = s.State.StateName, Color = s.State.Color } : null,
+               SubSections = s.SubSections?.Select(sub => new
+               {
+                   Id = sub.ProjectSectionId,
+                   Name = sub.ProjectSectionName,
+                   Type = "subsection",
+                   State = sub.State != null ? new { StateName = sub.State.StateName, Color = sub.State.Color } : null,
+                   Tasks = sub.ProjectTasks?.Select(t => new
                    {
-                       Id = s.ProjectSectionId,
-                       Name = s.ProjectSectionName,
-                       Type = "section",
-                       State = s.State != null ? new { StateName = s.State.StateName, Color = s.State.Color } : null,
-                       SubSections = s.SubSections?.Select(sub => new
-                       {
-                           Id = sub.ProjectSectionId,
-                           Name = sub.ProjectSectionName,
-                           Type = "subsection",
-                           State = sub.State != null ? new { StateName = sub.State.StateName, Color = sub.State.Color } : null,
-                           Tasks = sub.ProjectTasks?.Select(t => new
-                           {
-                               Id = t.ProjectTaskId,
-                               Name = t.ProjectTaskName,
-                               StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                               EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                               Type = "task",
-                               State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
-                           })
-                       }),
-                       Tasks = s.ProjectTasks?.Select(t => new
-                       {
-                           Id = t.ProjectTaskId,
-                           Name = t.ProjectTaskName,
-                           StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                           EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                           Type = "task",
-                           State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
-                       })
+                       Id = t.ProjectTaskId,
+                       Name = t.ProjectTaskName,
+                       StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                       EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                       Type = "task",
+                       State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
                    })
+               }),
+               Tasks = s.ProjectTasks?.Select(t => new
+               {
+                   Id = t.ProjectTaskId,
+                   Name = t.ProjectTaskName,
+                   StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                   EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                   Type = "task",
+                   State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
+               })
+           })
         }))
     };
 
