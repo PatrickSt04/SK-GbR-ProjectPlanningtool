@@ -60,6 +60,7 @@
 </div>
 
 
+
 <!-- Add HourlyRateGroups Modal -->
 <div class="modal fade" id="addHRGsModal" data-task-id="" tabindex="-1">
     <div class="modal-dialog">
@@ -82,6 +83,7 @@
         </div>
     </div>
 </div>
+
 
 
 
@@ -316,9 +318,9 @@
 
             // Setze die ProjectTaskId in das richtige Modal
             if (targetModalId === "#addRessourceModal") {
-                document.getElementById("employeeProjectTaskId").value = taskId;
+                document.getElementById("employeeProjectTaskId").value =String( taskId);
             } else if (targetModalId === "#addHRGsModal") {
-                document.getElementById("hrgProjectTaskId").value = taskId;
+                document.getElementById("hrgProjectTaskId").value = String(taskId);
             }
 
             const bsModal = new bootstrap.Modal(document.querySelector(targetModalId));
@@ -336,9 +338,9 @@
             if (currentModal) currentModal.hide();
 
             if (target === "#addRessourceModal") {
-                document.getElementById("employeeProjectTaskId").value = currentTaskId;
+                document.getElementById("employeeProjectTaskId").value = String(currentTaskId);
             } else if (target === "#addHRGsModal") {
-                document.getElementById("hrgProjectTaskId").value = currentTaskId;
+                document.getElementById("hrgProjectTaskId").value = String(currentTaskId);
             }
 
             const newModal = new bootstrap.Modal(document.querySelector(target));
