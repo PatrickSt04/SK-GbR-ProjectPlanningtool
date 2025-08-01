@@ -37,18 +37,35 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         public async Task<IActionResult> OnPostSaveEmployeesAsync()
         {
+            if (SelectedEmployeeIds == null || !SelectedEmployeeIds.Any())
+            {
+                ModelState.AddModelError(string.Empty, "Bitte mindestens einen Mitarbeiter auswählen.");
+                return Page();
+            }
+
             var res = await GetOrCreateRessourceAsync(ProjectTaskId);
 
-            // Clear HRG if present
+            // Remove HRG-Data (Mutual exclusivity)
             res.AmountPerHourlyRateGroup = null;
 
-            //// Set new employees
-            //res.EmployeeRessources = SelectedEmployeeIds
-            //    .Select(id => new Employee { EmployeeId = id }) // ggf. nur ID setzen
-            //    .ToList();
+            // Fetch Employees from DB
+            var employees = await _context.Employee
+                .Where(e => SelectedEmployeeIds.Contains(e.EmployeeId))
+                .ToListAsync();
+
+            res.EmployeeRessources = employees;
 
             res.LatestModificationText = "Einzelmitarbeiter gespeichert";
             res.LatestModificationTimestamp = DateTime.Now;
+
+            if (_context.ProjectTaskRessource.Any(x => x.ProjectTaskRessourceId == res.ProjectTaskRessourceId))
+            {
+                _context.ProjectTaskRessource.Update(res);
+            }
+            else
+            {
+                _context.ProjectTaskRessource.Add(res);
+            }
 
             await _context.SaveChangesAsync();
             return RedirectToPage(new { projectTaskId = ProjectTaskId });
@@ -56,17 +73,35 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         public async Task<IActionResult> OnPostSaveHRGsAsync()
         {
+            if (HRGAmounts == null || !HRGAmounts.Any())
+            {
+                ModelState.AddModelError(string.Empty, "Bitte mindestens eine Stundenlohngruppe mit Anzahl angeben.");
+                return Page();
+            }
+
             var res = await GetOrCreateRessourceAsync(ProjectTaskId);
 
-            // Clear employees
+            // Remove employees (Mutual exclusivity)
             res.EmployeeRessources = null;
 
-            // Set new HRGs
-            res.AmountPerHourlyRateGroup = (Dictionary<int, HourlyRateGroup>?)HRGAmounts
-                .Where(kv => kv.Key > 0);
+            // Build a dictionary with ID & count only (or serialize directly)
+            var relevantHRGs = HRGAmounts
+                .Where(kv => kv.Key > 0 && kv.Value > 0)
+                .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+            // Serialize for persistence
 
             res.LatestModificationText = "HRGs gespeichert";
             res.LatestModificationTimestamp = DateTime.Now;
+
+            if (_context.ProjectTaskRessource.Any(x => x.ProjectTaskRessourceId == res.ProjectTaskRessourceId))
+            {
+                _context.ProjectTaskRessource.Update(res);
+            }
+            else
+            {
+                _context.ProjectTaskRessource.Add(res);
+            }
 
             await _context.SaveChangesAsync();
             return RedirectToPage(new { projectTaskId = ProjectTaskId });
@@ -85,7 +120,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 CreatedTimestamp = DateTime.Now,
             };
 
-            _context.ProjectTaskRessource.Add(newRes);
+
             return newRes;
         }
     }
