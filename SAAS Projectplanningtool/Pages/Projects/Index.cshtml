@@ -1,0 +1,1063 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Projects.ProjectsModel
+@using SAAS_Projectplanningtool.Models.Budgetplanning
+@{
+    ViewData["Title"] = "Projekte";
+    ViewData["ShowBreadcrumb"] = true;
+    ViewData["BreadcrumbItems"] = new List<dynamic>
+    {
+        new { Text = "Projekte", Url = "", IsActive = true }
+    };
+}
+
+<div class="projects-container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1><i class="fas fa-project-diagram me-2"></i>Projekte</h1>
+                <p class="text-muted">Verwalten Sie alle Ihre Projekte an einem Ort</p>
+            </div>
+            <div class="header-actions">
+                @if (Model.CanCreateProjects)
+                {
+                    <a asp-page="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Neues Projekt
+                    </a>
+                }
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="exportProjects('excel')">
+                                <i class="fas fa-file-excel me-2"></i>Excel
+                            </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportProjects('pdf')">
+                                <i class="fas fa-file-pdf me-2"></i>PDF
+                            </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportProjects('csv')">
+                                <i class="fas fa-file-csv me-2"></i>CSV
+                            </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="statistics-section mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stat-card stat-active">
+                    <div class="stat-icon">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.ActiveProjectsCount</h3>
+                        <p>Aktive Projekte</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-planning">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.PlanningProjectsCount</h3>
+                        <p>In Planung</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-completed">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.CompletedProjectsCount</h3>
+                        <p>Abgeschlossen</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-overdue">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.OverdueProjectsCount</h3>
+                        <p>Überfällig</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter and Search Section -->
+    <div class="filter-section">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="filter-form">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Suche</label>
+                            <div class="input-group">
+                                <input type="text" name="searchTerm" value="@Model.SearchTerm" 
+                                class="form-control" placeholder="Projektname, Beschreibung...">
+                                <button type="submit" class="btn btn-outline-secondary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                            <select name="statusFilter" class="form-select">
+                                <option value="">Alle Status</option>
+                                @foreach (var status in Model.AvailableStatuses)
+                                {
+                                    <option value="@status.StateId" selected="@(status.StateId == Model.StatusFilter)">
+                                        @status.StateName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Kunde</label>
+                            <select name="customerFilter" class="form-select">
+                                <option value="">Alle Kunden</option>
+                                @foreach (var customer in Model.AvailableCustomers)
+                                {
+                                    <option value="@customer.CustomerId" selected="@(customer.CustomerId == Model.CustomerFilter)">
+                                        @customer.CustomerName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Projektleiter</label>
+                            <select name="managerFilter" class="form-select">
+                                <option value="">Alle Projektleiter</option>
+                                @foreach (var manager in Model.AvailableProjectManagers)
+                                {
+                                    <option value="@manager.EmployeeId" selected="@(manager.EmployeeId == Model.ManagerFilter)">
+                                        @manager.EmployeeDisplayName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Zeitraum</label>
+                            <select name="dateFilter" class="form-select">
+                                <option value="">Alle Projekte</option>
+                                <option value="thisMonth" selected="@(Model.DateFilter == "thisMonth")">Dieser Monat</option>
+                                <option value="thisYear" selected="@(Model.DateFilter == "thisYear")">Dieses Jahr</option>
+                                <option value="lastYear" selected="@(Model.DateFilter == "lastYear")">Letztes Jahr</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Toggle -->
+    <div class="view-controls mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="results-info">
+                <span class="text-muted">
+                    @Model.Projects.Count() von @Model.TotalProjectsCount Projekten
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>für "@Model.SearchTerm"</span>
+                    }
+                </span>
+            </div>
+            <div class="view-toggle">
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="viewType" id="cardView" autocomplete="off" checked>
+                    <label class="btn btn-outline-secondary" for="cardView">
+                        <i class="fas fa-th-large"></i>
+                    </label>
+                    <input type="radio" class="btn-check" name="viewType" id="tableView" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="tableView">
+                        <i class="fas fa-list"></i>
+                    </label>
+                </div>
+                <select class="form-select ms-2" style="width: auto;" onchange="changePageSize(this.value)">
+                    <option value="10" selected="@(Model.PageSize == 10)">10 pro Seite</option>
+                    <option value="25" selected="@(Model.PageSize == 25)">25 pro Seite</option>
+                    <option value="50" selected="@(Model.PageSize == 50)">50 pro Seite</option>
+                    <option value="100" selected="@(Model.PageSize == 100)">100 pro Seite</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Card View -->
+    <div id="cardViewContent" class="projects-grid">
+        @if (Model.Projects.Any())
+        {
+            <div class="row g-4">
+                @foreach (var project in Model.Projects)
+                {
+                    var progressPercentage = CalculateProgress(project);
+                    var statusClass = GetStatusClass(project.State?.StateName);
+                    var priorityClass = GetPriorityClass(project);
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="project-card @priorityClass">
+                            <div class="project-header">
+                                <div class="project-title">
+                                    <h5>
+                                        <a asp-page="Details" asp-route-id="@project.ProjectId" 
+                                        class="text-decoration-none">
+                                            @project.ProjectName
+                                        </a>
+                                    </h5>
+                                    <span class="project-status @statusClass">
+                                        @project.State?.StateName
+                                    </span>
+                                </div>
+                                <div class="project-actions">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" 
+                                        data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" asp-page="Details" asp-route-id="@project.ProjectId">
+                                                    <i class="fas fa-eye me-2"></i>Details
+                                                </a>
+                                            </li>
+                                            @if (Model.CanEditProjects)
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" asp-page="Edit" asp-route-id="@project.ProjectId">
+                                                        <i class="fas fa-edit me-2"></i>Bearbeiten
+                                                    </a>
+                                                </li>
+                                            }
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="duplicateProject('@project.ProjectId')">
+                                                    <i class="fas fa-copy me-2"></i>Duplizieren
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            @if (project.IsArchived != true)
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item text-warning" href="#" 
+                                                    onclick="archiveProject('@project.ProjectId')">
+                                                        <i class="fas fa-archive me-2"></i>Archivieren
+                                                    </a>
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item text-success" href="#" 
+                                                    onclick="unarchiveProject('@project.ProjectId')">
+                                                        <i class="fas fa-box-open me-2"></i>Reaktivieren
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="project-content">
+                                <p class="project-description">@project.ProjectDescription</p>
+
+                                <div class="project-meta">
+                                    <div class="meta-item">
+                                        <i class="fas fa-user text-muted me-1"></i>
+                                        <span>@project.Customer?.CustomerName</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-user-tie text-muted me-1"></i>
+                                        <span>@project.ResponsiblePerson?.EmployeeDisplayName</span>
+                                    </div>
+                                </div>
+
+                                <div class="project-dates">
+                                    <div class="date-item">
+                                        <small class="text-muted">Start:</small>
+                                        <span>@(project.StartDate?.ToString("dd.MM.yyyy") ?? "Nicht gesetzt")</span>
+                                    </div>
+                                    <div class="date-item">
+                                        <small class="text-muted">Ende:</small>
+                                        <span>@(project.EndDate?.ToString("dd.MM.yyyy") ?? "Nicht gesetzt")</span>
+                                    </div>
+                                </div>
+
+                                @if (project.ProjectBudget != null)
+                                {
+                                    var budgetPercentage = project.ProjectBudget.InitialBudget > 0 
+                                        ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100 
+                                        : 0;
+
+                                    <div class="project-budget">
+                                        <div class="budget-header">
+                                            <small class="text-muted">Budget</small>
+                                            <small class="budget-percentage">@budgetPercentage.ToString("F1")%</small>
+                                        </div>
+                                        <div class="progress progress-sm">
+                                            <div class="progress-bar @GetBudgetClass(budgetPercentage)" 
+                                            style="width: @budgetPercentage%"></div>
+                                        </div>
+                                        <div class="budget-details">
+                                            <small>@project.ProjectBudget.UsedBudget.ToString("C") / @project.ProjectBudget.InitialBudget.ToString("C")</small>
+                                        </div>
+                                    </div>
+                                }
+
+                                <div class="project-progress">
+                                    <div class="progress-header">
+                                        <small class="text-muted">Fortschritt</small>
+                                        <small>@progressPercentage%</small>
+                                    </div>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-success" style="width: @progressPercentage%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <h3>Keine Projekte gefunden</h3>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>Keine Projekte entsprechen Ihren Suchkriterien.</span>
+                    }
+                    else
+                    {
+                        <span>Erstellen Sie Ihr erstes Projekt, um loszulegen.</span>
+                    }
+                </p>
+                @if (Model.CanCreateProjects)
+                {
+                    <a asp-page="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Erstes Projekt erstellen
+                    </a>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Projects Table View -->
+    <div id="tableViewContent" class="projects-table" style="display: none;">
+        @if (Model.Projects.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>
+                                <a asp-page="Index" asp-route-sortBy="ProjectName" 
+                                asp-route-sortDirection="@(Model.SortBy == "ProjectName" && Model.SortDirection == "asc" ? "desc" : "asc")"
+                                class="text-decoration-none">
+                                    Projektname
+                                    @if (Model.SortBy == "ProjectName")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>Kunde</th>
+                            <th>Status</th>
+                            <th>Projektleiter</th>
+                            <th>
+                                <a asp-page="Index" asp-route-sortBy="StartDate" 
+                                asp-route-sortDirection="@(Model.SortBy == "StartDate" && Model.SortDirection == "asc" ? "desc" : "asc")"
+                                class="text-decoration-none">
+                                    Startdatum
+                                    @if (Model.SortBy == "StartDate")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-page="Index" asp-route-sortBy="EndDate" 
+                                asp-route-sortDirection="@(Model.SortBy == "EndDate" && Model.SortDirection == "asc" ? "desc" : "asc")"
+                                class="text-decoration-none">
+                                    Enddatum
+                                    @if (Model.SortBy == "EndDate")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>Budget</th>
+                            <th>Fortschritt</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var project in Model.Projects)
+                        {
+                       
+                            var progressPercentage = CalculateProgress(project);
+                            var statusClass = GetStatusClass(project.State?.StateName);
+                            
+                            <tr>
+                                <td>
+                                    <div class="project-name-cell">
+                                        <strong>
+                                            <a asp-page="Details" asp-route-id="@project.ProjectId" 
+                                               class="text-decoration-none">
+                                                @project.ProjectName
+                                            </a>
+                                        </strong>
+                                        @if (project.IsArchived == true)
+                                        {
+                                            <span class="badge bg-secondary ms-2">Archiviert</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>@project.Customer?.CustomerName</td>
+                                <td>
+                                    <span class="badge @statusClass">
+                                        @project.State?.StateName
+                                    </span>
+                                </td>
+                                <td>@project.ResponsiblePerson?.EmployeeDisplayName</td>
+                                <td>@(project.StartDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                <td>
+                                    @if (project.EndDate.HasValue)
+                                    {
+                                        var isOverdue = project.EndDate < DateOnly.FromDateTime(DateTime.Now) && project.IsArchived != true;
+                                        <span class="@(isOverdue ? "text-danger fw-bold" : "")">
+                                            @project.EndDate.Value.ToString("dd.MM.yyyy")
+                                        </span>
+                                        @if (isOverdue)
+                                        {
+                                            <i class="fas fa-exclamation-triangle text-danger ms-1"></i>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (project.ProjectBudget != null)
+                                    {
+                                        var budgetPercentage = project.ProjectBudget.InitialBudget > 0 
+                                            ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100 
+                                            : 0;
+                                        
+                                        <div class="budget-cell">
+                                            <small class="text-muted d-block">
+                                                @project.ProjectBudget.UsedBudget.ToString("C") / @project.ProjectBudget.InitialBudget.ToString("C")
+                                            </small>
+                                            <div class="progress progress-sm">
+                                                <div class="progress-bar @GetBudgetClass(budgetPercentage)" 
+                                                     style="width: @budgetPercentage%"></div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Kein Budget</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="progress-cell">
+                                        <small class="d-block">@progressPercentage%</small>
+                                        <div class="progress progress-sm">
+                                            <div class="progress-bar bg-success" style="width: @progressPercentage%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-page="Details" asp-route-id="@project.ProjectId" 
+                                           class="btn btn-outline-primary btn-sm" title="Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (Model.CanEditProjects)
+                                        {
+                                            <a asp-page="Edit" asp-route-id="@project.ProjectId" 
+                                               class="btn btn-outline-secondary btn-sm" title="Bearbeiten">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        }
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" 
+                                                data-bs-toggle="dropdown">
+                                            <span class="visually-hidden">Mehr Aktionen</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="duplicateProject('@project.ProjectId')">
+                                                    <i class="fas fa-copy me-2"></i>Duplizieren
+                                                </a>
+                                            </li>
+                                            @if (project.IsArchived != true)
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item text-warning" href="#" 
+                                                       onclick="archiveProject('@project.ProjectId')">
+                                                        <i class="fas fa-archive me-2"></i>Archivieren
+                                                    </a>
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item text-success" href="#" 
+                                                       onclick="unarchiveProject('@project.ProjectId')">
+                                                        <i class="fas fa-box-open me-2"></i>Reaktivieren
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav aria-label="Seitennummerierung" class="mt-4">
+            <ul class="pagination justify-content-center">
+                @if (Model.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-page="Index" asp-route-page="@(Model.CurrentPage - 1)"
+                           asp-all-route-data="@Model.GetRouteData()">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                }
+                
+                @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-page="Index" asp-route-page="@i"
+                           asp-all-route-data="@Model.GetRouteData()">
+                            @i
+                        </a>
+                    </li>
+                }
+                
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-page="Index" asp-route-page="@(Model.CurrentPage + 1)"
+                           asp-all-route-data="@Model.GetRouteData()">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+@functions {
+    private int CalculateProgress(Project project)
+    {
+        // Vereinfachte Fortschrittsberechnung basierend auf Status
+        if (project.State?.StateName == "Completed") return 100;
+        if (project.State?.StateName == "InProgress") return 50;
+        if (project.State?.StateName == "Planning") return 25;
+        return 0;
+    }
+    
+    private string GetStatusClass(string? status)
+    {
+        return status switch
+        {
+            "Active" => "bg-success",
+            "InProgress" => "bg-primary",
+            "Planning" => "bg-warning",
+            "Completed" => "bg-info",
+            "OnHold" => "bg-secondary",
+            "Cancelled" => "bg-danger",
+            _ => "bg-light text-dark"
+        };
+    }
+    
+    private string GetPriorityClass(Project project)
+    {
+        // Priorität basierend auf Enddatum
+        if (project.EndDate.HasValue && project.EndDate < DateOnly.FromDateTime(DateTime.Now.AddDays(7)))
+            return "priority-high";
+        if (project.EndDate.HasValue && project.EndDate < DateOnly.FromDateTime(DateTime.Now.AddDays(30)))
+            return "priority-medium";
+        return "priority-low";
+    }
+    
+    private string GetBudgetClass(float percentage)
+    {
+        if (percentage > 90) return "bg-danger";
+        if (percentage > 75) return "bg-warning";
+        return "bg-success";
+    }
+}
+
+<style>
+.projects-container {
+    padding: 20px;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    color: white;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.header-left p {
+    margin: 5px 0 0 0;
+    opacity: 0.9;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.statistics-section .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-right: 15px;
+}
+
+.stat-active .stat-icon { background: #28a745; }
+.stat-planning .stat-icon { background: #ffc107; }
+.stat-completed .stat-icon { background: #17a2b8; }
+.stat-overdue .stat-icon { background: #dc3545; }
+
+.stat-content h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.stat-content p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-form .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.view-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.project-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+    border-left: 4px solid transparent;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.project-card.priority-high {
+    border-left-color: #dc3545;
+}
+
+.project-card.priority-medium {
+    border-left-color: #ffc107;
+}
+
+.project-card.priority-low {
+    border-left-color: #28a745;
+}
+
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 20px 0;
+}
+
+.project-title h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.project-title h5 a {
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.project-title h5 a:hover {
+    color: #007bff;
+}
+
+.project-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.project-content {
+    padding: 20px;
+}
+
+.project-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.project-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.project-dates {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.date-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-budget,
+.project-progress {
+    margin-bottom: 15px;
+}
+
+.budget-header,
+.progress-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.progress-sm {
+    height: 6px;
+}
+
+.budget-details {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-state h3 {
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.projects-table .table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.projects-table .table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.project-name-cell strong a {
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.project-name-cell strong a:hover {
+    color: #007bff;
+}
+
+.budget-cell,
+.progress-cell {
+    min-width: 120px;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View Toggle Functionality
+    const cardViewBtn = document.getElementById('cardView');
+    const tableViewBtn = document.getElementById('tableView');
+    const cardViewContent = document.getElementById('cardViewContent');
+    const tableViewContent = document.getElementById('tableViewContent');
+    
+    cardViewBtn.addEventListener('change', function() {
+        if (this.checked) {
+            cardViewContent.style.display = 'block';
+            tableViewContent.style.display = 'none';
+            localStorage.setItem('projectsViewType', 'card');
+        }
+    });
+    
+    tableViewBtn.addEventListener('change', function() {
+        if (this.checked) {
+            cardViewContent.style.display = 'none';
+            tableViewContent.style.display = 'block';
+            localStorage.setItem('projectsViewType', 'table');
+        }
+    });
+    
+    // Restore saved view type
+    const savedViewType = localStorage.getItem('projectsViewType');
+    if (savedViewType === 'table') {
+        tableViewBtn.checked = true;
+        tableViewBtn.dispatchEvent(new Event('change'));
+    }
+    
+    // Auto-submit filter form on select change
+    document.querySelectorAll('select[name="statusFilter"], select[name="customerFilter"], select[name="managerFilter"], select[name="dateFilter"]').forEach(select => {
+        select.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    });
+    
+    // Search on Enter key
+    document.querySelector('input[name="searchTerm"]').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            this.closest('form').submit();
+        }
+    });
+});
+
+// Project Actions
+function archiveProject(projectId) {
+    if (confirm('Möchten Sie dieses Projekt wirklich archivieren?')) {
+        fetch(`/Projects/Archive`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            },
+            body: JSON.stringify({ projectId: projectId })
+        })
+        .then(response => {
+            if (response.ok) {
+                showNotification('Projekt wurde erfolgreich archiviert.', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('Fehler beim Archivieren des Projekts.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ein Fehler ist aufgetreten.', 'error');
+        });
+    }
+}
+
+function unarchiveProject(projectId) {
+    if (confirm('Möchten Sie dieses Projekt reaktivieren?')) {
+        fetch(`/Projects/Unarchive`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            },
+            body: JSON.stringify({ projectId: projectId })
+        })
+        .then(response => {
+            if (response.ok) {
+                showNotification('Projekt wurde erfolgreich reaktiviert.', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('Fehler beim Reaktivieren des Projekts.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Ein Fehler ist aufgetreten.', 'error');
+        });
+    }
+}
+
+function duplicateProject(projectId) {
+    if (confirm('Möchten Sie dieses Projekt duplizieren?')) {
+        window.location.href = `/Projects/Duplicate/${projectId}`;
+    }
+}
+
+function exportProjects(format) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', format);
+    window.location.href = `/Projects/Export?${params.toString()}`;
+}
+
+function changePageSize(pageSize) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('pageSize', pageSize);
+    params.delete('page'); // Reset to first page
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
+}
+
+// Notification System
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Keyboard Shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + N = New Project
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        const newProjectBtn = document.querySelector('a[asp-page="Create"]');
+        if (newProjectBtn) {
+            newProjectBtn.click();
+        }
+    }
+    
+    // Ctrl/Cmd + F = Focus Search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[name="searchTerm"]');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+    
+    // ESC = Clear filters
+    if (e.key === 'Escape') {
+        const filterForm = document.querySelector('.filter-form');
+        if (filterForm) {
+            filterForm.reset();
+            filterForm.submit();
+        }
+    }
+});
+
+// Tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
