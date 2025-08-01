@@ -1,88 +1,538 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SAAS_Projectplanningtool</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - Projektplanungstool</title>
+
+    <!-- CSS Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/custom.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
 
-    <link rel="stylesheet" href="~/SAAS_Projectplanningtool.styles.css" asp-append-version="true" />
+    <style>
+        /* Navigation Styles */
+        .main-navigation {
+            background: #2c3e50;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            padding: 20px 0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
 
+            .main-navigation.collapsed {
+                transform: translateX(-250px);
+            }
+
+        .nav-brand {
+            padding: 0 20px 30px;
+            border-bottom: 1px solid #34495e;
+            margin-bottom: 20px;
+        }
+
+            .nav-brand h2 {
+                color: #ecf0f1;
+                font-size: 1.5rem;
+                margin: 0;
+            }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+            .nav-link:hover,
+            .nav-link.active {
+                background: #34495e;
+                color: #ecf0f1;
+                border-left-color: #3498db;
+            }
+
+            .nav-link i {
+                width: 20px;
+                margin-right: 12px;
+            }
+
+        .nav-submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: #34495e;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .nav-item.has-submenu.active .nav-submenu {
+            max-height: 300px;
+        }
+
+        .nav-submenu .nav-link {
+            padding-left: 52px;
+            font-size: 0.9rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: #f8f9fa;
+            transition: margin-left 0.3s ease;
+        }
+
+            .main-content.expanded {
+                margin-left: 0;
+            }
+
+        .top-header {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #495057;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .breadcrumb-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+            .user-dropdown:hover {
+                background: #f8f9fa;
+            }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #007bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+        }
+
+        .page-content {
+            padding: 30px;
+        }
+
+        
+
+        /* Utility Classes */
+        .text-muted {
+            color: #6c757d !important;
+        }
+
+        .text-primary {
+            color: #007bff !important;
+        }
+
+        .text-success {
+            color: #28a745 !important;
+        }
+
+        .text-warning {
+            color: #ffc107 !important;
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+        }
+
+        .bg-light {
+            background-color: #f8f9fa !important;
+        }
+
+        .bg-white {
+            background-color: #ffffff !important;
+        }
+
+        .shadow-sm {
+            box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+        }
+
+        .rounded {
+            border-radius: .375rem !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .mt-4 {
+            margin-top: 1.5rem !important;
+        }
+
+        .p-4 {
+            padding: 1.5rem !important;
+        }
+    </style>
 </head>
-<body class="d-flex flex-column min-vh-100">
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light box-shadow mb-3 ">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">[Softwarename]</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+<body>
+    <!-- Navigation Overlay for Mobile -->
+    <div class="nav-overlay" id="navOverlay"></div>
+
+    <!-- Main Navigation -->
+    <nav class="main-navigation" id="mainNav">
+        <div class="nav-brand">
+            <h2><i class="fas fa-project-diagram"></i> ProjektTool</h2>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                    <i class="fas fa-project-diagram"></i>
+                    Projekte
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <ul class="nav-submenu">
+                    <li><a href="/Projects" class="nav-link">Alle Projekte</a></li>
+                    <li><a href="/Projects/Create" class="nav-link">Neues Projekt</a></li>
+                    <li><a href="/Projects/Archived" class="nav-link">Archivierte Projekte</a></li>
+                    <li><a href="/Projects/Calendar" class="nav-link">Projekt-Kalender</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                    <i class="fas fa-tasks"></i>
+                    Aufgaben
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <ul class="nav-submenu">
+                    <li><a href="/Tasks" class="nav-link">Alle Aufgaben</a></li>
+                    <li><a href="/Tasks/My" class="nav-link">Meine Aufgaben</a></li>
+                    <li><a href="/Tasks/Create" class="nav-link">Neue Aufgabe</a></li>
+                    <li><a href="/Tasks/Calendar" class="nav-link">Aufgaben-Kalender</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                    <i class="fas fa-users"></i>
+                    Ressourcen
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <ul class="nav-submenu">
+                    <li><a href="/Employees" class="nav-link">Mitarbeiter</a></li>
+                    <li><a href="/HourlyRateGroups" class="nav-link">Stundensatz-Gruppen</a></li>
+                    <li><a href="/Resources/Planning" class="nav-link">Ressourcenplanung</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item">
+                <a href="/Customers" class="nav-link">
+                    <i class="fas fa-handshake"></i>
+                    Kunden
+                </a>
+            </li>
+
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                    <i class="fas fa-chart-bar"></i>
+                    Berichte
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <ul class="nav-submenu">
+                    <li><a href="/Reports/Projects" class="nav-link">Projekt-Berichte</a></li>
+                    <li><a href="/Reports/Budget" class="nav-link">Budget-Analyse</a></li>
+                    <li><a href="/Reports/Resources" class="nav-link">Ressourcen-Auslastung</a></li>
+                    <li><a href="/Reports/Timeline" class="nav-link">Zeiterfassung</a></li>
+                </ul>
+            </li>
+
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                    <i class="fas fa-cog"></i>
+                    Einstellungen
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <ul class="nav-submenu">
+                    <li><a href="/Settings/Company" class="nav-link">Firmen-Einstellungen</a></li>
+                    <li><a href="/Settings/Users" class="nav-link">Benutzer-Verwaltung</a></li>
+                    <li><a href="/Settings/License" class="nav-link">Lizenz-Verwaltung</a></li>
+                    <li><a href="/Settings/Backup" class="nav-link">Backup & Export</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="nav-toggle" id="navToggle">
+                    <i class="fas fa-bars"></i>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Index">Budgetplanung</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Index">Ressourcenplanung</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Index">Terminplanung</a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
+
+                <nav class="breadcrumb-nav">
+                    <i class="fas fa-home"></i>
+                    <span>/</span>
+                    <span>@ViewData["Title"]</span>
+                </nav>
+            </div>
+
+            <div class="header-right">
+                <!-- Notifications -->
+                <div class="notification-icon" id="notificationIcon">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </div>
+
+                <!-- User Dropdown -->
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="user-avatar">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @User.Identity.Name?.Substring(0, 1).ToUpper()
+                        }
+                        else
+                        {
+                            <span>U</span>
+                        }
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">@User.Identity?.Name</div>
+                        <div class="user-role text-muted" style="font-size: 0.8rem;">
+                            @if (ViewBag.CurrentUserRole != null)
+                            {
+                                @ViewBag.CurrentUserRole
+                            }
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+
+                <!-- User Dropdown Menu (hidden by default) -->
+                <div class="dropdown-menu" id="userDropdownMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 200px; z-index: 1000;">
+                    <a href="/Account/Profile" class="dropdown-item">
+                        <i class="fas fa-user"></i> Profil
+                    </a>
+                    <a href="/Account/Settings" class="dropdown-item">
+                        <i class="fas fa-cog"></i> Einstellungen
+                    </a>
+                    <hr class="dropdown-divider">
+                    <form method="post" asp-page="/Account/Logout" style="margin: 0;">
+                        <button type="submit" class="dropdown-item" style="background: none; border: none; width: 100%; text-align: left;">
+                            <i class="fas fa-sign-out-alt"></i> Abmelden
+                        </button>
+                    </form>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container-fluid flex-fill">
-        <main role="main" @* class="pb-3" *@>
+        </header>
 
-            <div class="row main-container">
-                @if (User.Identity.IsAuthenticated)
-                {
-                    <div class="col-2 left-menu">
-                        <a class="left-menu-link" asp-area="" asp-page="/Projects/Create">
-                            <div class="left-menu-item">Projektanlage</div>
-                        </a>
-                        <a class="left-menu-link" asp-area="" asp-page="/Projects/Archive">
-                            <div class="left-menu-item">Projektarchiv</div>
-                        </a>
-                        <a class="left-menu-link" asp-area="" asp-page="/CustomerManagement/Index">
-                            <div class="left-menu-item">Kundenverwaltung</div>
-                        </a>
-                        <a class="left-menu-link" asp-area="" asp-page="/Analysis/PortfolioDemo">
-                            <div class="left-menu-item">PORTFOLIO</div>
-                        </a>
-                        <div class="left-menu-item">DASHBOARD</div>
-                    </div>
-                    <div class="col-10 content-container">
-                        @RenderBody()
-                    </div>
-                }
-                else
-                {
-                    <div class="col-12 content-container">
-                        @RenderBody()
-                    </div>
-                }
-            </div>
-
+        <!-- Page Content -->
+        <main class="page-content">
+            @RenderBody()
         </main>
     </div>
 
-    <footer class=" border-top footer text-muted">
-        <div class="footer-menu">
-            &copy; 2025 - SAAS_Projectplanningtool - <a asp-area="" asp-page="/Privacy">Privacy</a>
-        </div>
-    </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Navigation JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.getElementById('navToggle');
+            const mainNav = document.getElementById('mainNav');
+            const mainContent = document.getElementById('mainContent');
+            const navOverlay = document.getElementById('navOverlay');
+            const userDropdown = document.getElementById('userDropdown');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+
+            // Navigation toggle functionality
+            navToggle.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    // Mobile: Show/hide navigation with overlay
+                    mainNav.classList.toggle('mobile-open');
+                    navOverlay.classList.toggle('active');
+                } else {
+                    // Desktop: Collapse/expand navigation
+                    mainNav.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                }
+            });
+
+            // Close navigation when clicking overlay (mobile)
+            navOverlay.addEventListener('click', function() {
+                mainNav.classList.remove('mobile-open');
+                navOverlay.classList.remove('active');
+            });
+
+            // User dropdown functionality
+            userDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userDropdownMenu.style.display = userDropdownMenu.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                userDropdownMenu.style.display = 'none';
+            });
+
+            // Prevent dropdown from closing when clicking inside
+            userDropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    mainNav.classList.remove('mobile-open');
+                    navOverlay.classList.remove('active');
+
+                    if (!mainNav.classList.contains('collapsed')) {
+                        mainContent.classList.remove('expanded');
+                    }
+                } else {
+                    mainNav.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                }
+            });
+
+            // Set active navigation item based on current page
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && currentPath.startsWith(href) && href !== '#') {
+                    link.classList.add('active');
+
+                    // If it's a submenu item, also open the parent menu
+                    const parentSubmenu = link.closest('.nav-submenu');
+                    if (parentSubmenu) {
+                        const parentItem = parentSubmenu.closest('.nav-item');
+                        if (parentItem) {
+                            parentItem.classList.add('active');
+                        }
+                    }
+                }
+            });
+        });
+
+        // Submenu toggle function
+        function toggleSubmenu(element) {
+            const parentItem = element.closest('.nav-item');
+            const isActive = parentItem.classList.contains('active');
+
+            // Close all other submenus
+            document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Toggle current submenu
+            if (!isActive) {
+                parentItem.classList.add('active');
+            }
+        }
+
+        // Notification functionality (placeholder)
+        document.getElementById('notificationIcon')?.addEventListener('click', function() {
+            // Here you would typically show a notifications dropdown or modal
+            alert('Benachrichtigungen-Feature wird implementiert...');
+        });
+
+        // Auto-refresh functionality for dashboard (optional)
+        if (window.location.pathname === '/' || window.location.pathname === '/Index') {
+            // Refresh dashboard data every 5 minutes
+            setInterval(function() {
+                // You could implement AJAX refresh here
+                console.log('Dashboard auto-refresh would happen here');
+            }, 300000); // 5 minutes
+        }
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

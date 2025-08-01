@@ -1,85 +1,841 @@
 ﻿@page
-@model IndexModel
+@model SAAS_Projectplanningtool.Pages.Index1Model
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<style>
-    /* Der Container belegt die gesamte Browser-Höhe/Breite */
-    .mindmap-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 80vh;
-        position: relative;
-    }
-
-    /* Die Company-Karte wird per CSS in die Mitte gesetzt */
-    .company-card { 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .project-card {
-        position: absolute;
-        width: 200px;
-        text-align: center;
-        transition: transform 0.5s ease;
-    }
-</style>
-
-<div class="mindmap-container">
-    @if (Model.company != null)
-    {
-        <div class="card company-card" id="companyCard">
-            <a asp-page="/Companies/Edit" asp-route-id="@Model.company.CompanyId" class="card-header">
-                @Model.company.CompanyName
-            </a>
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="welcome-section">
+            <h1 class="welcome-title">Willkommen, @Model.CurrentEmployee?.EmployeeDisplayName</h1>
+            <p class="company-name">@Model.CurrentCompany?.CompanyName</p>
+            <span class="role-badge">@Model.CurrentEmployee?.IdentityRole?.Name Dashboard</span>
         </div>
-
-        @if (Model.projects != null && Model.projects.Any())
-        {
-            int index = 0;
-            foreach (var project in Model.projects)
-            {
-                <div class="card project-card" data-index="@index">
-                    <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId" class="card-header">
-                        @project.ProjectName
-                    </a>
+        
+        <!-- Global Search -->
+        <div class="search-container">
+            <form method="get" asp-page="/Search/GlobalSearch">
+                <div class="search-box">
+                    <input type="text" name="query" placeholder="Projekte, Aufgaben, Mitarbeiter, Kunden suchen..." class="search-input">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
-                index++;
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        
+        <!-- Project Overview Cards -->
+        <section class="overview-cards">
+            <div class="card-grid">
+                <div class="stat-card active-projects">
+                    <div class="card-header">
+                        <h3>Aktive Projekte</h3>
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div class="card-value">@Model.ActiveProjectsCount</div>
+                    <a asp-page="/Projects/Index" class="card-link">Alle anzeigen</a>
+                </div>
+
+                <div class="stat-card archived-projects">
+                    <div class="card-header">
+                        <h3>Archivierte Projekte</h3>
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <div class="card-value">@Model.ArchivedProjectsCount</div>
+                    <a asp-page="/Projects/Archived" class="card-link">Archiv öffnen</a>
+                </div>
+
+                <div class="stat-card upcoming-projects">
+                    <div class="card-header">
+                        <h3>Startend in 30 Tagen</h3>
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="card-value">@Model.UpcomingProjectsCount</div>
+                    <a asp-page="/Projects/Upcoming" class="card-link">Details</a>
+                </div>
+
+                <div class="stat-card overdue-projects">
+                    <div class="card-header">
+                        <h3>Überfällige Projekte</h3>
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="card-value">@Model.OverdueProjectsCount</div>
+                    <a asp-page="/Projects/Overdue" class="card-link">Sofort handeln</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Budget Status Section -->
+        <section class="budget-section">
+            <h2>Budget-Status</h2>
+            <div class="budget-container">
+                @foreach (var project in Model.ProjectsWithBudget)
+                {
+                    var budgetPercentage = project.ProjectBudget != null && project.ProjectBudget.InitialBudget > 0 
+                        ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100 
+                        : 0;
+                    var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
+                    
+                    <div class="budget-item @warningClass">
+                        <div class="budget-header">
+                            <span class="project-name">@project.ProjectName</span>
+                            <span class="budget-percentage">@budgetPercentage.ToString("F1")%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @budgetPercentage%"></div>
+                        </div>
+                        <div class="budget-details">
+                            <span>@project.ProjectBudget?.UsedBudget.ToString("C") von @project.ProjectBudget?.InitialBudget.ToString("C")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            @if (Model.HighBudgetProjects.Any())
+            {
+                <div class="budget-warnings">
+                    <h3><i class="fas fa-exclamation-circle"></i> Budget-Warnungen (>90%)</h3>
+                    <ul class="warning-list">
+                        @foreach (var project in Model.HighBudgetProjects)
+                        {
+                            <li>
+                                <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId">@project.ProjectName</a>
+                                <span class="warning-percentage">@((project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget * 100).ToString("F1"))%</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
             }
-        }
-    }
+        </section>
+
+        <!-- Tasks Cockpit -->
+        <section class="tasks-cockpit">
+            <h2>Aufgaben-Cockpit</h2>
+            
+            <div class="tasks-tabs">
+                <button class="tab-btn active" data-tab="my-tasks">Meine Aufgaben (@Model.MyOpenTasks.Count)</button>
+                <button class="tab-btn" data-tab="team-tasks">Team-Aufgaben (@Model.TeamTasks.Count)</button>
+            </div>
+
+            <div class="tab-content active" id="my-tasks">
+                @if (Model.MyOpenTasks.Any())
+                {
+                    <div class="task-list">
+                        @foreach (var task in Model.MyOpenTasks)
+                        {
+                            var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
+                            
+                            <div class="task-item @dueDateClass">
+                                <div class="task-info">
+                                    <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
+                                    <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
+                                    <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
+                                </div>
+                                <div class="task-meta">
+                                    @if (task.EndDate.HasValue)
+                                    {
+                                        <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Keine offenen Aufgaben!</p>
+                    </div>
+                }
+            </div>
+
+            <div class="tab-content" id="team-tasks">
+                @if (Model.TeamTasks.Any())
+                {
+                    <div class="task-list">
+                        @foreach (var task in Model.TeamTasks)
+                        {
+                            var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
+                            
+                            <div class="task-item @dueDateClass">
+                                <div class="task-info">
+                                    <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
+                                    <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
+                                    <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
+                                </div>
+                                <div class="task-meta">
+                                    @if (task.EndDate.HasValue)
+                                    {
+                                        <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>Keine Team-Aufgaben verfügbar</p>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <!-- Resources & Workload -->
+        <section class="resources-section">
+            <h2>Ressourcen & Auslastung</h2>
+            
+            <div class="workload-grid">
+                @foreach (var employee in Model.EmployeeWorkload)
+                {
+                    var workloadClass = employee.TaskCount > 10 ? "high-workload" : employee.TaskCount > 5 ? "medium-workload" : "low-workload";
+                    
+                    <div class="workload-item @workloadClass">
+                        <div class="employee-info">
+                            <h4>@employee.EmployeeDisplayName</h4>
+                            <span class="hourly-rate">@employee.HourlyRateGroup?.HourlyRateGroupName (@employee.HourlyRateGroup?.HourlyRate.ToString("C")/h)</span>
+                        </div>
+                        <div class="workload-indicator">
+                            <span class="task-count">@employee.TaskCount Aufgaben</span>
+                            <div class="workload-bar">
+                                <div class="workload-fill" style="width: @Math.Min(employee.TaskCount * 10, 100)%"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="hourly-rate-stats">
+                <h3>Stundensatz-Statistik</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Durchschnittlicher Stundensatz:</span>
+                        <span class="stat-value">@Model.AverageHourlyRate.ToString("C")</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Höchster Stundensatz:</span>
+                        <span class="stat-value">@Model.HighestHourlyRate.ToString("C")</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Niedrigster Stundensatz:</span>
+                        <span class="stat-value">@Model.LowestHourlyRate.ToString("C")</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Activities -->
+        <section class="activities-section">
+            <h2>Letzte Änderungen</h2>
+            <div class="activity-feed">
+                @foreach (var activity in Model.RecentActivities)
+                {
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas @activity.Icon"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-description">@activity.Description</p>
+                            <div class="activity-meta">
+                                <span class="activity-user">@activity.ModifierName</span>
+                                <span class="activity-time">@activity.Timestamp.ToString("dd.MM.yyyy HH:mm")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <h2>Schnelle Aktionen</h2>
+            <div class="action-buttons">
+                @if (Model.CanCreateProjects)
+                {
+                    <a asp-page="/Projects/Create" class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        Neues Projekt
+                    </a>
+                }
+                @if (Model.CanCreateTasks)
+                {
+                    <a asp-page="/Tasks/Create" class="action-btn secondary">
+                        <i class="fas fa-tasks"></i>
+                        Neue Aufgabe
+                    </a>
+                }
+                @if (Model.CanCreateCustomers)
+                {
+                    <a asp-page="/Customers/Create" class="action-btn secondary">
+                        <i class="fas fa-user-plus"></i>
+                        Neuer Kunde
+                    </a>
+                }
+                @if (Model.CanCreateEmployees)
+                {
+                    <a asp-page="/Employees/Create" class="action-btn secondary">
+                        <i class="fas fa-user-tie"></i>
+                        Neuer Mitarbeiter
+                    </a>
+                }
+            </div>
+        </section>
+
+        <!-- Calendar Widget -->
+        <section class="calendar-section">
+            <h2>Termine & Deadlines</h2>
+            <div class="calendar-widget">
+                <div class="calendar-header">
+                    <button class="calendar-nav" id="prevMonth">&lt;</button>
+                    <h3 id="currentMonth">@DateTime.Now.ToString("MMMM yyyy")</h3>
+                    <button class="calendar-nav" id="nextMonth">&gt;</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="upcoming-events">
+                <h3>Diese Woche</h3>
+                <div class="event-list">
+                    @foreach (var eventItem in Model.ThisWeekEvents)
+                    {
+                        <div class="event-item">
+                            <div class="event-date">@eventItem.Date.ToString("dd.MM")</div>
+                            <div class="event-details">
+                                <span class="event-title">@eventItem.Title</span>
+                                <span class="event-type">@eventItem.Type</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- Customer Snapshot -->
+        <section class="customers-section">
+            <h2>Kunden-Snapshot</h2>
+            <div class="customer-list">
+                <h3>Zuletzt hinzugefügte Kunden</h3>
+                @foreach (var customer in Model.RecentCustomers)
+                {
+                    <div class="customer-item">
+                        <div class="customer-info">
+                            <h4><a asp-page="/Customers/Details" asp-route-id="@customer.CustomerId">@customer.CustomerName</a></h4>
+                            <p class="customer-location">@customer.Address?.Street @customer.Address?.HouseNumber, @customer.Address?.City</p>
+                        </div>
+                        <div class="customer-actions">
+                            <a asp-page="/Projects/Create" asp-route-customerId="@customer.CustomerId" class="btn-small">Neues Projekt</a>
+                            <span class="customer-date">@customer.CreatedTimestamp?.ToString("dd.MM.yyyy")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <!-- System Info -->
+        <section class="system-info">
+            <h2>System-Information</h2>
+            <div class="info-cards">
+                <div class="info-card license-info">
+                    <h3><i class="fas fa-certificate"></i> Lizenz-Status</h3>
+                    <p><strong>@Model.CurrentCompany?.License?.LicenseName</strong></p>
+                    <p class="license-details">Aktive Benutzer: @Model.ActiveUsersCount</p>
+                </div>
+                
+                <div class="info-card system-stats">
+                    <h3><i class="fas fa-chart-bar"></i> System-Statistiken</h3>
+                    <ul>
+                        <li>Gesamt Projekte: @Model.TotalProjectsCount</li>
+                        <li>Gesamt Aufgaben: @Model.TotalTasksCount</li>
+                        <li>Aktive Mitarbeiter: @Model.ActiveUsersCount</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
 </div>
 
+<!-- JavaScript for Interactive Elements -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Alle Projektkarten
-        const projects = document.querySelectorAll(".project-card");
-
-        const container = document.querySelector(".mindmap-container");
-        const containerRect = container.getBoundingClientRect();
-
-        // Mittelpunkt des Containers
-        const centerX = containerRect.width / 2;
-        const centerY = containerRect.height / 2;
-
-        // Abstand (Radius) vom Zentrum
-        const radius = 300;
-
-        // Jedes Projekt auf dem Kreis verteilen
-        projects.forEach((project, index) => {
-            // Winkel: Teilt den Vollkreis (2π) gleichmäßig auf alle Projekte auf
-            const angle = (index / projects.length) * 2 * Math.PI;
-
-            // X/Y-Koordinaten für das Projekt (um die Mitte herum)
-            const x = radius * Math.cos(angle);
-            const y = radius * Math.sin(angle);
-
-            // Position per transform setzen
-            project.style.transform = `translate(${x}px, ${y}px)`;
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+            
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding content
+            this.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
         });
     });
+    
+    // Simple calendar functionality
+    function updateCalendar() {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        document.getElementById('currentMonth').textContent = 
+            new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(today);
+    }
+    
+    // Initialize calendar
+    updateCalendar();
+    
+    // Calendar navigation (basic implementation)
+    document.getElementById('prevMonth')?.addEventListener('click', function() {
+        // Implementation for previous month
+        console.log('Previous month');
+    });
+    
+    document.getElementById('nextMonth')?.addEventListener('click', function() {
+        // Implementation for next month
+        console.log('Next month');
+    });
+});
 </script>
+
+<style>
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
+}
+
+.welcome-section h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.company-name {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 5px 0;
+}
+
+.role-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.search-container {
+    min-width: 300px;
+}
+
+.search-box {
+    display: flex;
+    background: white;
+    border-radius: 25px;
+    overflow: hidden;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    font-size: 1rem;
+    outline: none;
+}
+
+.search-btn {
+    padding: 12px 20px;
+    background: #4CAF50;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.dashboard-grid {
+    display: grid;
+    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.overview-cards {
+    grid-column: 1 / -1;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-left: 4px solid #007bff;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card.active-projects { border-left-color: #28a745; }
+.stat-card.archived-projects { border-left-color: #6c757d; }
+.stat-card.upcoming-projects { border-left-color: #ffc107; }
+.stat-card.overdue-projects { border-left-color: #dc3545; }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #495057;
+}
+
+.card-header i {
+    font-size: 1.5rem;
+    opacity: 0.7;
+}
+
+.card-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.card-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.budget-section, .tasks-cockpit, .resources-section, 
+.activities-section, .quick-actions, .calendar-section,
+.customers-section, .system-info {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.budget-section h2, .tasks-cockpit h2, .resources-section h2,
+.activities-section h2, .quick-actions h2, .calendar-section h2,
+.customers-section h2, .system-info h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.budget-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.budget-item.budget-warning {
+    background: #fff5f5;
+    border-left: 4px solid #dc3545;
+}
+
+.budget-item.budget-caution {
+    background: #fffbf0;
+    border-left: 4px solid #ffc107;
+}
+
+.budget-item.budget-ok {
+    background: #f0fff4;
+    border-left: 4px solid #28a745;
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+    transition: width 0.3s ease;
+}
+
+.tasks-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+}
+
+.tab-btn.active {
+    border-bottom-color: #007bff;
+    color: #007bff;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.task-item.overdue {
+    border-left: 4px solid #dc3545;
+    background: #fff5f5;
+}
+
+.task-info h4 {
+    margin: 0 0 5px 0;
+}
+
+.task-info a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.task-project {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.task-state {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.state-open { background: #cce5ff; color: #0066cc; }
+.state-inprogress { background: #fff3cd; color: #856404; }
+.state-completed { background: #d4edda; color: #155724; }
+
+.workload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.workload-item {
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.workload-item.high-workload { border-left: 4px solid #dc3545; }
+.workload-item.medium-workload { border-left: 4px solid #ffc107; }
+.workload-item.low-workload { border-left: 4px solid #28a745; }
+
+.workload-bar {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.workload-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.action-btn.primary {
+    background: #007bff;
+    color: white;
+}
+
+.action-btn.secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.calendar-widget {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.calendar-nav {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.activity-feed {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #007bff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.activity-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.customer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.customer-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-card {
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+
+</style>

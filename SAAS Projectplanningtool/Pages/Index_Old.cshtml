@@ -1,0 +1,85 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<style>
+    /* Der Container belegt die gesamte Browser-Höhe/Breite */
+    .mindmap-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80vh;
+        position: relative;
+    }
+
+    /* Die Company-Karte wird per CSS in die Mitte gesetzt */
+    .company-card { 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .project-card {
+        position: absolute;
+        width: 200px;
+        text-align: center;
+        transition: transform 0.5s ease;
+    }
+</style>
+
+<div class="mindmap-container">
+    @if (Model.company != null)
+    {
+        <div class="card company-card" id="companyCard">
+            <a asp-page="/Companies/Edit" asp-route-id="@Model.company.CompanyId" class="card-header">
+                @Model.company.CompanyName
+            </a>
+        </div>
+
+        @if (Model.projects != null && Model.projects.Any())
+        {
+            int index = 0;
+            foreach (var project in Model.projects)
+            {
+                <div class="card project-card" data-index="@index">
+                    <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId" class="card-header">
+                        @project.ProjectName
+                    </a>
+                </div>
+                index++;
+            }
+        }
+    }
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Alle Projektkarten
+        const projects = document.querySelectorAll(".project-card");
+
+        const container = document.querySelector(".mindmap-container");
+        const containerRect = container.getBoundingClientRect();
+
+        // Mittelpunkt des Containers
+        const centerX = containerRect.width / 2;
+        const centerY = containerRect.height / 2;
+
+        // Abstand (Radius) vom Zentrum
+        const radius = 300;
+
+        // Jedes Projekt auf dem Kreis verteilen
+        projects.forEach((project, index) => {
+            // Winkel: Teilt den Vollkreis (2π) gleichmäßig auf alle Projekte auf
+            const angle = (index / projects.length) * 2 * Math.PI;
+
+            // X/Y-Koordinaten für das Projekt (um die Mitte herum)
+            const x = radius * Math.cos(angle);
+            const y = radius * Math.sin(angle);
+
+            // Position per transform setzen
+            project.style.transform = `translate(${x}px, ${y}px)`;
+        });
+    });
+</script>
