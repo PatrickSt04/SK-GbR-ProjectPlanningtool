@@ -71,42 +71,63 @@
 
     <div class="col-md-7">
         <hr />
-        <dl class="row">
-            <dt class="col-sm-2">
-                Projektname
-            </dt>
-            <dd class="col-sm-12">
-                @Html.DisplayFor(model => model.Project.ProjectName)
-            </dd>
-            <dt class="col-sm-2">
-                Verantwortliche*r
-            </dt>
-            <dd class="col-sm-12">
-                @Html.DisplayFor(model => model.Project.ResponsiblePerson.EmployeeDisplayName)
-            </dd>
-        </dl>
+        @{
+            var showCompleted = Request.Query["showCompleted"].ToString() == "true";
+            //Logik ist nicht implementiert
+        }
+
         <div class="row">
+            <h3>Aufgabenkatalog</h3>
+
+            <!-- Aufgabenliste -->
+            <div class="col-md-6">
+                <h4>Aufgaben</h4>
+
+                <!-- Button zum Umschalten der Anzeige -->
+                <form method="get">
+                    <input type="hidden" name="showCompleted" value="@(!showCompleted)" />
+                    <button type="submit" class="btn btn-sm btn-outline-primary mb-2">
+                        @((showCompleted ? "Abgeschlossene Aufgaben ausblenden" : "Abgeschlossene Aufgaben einblenden"))
+                    </button>
+                </form>
+
+                <!-- Aufgabenanzeige -->
+                @foreach (var task in Model.TaskCatalog)
+                {
+                    bool isCompleted = task.State?.StateName == "Abgeschlossen";
+                    if (isCompleted && !showCompleted) continue;
+
+                    <form method="post" asp-page-handler="ToggleTaskState">
+
+                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
+                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                        <input type="hidden" name="StateId" value="@task.StateId" />
+
+                        <div class="form-check mb-2 p-2 rounded @(isCompleted ? "bg-light text-muted" : "")">
+                            <input class="form-check-input" *@
+                                  type="checkbox" 
+                                  onchange="this.form.submit();" 
+                           @(isCompleted ? "checked" : "") />
+                            @* <button type="submit">Button</button> *@
+                            <label class="form-check-label">
+                                <strong>@task.ProjectTaskName</strong> – <small>@task.State?.StateName</small>
+                            </label>
+                        </div>
+                    </form>
+                }
+            </div>
+
+            <!-- Fortschrittsanzeige -->
             <div class="col-md-6">
                 <h4>Abgeschlossene Aufgaben</h4>
                 <h6>@Model.CompletetedTasks / @Model.TotalTasks</h6>
                 <hr />
-
                 @{
-                    double circleFillTasks = Model.TotalTasks > 0 ? ((double)Model.CompletetedTasks / (double)Model.TotalTasks) * 100 : 0;
+                    double circleFillTasks = Model.TotalTasks > 0
+                    ? ((double)Model.CompletetedTasks / Model.TotalTasks) * 100
+                    : 0;
                 }
                 @await Html.PartialAsync("_ProgressCircle", (int)circleFillTasks)
-
-            </div>
-            <div class="col-md-6">
-                <h4>Budgetübersicht</h4>
-                @* <h6>@Model.Project.ProjectBudget.UsedBudget / @Model.Project.ProjectBudget.InitialBudget</h6>
-                <hr/>
-
-               @{
-                    var circleFillBudget = (Model.Project.ProjectBudget.UsedBudget/ Model.Project.ProjectBudget.InitialBudget) * 100;
-                } 
-                @await Html.PartialAsync("_ProgressCircle", circleFillBudget) *@
-
             </div>
         </div>
         <hr />
@@ -400,27 +421,17 @@
             Sections = Model.Project.ProjectSections?
            .Where(s => s.ParentSectionId == null).Select(s => new
            {
-               Id = s.ProjectSectionId,
-               Name = s.ProjectSectionName,
-               Type = "section",
-               State = s.State != null ? new { StateName = s.State.StateName, Color = s.State.Color } : null,
-               SubSections = s.SubSections?.Select(sub => new
-               {
-                   Id = sub.ProjectSectionId,
-                   Name = sub.ProjectSectionName,
-                   Type = "subsection",
-                   State = sub.State != null ? new { StateName = sub.State.StateName, Color = sub.State.Color } : null,
-                   Tasks = sub.ProjectTasks?.Select(t => new
-                   {
-                       Id = t.ProjectTaskId,
-                       Name = t.ProjectTaskName,
-                       StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                       EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                       Type = "task",
-                       State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
-                   })
-               }),
-               Tasks = s.ProjectTasks?.Select(t => new
+           Id = s.ProjectSectionId,
+           Name = s.ProjectSectionName,
+           Type = "section",
+           State = s.State != null ? new { StateName = s.State.StateName, Color = s.State.Color } : null,
+           SubSections = s.SubSections?.Select(sub => new
+           {
+               Id = sub.ProjectSectionId,
+               Name = sub.ProjectSectionName,
+               Type = "subsection",
+               State = sub.State != null ? new { StateName = sub.State.StateName, Color = sub.State.Color } : null,
+               Tasks = sub.ProjectTasks?.Select(t => new
                {
                    Id = t.ProjectTaskId,
                    Name = t.ProjectTaskName,
@@ -429,6 +440,16 @@
                    Type = "task",
                    State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
                })
+           }),
+           Tasks = s.ProjectTasks?.Select(t => new
+           {
+               Id = t.ProjectTaskId,
+               Name = t.ProjectTaskName,
+               StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+               EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+               Type = "task",
+               State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
+           })
            })
         }))
     };

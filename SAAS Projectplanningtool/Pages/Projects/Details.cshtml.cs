@@ -10,6 +10,9 @@ using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 using SAAS_Projectplanningtool.CustomManagers;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis;
+using Project = SAAS_Projectplanningtool.Models.Budgetplanning.Project;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
@@ -24,8 +27,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
         }
-
+        [BindProperty]
         public Project Project { get; set; } = default!;
+        [BindProperty]
+        public List<ProjectTask> TaskCatalog { get; set; } = new List<ProjectTask>();
         public int TotalTasks { get; set; } = 0;
         public int CompletetedTasks { get; set; } = 0;
         public async Task<IActionResult> OnGetAsync(string id)
@@ -64,12 +69,24 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 TotalTasks = await _context.ProjectTask
                     .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
                     .Where(pt => pt.CompanyId == employee.CompanyId)
+                    .Where(pt => pt.IsTaskCatalogEntry == true)
                     .CountAsync();
             }
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, TotalTasks, null) });
             }
+
+            //TaskCatalog
+            var sectionsofProject = await _context.ProjectSection
+                .Where(ps => ps.ProjectId == id)
+                .Where(ps => ps.CompanyId == employee.CompanyId)
+                .Select(ps => ps.ProjectSectionId)
+                .ToListAsync();
+            TaskCatalog = await _context.ProjectTask.Where(pt => pt.CompanyId == employee.CompanyId)
+                    .Where(pt => pt.IsTaskCatalogEntry == true)
+                    .Where(pt => sectionsofProject.Contains(pt.ProjectSectionId) )
+                    .ToListAsync();
 
             var completedState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Abgeschlossen");
             try
@@ -78,13 +95,18 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
                     .Where(pt => pt.CompanyId == employee.CompanyId)
                     .Where(pt => pt.StateId == completedState.StateId)
+                    .Where(pt => pt.IsTaskCatalogEntry == true)
                     .CountAsync();
             }
+
+
+
 
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, CompletetedTasks, null) });
             }
+
             if (Project.ProjectSections != null)
             {
                 foreach (var section in Project.ProjectSections)
@@ -103,5 +125,30 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
             return Page();
         }
+        public async Task<IActionResult> OnPostToggleTaskStateAsync(string? ProjectTaskId, string? projectId)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/Details<OnPostToggleTaskStateAsync>Begin");
+                // Hier: Aufgabenstatus ändern im DB-Kontext
+                var task = await _context.ProjectTask.FindAsync(ProjectTaskId);
+                if (task != null)
+                {
+                    var openState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Offen");
+                    var doneState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Abgeschlossen");
+
+                    task.StateId = task.StateId == openState.StateId ? doneState.StateId : openState.StateId;
+                    _context.ProjectTask.Update(task);
+                    await _context.SaveChangesAsync();
+                }
+                await _logger.Log(null, User, null, "Projects/Details<OnPostToggleTaskStateAsync>End");
+                return RedirectToPage(new { id = projectId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, ProjectTaskId, "Projects/Details<OnPostToggleTaskStateAsync>End") });
+            }
+        }
+
     }
 }

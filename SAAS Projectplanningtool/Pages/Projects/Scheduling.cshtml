@@ -186,6 +186,7 @@
                                 }
                             }
                         </select>
+
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -197,6 +198,11 @@
                             <input type="date" class="form-control" name="endDate" />
                         </div>
                     </div>
+                    @*HINZUGEFÜGT: In Aufgabenkatalog übernehmen*@
+                    @* <input type="hidden" name="isTaskCatalogEntry" value="false" /> *@
+                    @* <input type="checkbox" name="isTaskCatalogEntry" value="true" class="form-check-input" /> *@
+                    @* <label for="isTaskCatalogEntry" class="form-check-label">Als Katalogeintrag speichern</label> *@
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>

@@ -200,8 +200,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .Include(p => p.ProjectSections)
                 // deren Subsections    
                 .ThenInclude(ps => ps.SubSections)
-                //deren Tasks
-                .ThenInclude(ss => ss.ProjectTasks)
+                //deren Tasks (die für den Terminplan relevant sind)
+                .ThenInclude(ss => ss.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
                 .FirstOrDefaultAsync(m => m.ProjectId == projectId);
             if (Project.ProjectSections != null)
             {

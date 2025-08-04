@@ -192,6 +192,7 @@ public static class DbInitializer
                             EndDate = taskDueDate,
                             CreatedByEmployee = employee,
                             CreatedTimestamp = DateTime.Now
+
                         };
                         context.Set<ProjectTask>().Add(projectTask);
                         context.SaveChanges();

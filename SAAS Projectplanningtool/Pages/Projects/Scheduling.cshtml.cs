@@ -100,7 +100,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return _context.Project.Any(e => e.ProjectId == id);
         }
 
-        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
+        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name, bool isTaskCatalogEntry)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
             try
@@ -112,7 +112,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     StartDate = startDate,
                     EndDate = endDate,
                     ProjectTaskName = Name,
-                    ProjectSectionId = SectionId
+                    ProjectSectionId = SectionId,
+                    IsTaskCatalogEntry = isTaskCatalogEntry
                 };
                 pt.State = await new StateManager(_context).getOpenState();
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
@@ -135,7 +136,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
-        public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
+        public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name, bool isTaskCatalogEntry)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>Begin");
             try
@@ -153,6 +154,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     pt.ProjectTaskName = name;
                 }
+                pt.IsTaskCatalogEntry = isTaskCatalogEntry;
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe bearbeitet", pt, false);
 
                 _context.ProjectTask.Update(pt);
@@ -180,7 +182,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 if (parentSectionId != null)
                 {
-                   await OnPostCreateSubSectionAsync(parentSectionId, Name);
+                    await OnPostCreateSubSectionAsync(parentSectionId, Name);
                 }
                 else
                 {
