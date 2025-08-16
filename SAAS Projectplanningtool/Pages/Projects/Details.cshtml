@@ -5,207 +5,340 @@
     ViewData["Title"] = "Details";
 }
 
-<link rel="stylesheet" href="/css/gantt.css">
-
-<h3>@Model.Project.ProjectName</h3>
-<div style="display: flex; justify-content: space-between; align-items: center;">
-    <span style="color: grey; font-size: 0.9em;">
-        Ersteller: @Model.Project.CreatedByEmployee.EmployeeDisplayName
-        | Erstellt am: @Model.Project.CreatedTimestamp
-    </span>
-</div>
-<hr />
-
-
-
-<div class="row">
-    <!-- Karte 1: Projektstatus -->
-    <div class="col-md-2">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Projektstatus</h5>
-                <p class="card-text">
-                    @{
-                        bool isArchived = Model.Project.IsArchived == true;
-                    }
-                    @if (!isArchived)
-                    {
-                        <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-archive"></i> Projekt archivieren
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-arrow-counterclockwise"></i> Projekt wiederherstellen
-                            </button>
-                        </form>
-                    }
-                </p>
+<div class="project-details-container">
+    <!-- Header Section -->
+    <div class="project-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
+                <div class="project-meta">
+                    <span class="creator-info">
+                        <i class="fas fa-user me-1"></i>
+                        Erstellt von @Model.Project.CreatedByEmployee.EmployeeDisplayName
+                    </span>
+                    <span class="creation-date">
+                        <i class="fas fa-calendar me-1"></i>
+                        @Model.Project.CreatedTimestamp?.ToString("dd.MM.yyyy")
+                    </span>
+                </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Karte 2: Letzte Änderung -->
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Letzte Änderung</h5>
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Änderer</dt>
-                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Project.LatestModifier.EmployeeDisplayName)</dd>
-
-                    <dt class="col-sm-4">Zeitpunkt</dt>
-                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Project.LatestModificationTimestamp)</dd>
-                </dl>
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Änderung</dt>
-                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Project.LatestModificationText)</dd>
-                </dl>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-7">
-        <hr />
-        @{
-            var showCompleted = Request.Query["showCompleted"].ToString() == "true";
-            //Logik ist nicht implementiert
-        }
-
-        <div class="row">
-            <h3>Aufgabenkatalog</h3>
-
-            <!-- Aufgabenliste -->
-            <div class="col-md-6">
-                <h4>Aufgaben</h4>
-
-                <!-- Button zum Umschalten der Anzeige -->
-                <form method="get">
-                    <input type="hidden" name="showCompleted" value="@(!showCompleted)" />
-                    <button type="submit" class="btn btn-sm btn-outline-primary mb-2">
-                        @((showCompleted ? "Abgeschlossene Aufgaben ausblenden" : "Abgeschlossene Aufgaben einblenden"))
-                    </button>
-                </form>
-
-                <!-- Aufgabenanzeige -->
-                @foreach (var task in Model.TaskCatalog)
+            <div class="header-actions">
+                @{
+                    bool isArchived = Model.Project.IsArchived == true;
+                }
+                @if (!isArchived)
                 {
-                    bool isCompleted = task.State?.StateName == "Abgeschlossen";
-                    if (isCompleted && !showCompleted) continue;
-
-                    <form method="post" asp-page-handler="ToggleTaskState">
-
-                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
-                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                        <input type="hidden" name="StateId" value="@task.StateId" />
-
-                        <div class="form-check mb-2 p-2 rounded @(isCompleted ? "bg-light text-muted" : "")">
-                            <input class="form-check-input" *@
-                                  type="checkbox" 
-                                  onchange="this.form.submit();" 
-                           @(isCompleted ? "checked" : "") />
-                            @* <button type="submit">Button</button> *@
-                            <label class="form-check-label">
-                                <strong>@task.ProjectTaskName</strong> – <small>@task.State?.StateName</small>
-                            </label>
-                        </div>
+                    <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-archive me-2"></i>Archivieren
+                        </button>
                     </form>
                 }
-            </div>
-
-            <!-- Fortschrittsanzeige -->
-            <div class="col-md-6">
-                <h4>Abgeschlossene Aufgaben</h4>
-                <h6>@Model.CompletetedTasks / @Model.TotalTasks</h6>
-                <hr />
-                @{
-                    double circleFillTasks = Model.TotalTasks > 0
-                    ? ((double)Model.CompletetedTasks / Model.TotalTasks) * 100
-                    : 0;
+                else
+                {
+                    <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-box-open me-2"></i>Wiederherstellen
+                        </button>
+                    </form>
                 }
-                @await Html.PartialAsync("_ProgressCircle", (int)circleFillTasks)
+                <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
+                    <i class="fas fa-plus me-2"></i>Abschnitt hinzufügen
+                </button>
             </div>
         </div>
-        <hr />
-        <dt class="col-sm-2">
-            Startdatum
-        </dt>
-        <dd class="col-sm-12">
-            @Html.DisplayFor(model => model.Project.StartDate)
-        </dd>
-        <dt class="col-sm-2">
-            Enddatum
-        </dt>
-        <dd class="col-sm-12">
-            @Html.DisplayFor(model => model.Project.EndDate)
-        </dd>
     </div>
 
-    <div class="col-md-5">
-        <!-- Toolbar -->
-        @* <div class="btn-group mb-3" role="group">
-            <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
-                <i class="fas fa-plus"></i> Abschnitt hinzufügen
-            </button>
-            <button type="button" class="btn btn-secondary" onclick="showAddTaskModal()">
-                <i class="fas fa-tasks"></i> Aufgabe hinzufügen
-            </button>
-        </div> *@
-
-        <div class="mb-3">
-            <button type="button" class="btn btn-secondary">
-                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="">
-                    Terminplanung
-                </a>
-            </button>
-            <button type="button" class="btn btn-secondary">
-                <a asp-page="/Projects/Ressourceplanning" asp-route-id="@Model.Project.ProjectId" class="">
-                    Ressourcenplanung
-                </a>
-            </button>
-        </div>
-        <!-- Feedbackhandling -->
-        @{
-            var message = TempData.GetMessage();
-        }
-        @if (message != null)
-        {
-            <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
-                @message.Message
-            </div>
-
-            <script>
-                setTimeout(function () {
-                    var msg = document.getElementById('feedback-message');
-                    if (msg) {
-                        msg.style.transition = "opacity 0.5s ease";
-                        msg.style.opacity = 0;
-                        setTimeout(() => msg.remove(), 500);
-                    }
-                }, 3000);
-            </script>
-        }
-        <div id="gantt-left">
-            <div class="gantt-task-list">
-                <div class="gantt-header">
-                    <div class="task-name-header">Aufgabe</div>
-                    <div class="task-duration-header">Dauer</div>
-                    <div class="task-start-header">Start</div>
-                    <div class="task-end-header">Ende</div>
-                    <div class="task-actions-header">Aktionen</div>
+    <!-- Statistics Cards -->
+    <div class="statistics-section mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stat-card stat-tasks">
+                    <div class="stat-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.CompletetedTasks / @Model.TotalTasks</h3>
+                        <p>Aufgaben abgeschlossen</p>
+                    </div>
                 </div>
-                <div id="task-list-body" class="gantt-task-list-body">
-                    <!-- Tasks will be populated here -->
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-progress">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-content">
+                        @{
+                            double progressPercentage = Model.TotalTasks > 0
+                            ? ((double)Model.CompletetedTasks / Model.TotalTasks) * 100
+                            : 0;
+                        }
+                        <h3>@((int)progressPercentage)%</h3>
+                        <p>Fortschritt</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-timeline">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Project.StartDate?.ToString("dd.MM")</h3>
+                        <p>Startdatum</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-deadline">
+                    <div class="stat-icon">
+                        <i class="fas fa-flag-checkered"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Project.EndDate?.ToString("dd.MM")</h3>
+                        <p>Enddatum</p>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+
+        <!-- Project Information Section -->
+        <section class="project-info-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Projektleiter</label>
+                            <span>@Model.Project.ResponsiblePerson?.EmployeeDisplayName</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Kunde</label>
+                            <span>@Model.Project.Customer?.CustomerName</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Status</label>
+                            <span class="project-status">@Model.Project.State?.StateName</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Beschreibung</label>
+                            <span>@Model.Project.ProjectDescription</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Last Modification Section -->
+        <section class="modification-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-history me-2"></i>Letzte Änderung</h2>
+                </div>
+                <div class="card-body">
+                    <div class="modification-info">
+                        <div class="modifier-details">
+                            <div class="modifier-name">
+                                <i class="fas fa-user me-2"></i>
+                                @Model.Project.LatestModifier?.EmployeeDisplayName
+                            </div>
+                            <div class="modification-time">
+                                <i class="fas fa-clock me-2"></i>
+                                @Model.Project.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                        </div>
+                        <div class="modification-text">
+                            <i class="fas fa-edit me-2"></i>
+                            @Model.Project.LatestModificationText
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks Section -->
+        <section class="tasks-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
+                    <div class="card-actions">
+                        @{
+                            var showCompleted = Request.Query["showCompleted"].ToString() == "true";
+                        }
+                        <form method="get" class="d-inline">
+                            <input type="hidden" name="showCompleted" value="@(!showCompleted)" />
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas @(showCompleted ? "fa-eye-slash" : "fa-eye") me-1"></i>
+                                @(showCompleted ? "Abgeschlossene ausblenden" : "Abgeschlossene einblenden")
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="showAddTaskModal()">
+                            <i class="fas fa-plus me-1"></i>Aufgabe hinzufügen
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tasks-container">
+                        <div class="task-list">
+                            @foreach (var task in Model.TaskCatalog)
+                            {
+                                bool isCompleted = task.State?.StateName == "Abgeschlossen";
+                                if (isCompleted && !showCompleted) continue;
+
+                                <div class="task-item @(isCompleted ? "completed" : "")">
+                                    <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
+                                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
+                                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                                        <input type="hidden" name="StateId" value="@task.StateId" />
+
+                                        <div class="task-checkbox">
+                                            <input class="form-check-input" type="checkbox"
+                                                   onchange="this.form.submit();"
+                                            @(isCompleted ? "checked" : "") />
+                                        </div>
+                                        <div class="task-content">
+                                            <div class="task-name">@task.ProjectTaskName</div>
+                                            <div class="task-status">
+                                                <span class="status-badge">@task.State?.StateName</span>
+                                                @if (task.StartDate.HasValue || task.EndDate.HasValue)
+                                                {
+                                                    <span class="task-dates">
+                                                        @if (task.StartDate.HasValue)
+                                                        {
+                                                            <span>@task.StartDate.Value.ToString("dd.MM")</span>
+                                                        }
+                                                        @if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                                        {
+                                                            <span> - </span>
+                                                        }
+                                                        @if (task.EndDate.HasValue)
+                                                        {
+                                                            <span>@task.EndDate.Value.ToString("dd.MM")</span>
+                                                        }
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="task-actions">
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="deleteItem('@task.ProjectTaskId', 'task', '@task.ProjectTaskName')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Progress Circle -->
+                        <div class="progress-visualization">
+                            <div class="progress-circle">
+                                <svg class="progress-ring" width="120" height="120">
+                                    <circle class="progress-ring-circle" stroke="#e6e6e6" stroke-width="8" fill="transparent" r="52" cx="60" cy="60" />
+                                    <circle class="progress-ring-circle progress-ring-fill" stroke="#28a745" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"
+                                            style="stroke-dasharray: @(2 * Math.PI * 52); stroke-dashoffset: @(2 * Math.PI * 52 * (1 - progressPercentage / 100));" />
+                                </svg>
+                                <div class="progress-text">
+                                    <span class="progress-percentage">@((int)progressPercentage)%</span>
+                                    <span class="progress-label">Abgeschlossen</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Structure Section -->
+        <section class="structure-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-sitemap me-2"></i>Projektstruktur</h2>
+                    <div class="card-actions">
+                        <button type="button" class="btn btn-outline-secondary btn-sm">
+                            <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                <i class="fas fa-calendar me-1"></i>Terminplanung
+                            </a>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm">
+                            <a asp-page="/Projects/Ressourceplanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                <i class="fas fa-users me-1"></i>Ressourcenplanung
+                            </a>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Gantt Chart Area -->
+                    <div id="gantt-container">
+                        <div class="gantt-header">
+                            <div class="task-name-header">Aufgabe</div>
+                            <div class="task-duration-header">Dauer</div>
+                            <div class="task-start-header">Start</div>
+                            <div class="task-end-header">Ende</div>
+                            <div class="task-actions-header">Aktionen</div>
+                        </div>
+                        <div id="task-list-body" class="gantt-task-list-body">
+                            <!-- Tasks will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions Section -->
+        <section class="quick-actions-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-bolt me-2"></i>Schnelle Aktionen</h2>
+                </div>
+                <div class="card-body">
+                    <div class="action-buttons">
+                        <button type="button" class="action-btn primary" onclick="showAddSectionModal()">
+                            <i class="fas fa-plus"></i>
+                            Abschnitt hinzufügen
+                        </button>
+                        <button type="button" class="action-btn secondary" onclick="showAddTaskModal()">
+                            <i class="fas fa-tasks"></i>
+                            Aufgabe hinzufügen
+                        </button>
+                        <a asp-page="Edit" asp-route-id="@Model.Project.ProjectId" class="action-btn secondary">
+                            <i class="fas fa-edit"></i>
+                            Projekt bearbeiten
+                        </a>
+                        <a asp-page="Index" class="action-btn secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            Zurück zur Übersicht
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
 
+<!-- Feedback Messages -->
+@{
+    var message = TempData.GetMessage();
+}
+@if (message != null)
+{
+    <div class="alert alert-@message.Type.ToLower() notification-alert" id="feedback-message">
+        @message.Message
+    </div>
+}
+
+<!-- Modals (keeping the existing modals from the original) -->
 <!-- Add Section Modal -->
 <div class="modal fade" id="addSectionModal" tabindex="-1">
     <div class="modal-dialog">
@@ -306,52 +439,6 @@
     </div>
 </div>
 
-<!-- Add Item Modal -->
-<div class="modal fade" id="addItemModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Was möchten Sie anlegen?</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body d-grid gap-3">
-                <button id="chooseTaskBtn" class="btn btn-outline-success btn-lg">
-                    <i class="fas fa-tasks me-2"></i> Aufgabe
-                </button>
-                <button id="chooseSubBtn" class="btn btn-outline-primary btn-lg">
-                    <i class="fas fa-sitemap me-2"></i> Unterabschnitt
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Sub-Section Modal -->
-<div class="modal fade" id="addSubSectionModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="CreateSubSection">
-                <div class="modal-header">
-                    <h5 class="modal-title">Neuen Unterabschnitt hinzufügen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="parentSubSectionId" name="parentSectionId" />
-                    <div class="mb-3">
-                        <label class="form-label">Unterabschnittsname</label>
-                        <input type="text" class="form-control" name="Name" required />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Erstellen</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- Edit Task Modal -->
 <div class="modal fade" id="editTaskModal" tabindex="-1">
     <div class="modal-dialog">
@@ -411,298 +498,291 @@
     </div>
 </div>
 
-<script>
-    /* ───────────────────────── Daten aus Razor ───────────────────────── */
-    const projectData = {
-        project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
-        {
-            Id = Model.Project.ProjectId,
-            Name = Model.Project.ProjectName,
-            Sections = Model.Project.ProjectSections?
-           .Where(s => s.ParentSectionId == null).Select(s => new
-           {
-           Id = s.ProjectSectionId,
-           Name = s.ProjectSectionName,
-           Type = "section",
-           State = s.State != null ? new { StateName = s.State.StateName, Color = s.State.Color } : null,
-           SubSections = s.SubSections?.Select(sub => new
-           {
-               Id = sub.ProjectSectionId,
-               Name = sub.ProjectSectionName,
-               Type = "subsection",
-               State = sub.State != null ? new { StateName = sub.State.StateName, Color = sub.State.Color } : null,
-               Tasks = sub.ProjectTasks?.Select(t => new
-               {
-                   Id = t.ProjectTaskId,
-                   Name = t.ProjectTaskName,
-                   StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                   EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                   Type = "task",
-                   State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
-               })
-           }),
-           Tasks = s.ProjectTasks?.Select(t => new
-           {
-               Id = t.ProjectTaskId,
-               Name = t.ProjectTaskName,
-               StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-               EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-               Type = "task",
-               State = t.State != null ? new { StateName = t.State.StateName, Color = t.State.Color } : null
-           })
-           })
-        }))
-    };
-
-    /* ───────────────────── Collapse-State & Utils ────────────────────── */
-    const collapsed = new Map();
-
-    function isCollapsed(id) {
-        return collapsed.has(id) && collapsed.get(id);
+<style>
+    .project-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    function toggleCollapse(id) {
-        collapsed.set(id, !isCollapsed(id));
-        renderTaskList();
+    /* Header Section */
+    .project-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
     }
 
-    /* Datumshilfen */
-    function calculateDuration(s, e) {
-        if (!s || !e) return '-';
-        const d = Math.ceil((new Date(e) - new Date(s)) / 86400000) + 1;
-        return d + 'd';
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    function formatDate(d) {
-        if (!d) return '-';
-        return new Date(d).toLocaleDateString('de-DE');
+    .header-left h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 600;
     }
 
-    /* Frühester/Spätester Termin unterhalb eines Knotens */
-    function getRange(node) {
-        let min = node.StartDate ? new Date(node.StartDate) : null;
-        let max = node.EndDate ? new Date(node.EndDate) : null;
-
-        if (node.SubSections) {
-            node.SubSections.forEach(s => {
-                const [a, b] = getRange(s);
-                if (a && (!min || a < min)) min = a;
-                if (b && (!max || b > max)) max = b;
-            });
-        }
-        if (node.Tasks) {
-            node.Tasks.forEach(t => {
-                if (t.StartDate) {
-                    const d = new Date(t.StartDate);
-                    if (!min || d < min) min = d;
-                }
-                if (t.EndDate) {
-                    const d = new Date(t.EndDate);
-                    if (!max || d > max) max = d;
-                }
-            });
-        }
-        return [min, max];
+    .project-meta {
+        display: flex;
+        gap: 20px;
+        margin-top: 10px;
+        opacity: 0.9;
     }
 
-    /* Standard: eingeklappt */
-    function preloadCollapse() {
-        function walk(node) {
-            if (node.Type !== 'task') {
-                collapsed.set(node.Id, true);
-                if (node.SubSections) node.SubSections.forEach(walk);
-            }
-        }
-        projectData.project.Sections?.forEach(walk);
+    .creator-info, .creation-date {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
     }
 
-    /* ───────────────────── Rendering der linken Liste ─────────────────── */
-    function renderTaskList() {
-        const body = document.getElementById('task-list-body');
-        body.innerHTML = '';
+    .header-actions {
+        display: flex;
+        gap: 15px;
+    }
 
-        if (!projectData.project.Sections || projectData.project.Sections.length === 0) {
-            body.innerHTML = '<div class="empty-state">📋 Keine Abschnitte oder Aufgaben vorhanden</div>';
-            return;
-        }
+    /* Statistics Cards */
+    .statistics-section .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        transition: transform 0.3s ease;
+    }
 
-        projectData.project.Sections.forEach(sec => walk(sec, 0));
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
 
-        /* Footer-Adder ganz unten */
-        const footer = document.createElement('div');
-        footer.className = 'task-row adder-row';
-        footer.dataset.level = 0;
-        footer.innerHTML = `
-            <div class="task-name">
-                <button class="btn btn-sm btn-outline-primary"
-                        onclick="showAddSectionModal()">
-                   <i class="fas fa-plus"></i> Neuer Abschnitt
-                </button>
-            </div>`;
-        body.appendChild(footer);
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-right: 15px;
+    }
 
-        function walk(node, depth) {
-            addRow(node, depth);
+    .stat-tasks .stat-icon {
+        background: #28a745;
+    }
 
-            if (node.Type === 'task' || isCollapsed(node.Id)) return;
+    .stat-progress .stat-icon {
+        background: #17a2b8;
+    }
 
-            /* Inline-Adder hinter jedem Nicht-Task */
-            if (node.Type !== 'task') {
-                const adder = document.createElement('div');
-                adder.className = 'task-row adder-row';
-                adder.style.setProperty('--lvl', depth);
-                adder.innerHTML = `
-                   <div class="task-name">
-                      <button class="btn btn-sm btn-outline-primary"
-                              onclick="showAddItemModal('${node.Id}','${node.Type}')">
-                          <i class="fas fa-plus"></i>
-                      </button>
-                   </div>`;
-                body.appendChild(adder);
-            }
+    .stat-timeline .stat-icon {
+        background: #ffc107;
+    }
 
-            if (node.SubSections) {
-                node.SubSections.forEach(s => walk(s, depth + 1));
-            }
-            if (node.Tasks) {
-                node.Tasks.forEach(t => walk(t, depth + 1));
-            }
+    .stat-deadline .stat-icon {
+        background: #dc3545;
+    }
+
+    .stat-content h3 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 0;
+        color: #333;
+    }
+
+    .stat-content p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        gap: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+
+    /* Cards */
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: 600;
         }
 
-        function addRow(item, depth) {
-            const row = document.createElement('div');
-            row.className = `task-row ${item.Type}`;
-            row.style.setProperty('--lvl', depth);
+    .card-actions {
+        display: flex;
+        gap: 10px;
+    }
 
-            /* Pfeil für aufklappbare Elemente */
-            const hasChildren =
-                 (item.SubSections && item.SubSections.length) ||
-                 (item.Tasks && item.Tasks.length);
+    .card-body {
+        padding: 20px;
+    }
 
-            const fold = isCollapsed(item.Id);
-            const caret = hasChildren
-                ? `<i class="fas fa-caret-down caret ${fold ? 'collapsed' : ''}"
-                      data-id="${item.Id}"></i>`
-                : '';
+    /* Project Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
 
-            /* Daten für Section/Subsection berechnen */
-            let start = item.StartDate;
-            let end = item.EndDate;
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
 
-            if (item.Type !== 'task') {
-                const [min, max] = getRange(item);
-                start = min ? min.toISOString().slice(0, 10) : null;
-                end = max ? max.toISOString().slice(0, 10) : null;
-            }
-
-            /* Status Badge */
-            const statusBadge = item.State
-                ? `<span class="statecolorcontainer badge" style="background-color: ${item.State.Color}">${item.State.StateName}</span>`
-                : '<span class="text-muted">Kein Status</span>';
-
-            const isTask = item.Type === 'task';
-
-            row.innerHTML = `
-               <div class="task-name">${caret}${item.Name}</div>
-               <div class="task-duration">${calculateDuration(start, end)}</div>
-               <div class="task-start">${formatDate(start)}</div>
-               <div class="task-end">${formatDate(end)}</div>
-               <div class="task-actions">
-                    ${isTask ? `
-                        <button class="btn btn-sm btn-outline-primary me-1"
-                                onclick="editTask('${item.Id}', '${item.Name}',
-                                                  '${item.StartDate || ''}', '${item.EndDate || ''}')">
-                            <i class="fas fa-edit"></i>
-                        </button>` : ''}
-                    <button class="btn btn-sm btn-outline-danger"
-                            onclick="deleteItem('${item.Id}', '${item.Type}', '${item.Name}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>`;
-
-            body.appendChild(row);
+        .info-item label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
         }
-    }
 
-    /* ───────── Modal Functions ───────── */
-    function showAddSectionModal() {
-        new bootstrap.Modal(document.getElementById('addSectionModal')).show();
-    }
-
-    function showAddTaskModal(sectionId = null) {
-        if (sectionId) {
-            const sel = document.getElementById('taskSectionSelect');
-            if (sel) sel.value = sectionId;
+        .info-item span {
+            color: #333;
+            font-size: 1rem;
         }
-        new bootstrap.Modal(document.getElementById('addTaskModal')).show();
+
+    .project-status {
+        padding: 4px 12px;
+        border-radius: 12px;
+        background: #e7f3ff;
+        color: #0066cc;
+        font-weight: 500;
+        font-size: 0.9rem;
+        width: fit-content;
     }
 
-    function showAddSubSectionModal(parentId) {
-        document.getElementById('parentSubSectionId').value = parentId;
-        new bootstrap.Modal(document.getElementById('addSubSectionModal')).show();
+    /* Modification Section */
+    .modification-info {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
     }
 
-    let addItemParentId = null;
-    let addItemParentType = null;
-
-    function showAddItemModal(parentId, parentType) {
-        addItemParentId = parentId;
-        addItemParentType = parentType;
-
-        const subBtn = document.getElementById('chooseSubBtn');
-        subBtn.disabled = (parentType !== 'section');
-
-        new bootstrap.Modal(document.getElementById('addItemModal')).show();
+    .modifier-details {
+        display: flex;
+        gap: 30px;
     }
 
-    function editTask(taskId, taskName, startDate, endDate) {
-        document.getElementById('editTaskId').value = taskId;
-        document.getElementById('editTaskName').value = taskName;
-        document.getElementById('editTaskStartDate').value = startDate;
-        document.getElementById('editTaskEndDate').value = endDate;
-
-        new bootstrap.Modal(document.getElementById('editTaskModal')).show();
+    .modifier-name, .modification-time, .modification-text {
+        display: flex;
+        align-items: center;
+        color: #495057;
     }
 
-    function deleteItem(itemId, itemType, itemName) {
-        document.getElementById('deleteConfirmText').textContent =
-            `Sind Sie sicher, dass Sie "${itemName}" löschen möchten?`;
-
-        const jsonData = {
-            Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
-            Data: { itemId, itemName }
-        };
-
-        document.getElementById('deleteObjectJson').value = JSON.stringify(jsonData);
-
-        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    /* Tasks Section */
+    .tasks-container {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 30px;
+        align-items: start;
     }
 
-    /* ───────── Event Listeners ───────── */
-    document.addEventListener('click', ev => {
-       if (ev.target.classList.contains('caret')) {
-           toggleCollapse(ev.target.dataset.id);
-           ev.stopPropagation();
-       }
-    });
+    .task-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        preloadCollapse();
-        renderTaskList();
+    .task-item {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        background: white;
+        transition: all 0.3s ease;
+    }
 
-        document.getElementById('chooseTaskBtn').addEventListener('click', () => {
-            bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
-            showAddTaskModal(addItemParentId);
-        });
+        .task-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
 
-        document.getElementById('chooseSubBtn').addEventListener('click', () => {
-            bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
-            showAddSubSectionModal(addItemParentId);
-        });
-    });
-</script>
+        .task-item.completed {
+            background: #f8f9fa;
+            opacity: 0.7;
+        }
 
-<!-- Include Bootstrap and FontAwesome -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    .task-form {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .task-checkbox {
+        flex-shrink: 0;
+    }
+
+    .task-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .task-name {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .task-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-badge {
+        padding: 2px 8px;
+        border-radius: 12px;
+        background: #e7f3ff;
+        color: #0066cc;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .task-dates {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    /* Progress Circle */
+    .progress-visualization {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .progress-circle {
+        position: relative;
+    }
+
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
