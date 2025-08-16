@@ -170,9 +170,9 @@
                 <div class="card-header">
                     <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
                     <div class="card-actions">
-                        @{                           
-                                bool showCompleted = Model.showCompleted;
-                           
+                        @{
+                            bool showCompleted = Model.showCompleted;
+
                         }
                         <form method="get" class="d-inline">
                             <input type="hidden" name="id" value="@Model.Project.ProjectId" />
@@ -432,6 +432,9 @@
                             <input type="date" class="form-control" name="endDate" />
                         </div>
                     </div>
+                    @*HINZUGEFÜGT: In Aufgabenkatalog übernehmen*@
+                    <input asp-for="IsTaskCatalogEntry" value="true" class="form-check-input" />
+                    <label asp-for="IsTaskCatalogEntry" class="form-check-label">Als Katalogeintrag speichern</label>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>

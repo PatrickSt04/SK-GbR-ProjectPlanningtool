@@ -16,7 +16,7 @@ using Project = SAAS_Projectplanningtool.Models.Budgetplanning.Project;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
-    public class DetailsModel : ProjectPageModel
+    public class DetailsModel : ProjectHandlerPageModel
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
