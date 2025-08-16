@@ -33,6 +33,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<ProjectTask> TaskCatalog { get; set; } = new List<ProjectTask>();
         public int TotalTasks { get; set; } = 0;
         public int CompletetedTasks { get; set; } = 0;
+        [BindProperty(SupportsGet = true)]
+        public bool showCompleted { get; set; } = default!;
         public async Task<IActionResult> OnGetAsync(string id)
         {
             await _logger.Log(null, User, null, "Projects/Details<OnGet>Beginn");
@@ -85,7 +87,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .ToListAsync();
             TaskCatalog = await _context.ProjectTask.Where(pt => pt.CompanyId == employee.CompanyId)
                     .Where(pt => pt.IsTaskCatalogEntry == true)
-                    .Where(pt => sectionsofProject.Contains(pt.ProjectSectionId) )
+                    .Where(pt => sectionsofProject.Contains(pt.ProjectSectionId))
                     .ToListAsync();
 
             var completedState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Abgeschlossen");

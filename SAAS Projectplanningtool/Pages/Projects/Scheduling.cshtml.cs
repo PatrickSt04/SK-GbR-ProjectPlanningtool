@@ -40,6 +40,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         [BindProperty]
         public string? Origin { get; set; } = null;
+        [BindProperty]
+        public bool IsTaskCatalogEntry { get; set; } = false;
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -100,7 +102,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return _context.Project.Any(e => e.ProjectId == id);
         }
 
-        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name, bool isTaskCatalogEntry)
+        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
             try
@@ -113,7 +115,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     EndDate = endDate,
                     ProjectTaskName = Name,
                     ProjectSectionId = SectionId,
-                    IsTaskCatalogEntry = isTaskCatalogEntry
+                    IsTaskCatalogEntry = IsTaskCatalogEntry
                 };
                 pt.State = await new StateManager(_context).getOpenState();
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
