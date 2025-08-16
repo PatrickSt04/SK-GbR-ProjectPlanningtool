@@ -30,4 +30,7 @@ footer {
     text-align: center;
     padding: 0.5rem 0;
 }
-
+.a_muted {
+    text-decoration: none;
+        border:none
+}

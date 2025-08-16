@@ -74,13 +74,18 @@
         <section class="budget-section">
             <h2>Budget-Status</h2>
             <div class="budget-container">
-                @foreach (var project in Model.ProjectsWithBudget)
+                @{
+                    var visibleBudgetProjects = Model.ProjectsWithBudget.Take(5);
+                    var hiddenBudgetProjects = Model.ProjectsWithBudget.Skip(5);
+                }
+
+                @foreach (var project in visibleBudgetProjects)
                 {
-                    var budgetPercentage = project.ProjectBudget != null && project.ProjectBudget.InitialBudget > 0 
-                        ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100 
-                        : 0;
+                    var budgetPercentage = project.ProjectBudget != null && project.ProjectBudget.InitialBudget > 0
+                    ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100
+                    : 0;
                     var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
-                    
+
                     <div class="budget-item @warningClass">
                         <div class="budget-header">
                             <span class="project-name">@project.ProjectName</span>
@@ -94,8 +99,39 @@
                         </div>
                     </div>
                 }
+
+                @if (hiddenBudgetProjects.Any())
+                {
+                    <div class="hidden-budget-items" id="hiddenBudgetItems" style="display: none;">
+                        @foreach (var project in hiddenBudgetProjects)
+                        {
+                            var budgetPercentage = project.ProjectBudget != null && project.ProjectBudget.InitialBudget > 0
+                            ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100
+                            : 0;
+                            var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
+
+                            <div class="budget-item @warningClass">
+                                <div class="budget-header">
+                                    <span class="project-name">@project.ProjectName</span>
+                                    <span class="budget-percentage">@budgetPercentage.ToString("F1")%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @budgetPercentage%"></div>
+                                </div>
+                                <div class="budget-details">
+                                    <span>@project.ProjectBudget?.UsedBudget.ToString("C") von @project.ProjectBudget?.InitialBudget.ToString("C")</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <button class="show-more-btn" id="showMoreBudget" onclick="toggleBudgetItems()">
+                        <i class="fas fa-chevron-down"></i>
+                        @hiddenBudgetProjects.Count() weitere anzeigen
+                    </button>
+                }
             </div>
-            
+
             @if (Model.HighBudgetProjects.Any())
             {
                 <div class="budget-warnings">
@@ -113,10 +149,11 @@
             }
         </section>
 
+
         <!-- Tasks Cockpit -->
         <section class="tasks-cockpit">
             <h2>Aufgaben-Cockpit</h2>
-            
+    
             <div class="tasks-tabs">
                 <button class="tab-btn active" data-tab="my-tasks">Meine Aufgaben (@Model.MyOpenTasks.Count)</button>
                 <button class="tab-btn" data-tab="team-tasks">Team-Aufgaben (@Model.TeamTasks.Count)</button>
@@ -125,11 +162,16 @@
             <div class="tab-content active" id="my-tasks">
                 @if (Model.MyOpenTasks.Any())
                 {
+                   
+                    var visibleMyTasks = Model.MyOpenTasks.Take(5);
+                    var hiddenMyTasks = Model.MyOpenTasks.Skip(5);
+                    
+            
                     <div class="task-list">
-                        @foreach (var task in Model.MyOpenTasks)
+                        @foreach (var task in visibleMyTasks)
                         {
                             var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
-                            
+                    
                             <div class="task-item @dueDateClass">
                                 <div class="task-info">
                                     <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
@@ -145,6 +187,37 @@
                             </div>
                         }
                     </div>
+            
+                    @if (hiddenMyTasks.Any())
+                    {
+                        <div class="hidden-task-items" id="hiddenMyTasks" style="display: none;">
+                            <div class="task-list">
+                                @foreach (var task in hiddenMyTasks)
+                                {
+                                    var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
+                            
+                                    <div class="task-item @dueDateClass">
+                                        <div class="task-info">
+                                            <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
+                                            <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
+                                            <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
+                                        </div>
+                                        <div class="task-meta">
+                                            @if (task.EndDate.HasValue)
+                                            {
+                                                <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                
+                        <button class="show-more-btn" id="showMoreMyTasks" onclick="toggleMyTasks()">
+                            <i class="fas fa-chevron-down"></i>
+                            @hiddenMyTasks.Count() weitere anzeigen
+                        </button>
+                    }
                 }
                 else
                 {
@@ -158,11 +231,16 @@
             <div class="tab-content" id="team-tasks">
                 @if (Model.TeamTasks.Any())
                 {
+                    
+                    var visibleTeamTasks = Model.TeamTasks.Take(5);
+                    var hiddenTeamTasks = Model.TeamTasks.Skip(5);
+                    
+            
                     <div class="task-list">
-                        @foreach (var task in Model.TeamTasks)
+                        @foreach (var task in visibleTeamTasks)
                         {
                             var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
-                            
+                    
                             <div class="task-item @dueDateClass">
                                 <div class="task-info">
                                     <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
@@ -178,6 +256,37 @@
                             </div>
                         }
                     </div>
+            
+                    @if (hiddenTeamTasks.Any())
+                    {
+                        <div class="hidden-task-items" id="hiddenTeamTasks" style="display: none;">
+                            <div class="task-list">
+                                @foreach (var task in hiddenTeamTasks)
+                                {
+                                    var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
+                            
+                                    <div class="task-item @dueDateClass">
+                                        <div class="task-info">
+                                            <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
+                                            <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
+                                            <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
+                                        </div>
+                                        <div class="task-meta">
+                                            @if (task.EndDate.HasValue)
+                                            {
+                                                <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                
+                        <button class="show-more-btn" id="showMoreTeamTasks" onclick="toggleTeamTasks()">
+                            <i class="fas fa-chevron-down"></i>
+                            @hiddenTeamTasks.Count() weitere anzeigen
+                        </button>
+                    }
                 }
                 else
                 {
@@ -188,6 +297,7 @@
                 }
             </div>
         </section>
+
 
         <!-- Resources & Workload -->
         <section class="resources-section">
@@ -409,433 +519,66 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Next month');
     });
 });
+    function toggleBudgetItems() {
+        const hiddenItems = document.getElementById('hiddenBudgetItems');
+        const button = document.getElementById('showMoreBudget');
+        const icon = button.querySelector('i');
+
+        if (hiddenItems.style.display === 'none') {
+            hiddenItems.style.display = 'block';
+            button.innerHTML = '<i class="fas fa-chevron-up"></i> Weniger anzeigen';
+            button.classList.add('expanded');
+        } else {
+            hiddenItems.style.display = 'none';
+            const hiddenCount = hiddenItems.querySelectorAll('.budget-item').length;
+            button.innerHTML = `<i class="fas fa-chevron-down"></i> ${hiddenCount} weitere anzeigen`;
+            button.classList.remove('expanded');
+        }
+    }
+
+    function toggleMyTasks() {
+        const hiddenItems = document.getElementById('hiddenMyTasks');
+        const button = document.getElementById('showMoreMyTasks');
+
+        if (hiddenItems.style.display === 'none') {
+            hiddenItems.style.display = 'block';
+            button.innerHTML = '<i class="fas fa-chevron-up"></i> Weniger anzeigen';
+            button.classList.add('expanded');
+        } else {
+            hiddenItems.style.display = 'none';
+            const hiddenCount = hiddenItems.querySelectorAll('.task-item').length;
+            button.innerHTML = `<i class="fas fa-chevron-down"></i> ${hiddenCount} weitere anzeigen`;
+            button.classList.remove('expanded');
+        }
+    }
+
+    function toggleTeamTasks() {
+        const hiddenItems = document.getElementById('hiddenTeamTasks');
+        const button = document.getElementById('showMoreTeamTasks');
+
+        if (hiddenItems.style.display === 'none') {
+            hiddenItems.style.display = 'block';
+            button.innerHTML = '<i class="fas fa-chevron-up"></i> Weniger anzeigen';
+            button.classList.add('expanded');
+        } else {
+            hiddenItems.style.display = 'none';
+            const hiddenCount = hiddenItems.querySelectorAll('.task-item').length;
+            button.innerHTML = `<i class="fas fa-chevron-down"></i> ${hiddenCount} weitere anzeigen`;
+            button.classList.remove('expanded');
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Korrekte Pfade für JavaScript
+        function loadCSS() {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = '/css/index.css'; // Absoluter Pfad ohne ~
+            link.media = 'all';
+            document.head.appendChild(link);
+        }
+        
+        // CSS laden
+        loadCSS();
+    });
 </script>
-
-<style>
-.dashboard-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    color: white;
-}
-
-.welcome-section h1 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 600;
-}
-
-.company-name {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin: 5px 0;
-}
-
-.role-badge {
-    background: rgba(255,255,255,0.2);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-}
-
-.search-container {
-    min-width: 300px;
-}
-
-.search-box {
-    display: flex;
-    background: white;
-    border-radius: 25px;
-    overflow: hidden;
-}
-
-.search-input {
-    flex: 1;
-    padding: 12px 20px;
-    border: none;
-    font-size: 1rem;
-    outline: none;
-}
-
-.search-btn {
-    padding: 12px 20px;
-    background: #4CAF50;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-
-.dashboard-grid {
-    display: grid;
-    gap: 30px;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-}
-
-.overview-cards {
-    grid-column: 1 / -1;
-}
-
-.card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    border-left: 4px solid #007bff;
-    transition: transform 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-
-.stat-card.active-projects { border-left-color: #28a745; }
-.stat-card.archived-projects { border-left-color: #6c757d; }
-.stat-card.upcoming-projects { border-left-color: #ffc107; }
-.stat-card.overdue-projects { border-left-color: #dc3545; }
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.card-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: #495057;
-}
-
-.card-header i {
-    font-size: 1.5rem;
-    opacity: 0.7;
-}
-
-.card-value {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.card-link {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.budget-section, .tasks-cockpit, .resources-section, 
-.activities-section, .quick-actions, .calendar-section,
-.customers-section, .system-info {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.budget-section h2, .tasks-cockpit h2, .resources-section h2,
-.activities-section h2, .quick-actions h2, .calendar-section h2,
-.customers-section h2, .system-info h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 1.5rem;
-}
-
-.budget-item {
-    margin-bottom: 20px;
-    padding: 15px;
-    border-radius: 8px;
-    background: #f8f9fa;
-}
-
-.budget-item.budget-warning {
-    background: #fff5f5;
-    border-left: 4px solid #dc3545;
-}
-
-.budget-item.budget-caution {
-    background: #fffbf0;
-    border-left: 4px solid #ffc107;
-}
-
-.budget-item.budget-ok {
-    background: #f0fff4;
-    border-left: 4px solid #28a745;
-}
-
-.budget-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.progress-bar {
-    height: 8px;
-    background: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 8px;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
-    transition: width 0.3s ease;
-}
-
-.tasks-tabs {
-    display: flex;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.tab-btn {
-    padding: 10px 20px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    font-weight: 500;
-}
-
-.tab-btn.active {
-    border-bottom-color: #007bff;
-    color: #007bff;
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-.task-item.overdue {
-    border-left: 4px solid #dc3545;
-    background: #fff5f5;
-}
-
-.task-info h4 {
-    margin: 0 0 5px 0;
-}
-
-.task-info a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.task-project {
-    color: #6c757d;
-    font-size: 0.9rem;
-    margin: 0;
-}
-
-.task-state {
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.state-open { background: #cce5ff; color: #0066cc; }
-.state-inprogress { background: #fff3cd; color: #856404; }
-.state-completed { background: #d4edda; color: #155724; }
-
-.workload-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.workload-item {
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-}
-
-.workload-item.high-workload { border-left: 4px solid #dc3545; }
-.workload-item.medium-workload { border-left: 4px solid #ffc107; }
-.workload-item.low-workload { border-left: 4px solid #28a745; }
-
-.workload-bar {
-    height: 6px;
-    background: #e9ecef;
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 8px;
-}
-
-.workload-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
-}
-
-.action-buttons {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.action-btn.primary {
-    background: #007bff;
-    color: white;
-}
-
-.action-btn.secondary {
-    background: #6c757d;
-    color: white;
-}
-
-.action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.calendar-widget {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.calendar-nav {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 5px 10px;
-}
-
-.activity-feed {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.activity-item {
-    display: flex;
-    gap: 15px;
-    padding: 15px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.activity-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #007bff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.9rem;
-}
-
-.activity-meta {
-    display: flex;
-    gap: 15px;
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-top: 5px;
-}
-
-.customer-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-.customer-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.btn-small {
-    padding: 6px 12px;
-    background: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.info-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.info-card {
-    padding: 20px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    background: #f8f9fa;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px;
-    color: #6c757d;
-}
-
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    opacity: 0.5;
-}
-
-
-</style>
