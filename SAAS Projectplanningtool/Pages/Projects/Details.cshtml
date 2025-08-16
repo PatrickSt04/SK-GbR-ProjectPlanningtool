@@ -1,4 +1,5 @@
 ﻿@page
+@using SAAS_Projectplanningtool.Pages.Projects
 @model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
 
 @{
@@ -170,10 +171,12 @@
                     <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
                     <div class="card-actions">
                         @{
-                            var showCompleted = Request.Query["showCompleted"].ToString() == "true";
+                            bool showCompleted = Model.showCompleted;
+
                         }
                         <form method="get" class="d-inline">
-                            <input type="hidden" name="showCompleted" value="@(!showCompleted)" />
+                            <input type="hidden" name="id" value="@Model.Project.ProjectId" />
+                            <input type="hidden" asp-for="showCompleted" value="@(!Model.showCompleted)" />
                             <button type="submit" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas @(showCompleted ? "fa-eye-slash" : "fa-eye") me-1"></i>
                                 @(showCompleted ? "Abgeschlossene ausblenden" : "Abgeschlossene einblenden")
@@ -201,7 +204,7 @@
                                         <div class="task-checkbox">
                                             <input class="form-check-input" type="checkbox"
                                                    onchange="this.form.submit();"
-                                            @(isCompleted ? "checked" : "") />
+                                                   @(isCompleted ? "checked" : "") />
                                         </div>
                                         <div class="task-content">
                                             <div class="task-name">@task.ProjectTaskName</div>
@@ -429,6 +432,9 @@
                             <input type="date" class="form-control" name="endDate" />
                         </div>
                     </div>
+                    @*HINZUGEFÜGT: In Aufgabenkatalog übernehmen*@
+                    <input asp-for="IsTaskCatalogEntry" value="true" class="form-check-input" />
+                    <label asp-for="IsTaskCatalogEntry" class="form-check-label">Als Katalogeintrag speichern</label>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
