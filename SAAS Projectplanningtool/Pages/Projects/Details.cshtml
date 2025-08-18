@@ -204,7 +204,7 @@
                                         <div class="task-checkbox">
                                             <input class="form-check-input" type="checkbox"
                                                    onchange="this.form.submit();"
-                                                   @(isCompleted ? "checked" : "") />
+                                            @(isCompleted ? "checked" : "") />
                                         </div>
                                         <div class="task-content">
                                             <div class="task-name">@task.ProjectTaskName</div>
@@ -341,168 +341,16 @@
     </div>
 }
 
-<!-- Modals (keeping the existing modals from the original) -->
-<!-- Add Section Modal -->
-<div class="modal fade" id="addSectionModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="CreateProjectSection">
-                <div class="modal-header">
-                    <h5 class="modal-title">Neuen Abschnitt hinzufügen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="projectId" value="@Model.Project?.ProjectId" />
-                    <div class="mb-3">
-                        <label class="form-label">Abschnittsname</label>
-                        <input type="text" class="form-control" name="Name" required />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Übergeordneter Abschnitt (optional)</label>
-                        <select class="form-select" id="parentSectionSelect" name="parentSectionId">
-                            <option value="">-- Hauptabschnitt --</option>
-                            @if (Model.Project?.ProjectSections != null)
-                            {
-                                @foreach (var projectSection in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
-                                {
-                                    <option value="@projectSection.ProjectSectionId">@projectSection.ProjectSectionName</option>
-                                    @if (projectSection.SubSections != null)
-                                    {
-                                        @foreach (var subSection in projectSection.SubSections)
-                                        {
-                                            <option value="@subSection.ProjectSectionId">-- @subSection.ProjectSectionName</option>
-                                        }
-                                    }
-                                }
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Erstellen</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Add Partial Modals for ProjectHandling -->
+@* @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSubSectionModal.cshtml", Model) *@
+@await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionModal.cshtml", (ProjectHandlerPageModel)Model)
+@* @await Html.PartialAsync("~/Pages/Projects/Modals/_AddItemModal.cshtml", Model) *@
+@await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", (ProjectHandlerPageModel)Model)
 
-<!-- Add Task Modal -->
-<div class="modal fade" id="addTaskModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="CreateProjectTask">
-                <div class="modal-header">
-                    <h5 class="modal-title">Neue Aufgabe hinzufügen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Aufgabenname</label>
-                        <input type="text" class="form-control" name="Name" required />
-                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Abschnitt</label>
-                        <select class="form-select" id="taskSectionSelect" name="SectionId" required>
-                            <option value="">-- Abschnitt auswählen --</option>
-                            @if (Model.Project?.ProjectSections != null)
-                            {
-                                @foreach (var projectSection in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
-                                {
-                                    <option value="@projectSection.ProjectSectionId">@projectSection.ProjectSectionName</option>
-                                    @if (projectSection.SubSections != null)
-                                    {
-                                        @foreach (var subSection in projectSection.SubSections)
-                                        {
-                                            <option value="@subSection.ProjectSectionId">-- @subSection.ProjectSectionName</option>
-                                        }
-                                    }
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Startdatum</label>
-                            <input type="date" class="form-control" name="startDate" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Enddatum</label>
-                            <input type="date" class="form-control" name="endDate" />
-                        </div>
-                    </div>
-                    @*HINZUGEFÜGT: In Aufgabenkatalog übernehmen*@
-                    <input asp-for="IsTaskCatalogEntry" value="true" class="form-check-input" />
-                    <label asp-for="IsTaskCatalogEntry" class="form-check-label">Als Katalogeintrag speichern</label>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Erstellen</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-<!-- Edit Task Modal -->
-<div class="modal fade" id="editTaskModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="EditProjectTask">
-                <div class="modal-header">
-                    <h5 class="modal-title">Aufgabe bearbeiten</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editTaskId" name="taskId" />
-                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                    <div class="mb-3">
-                        <label class="form-label">Aufgabenname</label>
-                        <input type="text" class="form-control" id="editTaskName" name="name" />
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Startdatum</label>
-                            <input type="date" class="form-control" id="editTaskStartDate" name="startDate" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Enddatum</label>
-                            <input type="date" class="form-control" id="editTaskEndDate" name="endDate" />
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Speichern</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" asp-page="Scheduling" asp-route-origin="Details" asp-page-handler="DeleteSelected">
-                <div class="modal-header">
-                    <h5 class="modal-title">Löschen bestätigen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p id="deleteConfirmText">Sind Sie sicher, dass Sie dieses Element löschen möchten?</p>
-                    <input type="hidden" id="deleteObjectJson" name="objectJson" />
-                    <input type="hidden" name="Project.ProjectId" value="@Model.Project?.ProjectId" />
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-danger">Löschen</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <style>
     .project-details-container {
@@ -792,3 +640,7 @@
     .progress-ring {
         transform: rotate(-90deg);
     }
+
+</style>
+
+<script src="~/js/ModalFunctions.js"></script>

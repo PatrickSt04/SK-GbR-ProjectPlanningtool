@@ -25,14 +25,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
-        
+
 
         public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
-            
+
         }
 
 

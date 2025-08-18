@@ -1,0 +1,35 @@
+﻿
+@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.ProjectHandlerPageModel
+@{
+    ViewData["Title"] = "Add Sub Section";
+}
+<!-- Add Sub-Section Modal  -->
+<div class="modal fade" id="addSubSectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="CreateProjectSection">
+                <div class="modal-header">
+                    <h5 class="modal-title">Neuen Unterabschnitt hinzufügen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                </div>
+
+                <div class="modal-body">
+                    <!-- über JS gefüllt -->
+                    <input type="hidden" id="parentSubSectionId" name="parentSectionId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Unterabschnittsname</label>
+                        <input type="text" class="form-control" name="Name" required />
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

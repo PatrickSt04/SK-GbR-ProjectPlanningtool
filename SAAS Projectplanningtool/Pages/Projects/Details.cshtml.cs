@@ -27,8 +27,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
         }
-        [BindProperty]
-        public Project Project { get; set; } = default!;
+        //[BindProperty]
+        //public Project Project { get; set; } = default!;
         [BindProperty]
         public List<ProjectTask> TaskCatalog { get; set; } = new List<ProjectTask>();
         public int TotalTasks { get; set; } = 0;
