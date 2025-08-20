@@ -1,8 +1,8 @@
-﻿
-@using SAAS_Projectplanningtool.Pages.Projects
+﻿@using SAAS_Projectplanningtool.Pages.Projects
 @model SAAS_Projectplanningtool.Pages.Projects.ProjectHandlerPageModel
 @{
     ViewData["Title"] = "Add Task Modal";
+    var context = ViewData["Context"]?.ToString();
 }
 <!-- Add Task Modal -->
 <div class="modal fade" id="addTaskModal" tabindex="-1">
@@ -51,11 +51,24 @@
                             <input type="date" class="form-control" name="endDate" />
                         </div>
                     </div>
-                    @*HINZUGEFÜGT: In Aufgabenkatalog übernehmen*@
-                    <input asp-for="IsTaskCatalogEntry" value="true" class="form-check-input" />
-                    <label asp-for="IsTaskCatalogEntry" class="form-check-label">Als Katalogeintrag speichern</label>
+                    @if (context == "Scheduling")
+                    {
+                        <!--Wenn Modal in Scheduling Page eingebunden wird-->
+                        <input type="hidden" asp-for="IsScheduleEntry" value="true" class="form-check-input" />
 
 
+                        <input asp-for="IsTaskCatalogEntry" value="true" class="form-check-input" />
+                        <label asp-for="IsTaskCatalogEntry" class="form-check-label">Als Katalogeintrag speichern</label>
+                    }
+                    else if (context == "TaskCatalog")
+                    {
+                        <!--Wenn Modal in TaskCatalog Page eingebunden wird-->
+                        <input type="hidden" asp-for="IsTaskCatalogEntry" value="true" class="form-check-input" />
+
+
+                        <input asp-for="IsScheduleEntry" value="true" class="form-check-input" />
+                        <label asp-for="IsScheduleEntry" class="form-check-label">Im Terminplan speichern</label>
+                    }
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>

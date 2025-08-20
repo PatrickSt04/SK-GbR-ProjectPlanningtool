@@ -30,8 +30,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public SelectList? Customers { get; set; }
         public SelectList? ProjectLeads { get; set; }
 
-        [BindProperty]
-        public bool IsTaskCatalogEntry { get; set; } = false;
+
         public async Task<IActionResult> OnPostSetProjectArchivedAsync(string id)
         {
             await _logger.Log(null, User, null, "Projects/Details<SetProjectArchived>Beginn");

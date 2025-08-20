@@ -346,7 +346,8 @@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionModal.cshtml", (ProjectHandlerPageModel)Model)
 @* @await Html.PartialAsync("~/Pages/Projects/Modals/_AddItemModal.cshtml", Model) *@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
-@await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model)
+<!-- Hier ViewData Context, da Modal je nach Aufrufpage unterschiedlich aufgebaut ist-->
+@await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "TaskCatalog" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", (ProjectHandlerPageModel)Model)
 
 

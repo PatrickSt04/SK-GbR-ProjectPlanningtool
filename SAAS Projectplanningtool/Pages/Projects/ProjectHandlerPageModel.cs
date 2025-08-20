@@ -24,7 +24,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
         [BindProperty]
         public string? Origin { get; set; } = null;
-
+        [BindProperty]
+        public bool IsTaskCatalogEntry { get; set; } = true;
+        [BindProperty]
+        public bool IsScheduleEntry { get; set; } = true;
         public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
@@ -38,7 +41,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     EndDate = endDate,
                     ProjectTaskName = Name,
                     ProjectSectionId = SectionId,
-                    IsTaskCatalogEntry = IsTaskCatalogEntry
+                    IsTaskCatalogEntry = IsTaskCatalogEntry,
+                    IsScheduleEntry = IsScheduleEntry
                 };
                 pt.State = await new StateManager(_context).getOpenState();
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
