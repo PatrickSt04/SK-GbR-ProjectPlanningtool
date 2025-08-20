@@ -10,14 +10,14 @@ using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 
-namespace SAAS_Projectplanningtool.Pages.Companies
+namespace SAAS_Projectplanningtool.Pages.Settings
 {
     public class EditModel : PageModel
     {
-        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
-        public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -43,12 +43,18 @@ namespace SAAS_Projectplanningtool.Pages.Companies
         [BindProperty]
         public Dictionary<int, bool> SelectedWorkDays { get; set; } = new();
 
-        public async Task<IActionResult> OnGetAsync(string id)
+        public async Task<IActionResult> OnGetAsync(string? id)
         {
             await _logger.Log(null, User, null, "Companies/Edit<OnGet>Beginn");
             if (id == null)
             {
-                return NotFound();
+                // Wenn keine ID gegeben wird, so wird die Company des angemeldeten Users verwendet
+                var loggedInEmployee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                id = loggedInEmployee?.CompanyId;
+                if (id == null)
+                {
+                    return NotFound();
+                }
             }
 
             var company = await _context.Company
@@ -124,7 +130,7 @@ namespace SAAS_Projectplanningtool.Pages.Companies
                 {
                     return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, existingCompany, null) });
                 }
-                
+
 
                 if (SelectedWorkDays != null)
                 {
