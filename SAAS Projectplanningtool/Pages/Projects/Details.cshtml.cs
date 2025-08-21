@@ -27,105 +27,88 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
         }
-        //[BindProperty]
-        //public Project Project { get; set; } = default!;
         [BindProperty]
         public List<ProjectTask> TaskCatalog { get; set; } = new List<ProjectTask>();
+
+        //Information for Project progress
         public int TotalTasks { get; set; } = 0;
         public int CompletetedTasks { get; set; } = 0;
+
+        public double ProgressInDecimals { get; set; } = 0.0;
+
+        // showCompleted refers to the task catalog (include or exclude completed tasks)
+
         [BindProperty(SupportsGet = true)]
         public bool showCompleted { get; set; } = default!;
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            await _logger.Log(null, User, null, "Projects/Details<OnGet>Beginn");
-            if (id == null)
-            {
-                return NotFound();
-            }
-            var project = await GetProjectAsync(id);
-            if (project == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                Project = project;
-            }
-            Employee employee = default!;
             try
             {
-                employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
-            }
-            catch (Exception ex)
-            {
-                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, employee, null) });
-            }
-            var sectionsOfThisProject = await _context.ProjectSection
-                 .Where(s => s.ProjectId == id)
-                 .Where(s => s.CompanyId == employee.CompanyId)
-                 .Select(s => s.ProjectSectionId)
-                 .ToListAsync();
-            try
-            {
-
-                TotalTasks = await _context.ProjectTask
-                    .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
-                    .Where(pt => pt.CompanyId == employee.CompanyId)
-                    .Where(pt => pt.IsTaskCatalogEntry == true)
-                    .CountAsync();
-            }
-            catch (Exception ex)
-            {
-                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, TotalTasks, null) });
-            }
-
-            //TaskCatalog
-            var sectionsofProject = await _context.ProjectSection
-                .Where(ps => ps.ProjectId == id)
-                .Where(ps => ps.CompanyId == employee.CompanyId)
-                .Select(ps => ps.ProjectSectionId)
-                .ToListAsync();
-            TaskCatalog = await _context.ProjectTask.Where(pt => pt.CompanyId == employee.CompanyId)
-                    .Where(pt => pt.IsTaskCatalogEntry == true)
-                    .Where(pt => sectionsofProject.Contains(pt.ProjectSectionId))
-                    .ToListAsync();
-
-            var completedState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Abgeschlossen");
-            try
-            {
-                CompletetedTasks = await _context.ProjectTask
-                    .Where(pt => sectionsOfThisProject.Contains(pt.ProjectSectionId))
-                    .Where(pt => pt.CompanyId == employee.CompanyId)
-                    .Where(pt => pt.StateId == completedState.StateId)
-                    .Where(pt => pt.IsTaskCatalogEntry == true)
-                    .CountAsync();
-            }
-
-
-
-
-            catch (Exception ex)
-            {
-                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, CompletetedTasks, null) });
-            }
-
-            if (Project.ProjectSections != null)
-            {
-                foreach (var section in Project.ProjectSections)
+                await _logger.Log(null, User, null, "Projects/Details<OnGet>Beginn");
+                if (id == null)
                 {
-                    section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
+                    return NotFound();
+                }
+                var project = await GetProjectAsync(id);
+                if (project == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    Project = project;
+                }
+                Employee employee = default!;
 
-                    if (section.SubSections != null)
+                employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+
+                var sectionsOfThisProject = await _context.ProjectSection
+                     .Where(s => s.ProjectId == id)
+                     .Where(s => s.CompanyId == employee.CompanyId)
+                     .Select(s => s.ProjectSectionId)
+                     .ToListAsync();
+
+
+                //TaskCatalog
+                var sectionsofProject = await _context.ProjectSection
+                    .Where(ps => ps.ProjectId == id)
+                    .Where(ps => ps.CompanyId == employee.CompanyId)
+                    .Select(ps => ps.ProjectSectionId)
+                    .ToListAsync();
+                TaskCatalog = await _context.ProjectTask.Where(pt => pt.CompanyId == employee.CompanyId)
+                        .Where(pt => pt.IsTaskCatalogEntry == true)
+                        .Where(pt => sectionsofProject.Contains(pt.ProjectSectionId))
+                        .ToListAsync();
+
+                //Projects statistics
+                var projectStats = await new ProjectStatisticsCalculator(_context, _userManager).CalculateStatisticsAsync(Project.ProjectId, User);
+                TotalTasks = projectStats.TotalTasks;
+                CompletetedTasks = projectStats.CompletedTasks;
+                ProgressInDecimals = projectStats.Progress;
+
+
+                if (Project.ProjectSections != null)
+                {
+                    foreach (var section in Project.ProjectSections)
                     {
-                        foreach (var subsection in section.SubSections)
+                        section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
+
+                        if (section.SubSections != null)
                         {
-                            subsection.State = await new StateManager(_context).GetSectionState(subsection.ProjectSectionId);
+                            foreach (var subsection in section.SubSections)
+                            {
+                                subsection.State = await new StateManager(_context).GetSectionState(subsection.ProjectSectionId);
+                            }
                         }
                     }
                 }
+                await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
+                return Page();
             }
-            await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
-            return Page();
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, "Projects / Details < OnGet > ERROR") });
+            }
         }
         public async Task<IActionResult> OnPostToggleTaskStateAsync(string? ProjectTaskId, string? projectId)
         {
