@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
+using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
@@ -17,15 +19,18 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
+        public readonly DefaultWorkingTimeHandler _defaultWorkingTimeHandler;
         public CreateModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
+            _defaultWorkingTimeHandler = new DefaultWorkingTimeHandler(context, userManager);
             _logger = new Logger(_context, _userManager);
         }
         [BindProperty]
         public Project Project { get; set; } = default!;
         public float InitialBudget { get; set; } = 0.0f;
+
         public async Task<IActionResult> OnGetAsync()
         {
             try
@@ -33,10 +38,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
                 await PublishCustomersAsync();
                 await PublishProjectLeadsAsync();
+
+                //fill default workingtimes with workingtimes from the company itself
+                var employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                _defaultWorkingTimeHandler.LoadDefaultWorkTimesOfCompany(employee.CompanyId);
+
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>End");
                 return Page();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, null) });
             }
@@ -49,6 +59,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
                 if (!ModelState.IsValid)
                 {
+                    //fill default workingtimes with workingtimes from the company itself
+                    var employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                    _defaultWorkingTimeHandler.LoadDefaultWorkTimesOfCompany(employee.CompanyId);
+
                     await PublishCustomersAsync();
                     await PublishProjectLeadsAsync();
                     return Page();
@@ -66,16 +80,20 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 Project.ProjectBudget = projectBudget;
                 Project.CompanyId = companyuser.CompanyId;
 
+                Project.DefaultWorkDays = _defaultWorkingTimeHandler.GetSelectedWorkingDays();
+                Project.DefaultWorkingHours = _defaultWorkingTimeHandler.GetWorkingHoursFromProperties();
                 // LatestModification Attribut hinzufügen
-                Project = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User,"Projekt angelegt", Project, true);
+                Project = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Projekt angelegt", Project, true);
 
                 _context.Project.Add(Project);
                 await _context.SaveChangesAsync();
 
 
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>End");
-                return RedirectToPage("/Projects/Scheduling", new {id = Project.ProjectId});
-            }catch (Exception ex) {
+                return RedirectToPage("/Projects/Scheduling", new { id = Project.ProjectId });
+            }
+            catch (Exception ex)
+            {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, null) });
             }
         }

@@ -3,6 +3,7 @@ using SAAS_Projectplanningtool.Models.IndependentTables;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace SAAS_Projectplanningtool.Models.Budgetplanning
 {
@@ -17,7 +18,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public Company? Company { get; set; }
 
         // Reference to Customer of this Project
-        public   string CustomerId { get; set; }
+        public string CustomerId { get; set; }
         [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 
@@ -27,7 +28,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public ProjectBudget? ProjectBudget { get; set; }
 
         public required string ProjectName { get; set; }
-        public required  string ProjectDescription { get; set; }
+        public required string ProjectDescription { get; set; }
 
         // Start Date of Project
         [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}")]
@@ -62,5 +63,53 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public DateTime? CreatedTimestamp { get; set; }
 
         public ICollection<ProjectSection>? ProjectSections { get; set; }
+
+        // The project's default working days
+        // Represented as numbers from 1 to 7 (Monday - Sunday)
+        public List<int>? DefaultWorkDays { get; set; } = new(new int[] { 1, 2, 3, 4, 5 });
+
+        // Default working hours - stored as JSON string in database
+        [Column(TypeName = "nvarchar(max)")]
+        public string? DefaultWorkingHoursJson { get; set; }
+
+        // Helper property to work with working hours in code (not mapped to database)
+        [NotMapped]
+        public Dictionary<int, WorkingHours> DefaultWorkingHours
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(DefaultWorkingHoursJson))
+                {
+                    return GetDefaultWorkingHours();
+                }
+                try
+                {
+                    return JsonSerializer.Deserialize<Dictionary<int, WorkingHours>>(DefaultWorkingHoursJson) ?? GetDefaultWorkingHours();
+                }
+                catch
+                {
+                    return GetDefaultWorkingHours();
+                }
+            }
+            set
+            {
+                DefaultWorkingHoursJson = JsonSerializer.Serialize(value);
+            }
+        }
+
+        // Default working hours (Monday to Friday: 08:00-17:00)
+        private Dictionary<int, WorkingHours> GetDefaultWorkingHours()
+        {
+            return new Dictionary<int, WorkingHours>
+            {
+                { 1, new WorkingHours { StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(17, 0) } }, // Monday
+                { 2, new WorkingHours { StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(17, 0) } }, // Tuesday
+                { 3, new WorkingHours { StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(17, 0) } }, // Wednesday
+                { 4, new WorkingHours { StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(17, 0) } }, // Thursday
+                { 5, new WorkingHours { StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(17, 0) } }, // Friday
+                { 6, new WorkingHours { StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(12, 0) } }, // Saturday
+                { 7, new WorkingHours { StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(14, 0) } }  // Sunday
+            };
+        }
     }
 }

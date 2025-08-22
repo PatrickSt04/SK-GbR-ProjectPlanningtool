@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace SAAS_Projectplanningtool.Pages.Settings
 {
@@ -17,38 +18,28 @@ namespace SAAS_Projectplanningtool.Pages.Settings
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
+        public readonly DefaultWorkingTimeHandler _defaultWorkingTimeHandler;
+
         public EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(context, userManager);
+            _defaultWorkingTimeHandler = new DefaultWorkingTimeHandler(context, userManager);
         }
 
         [BindProperty]
         public Company Company { get; set; } = default!;
+
         [BindProperty]
         public Address Address { get; set; } = default!;
 
-        public readonly Dictionary<int, string> _dayMap = new()
-        {
-            { 1, "Montag" },
-            { 2, "Dienstag" },
-            { 3, "Mittwoch" },
-            { 4, "Donnerstag" },
-            { 5, "Freitag" },
-            { 6, "Samstag" },
-            { 7, "Sonntag" }
-        };
-
-        [BindProperty]
-        public Dictionary<int, bool> SelectedWorkDays { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(string? id)
         {
             await _logger.Log(null, User, null, "Companies/Edit<OnGet>Beginn");
             if (id == null)
             {
-                // Wenn keine ID gegeben wird, so wird die Company des angemeldeten Users verwendet
                 var loggedInEmployee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
                 id = loggedInEmployee?.CompanyId;
                 if (id == null)
@@ -61,7 +52,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
                 .Include(c => c.License)
                 .Include(c => c.Sector)
                 .Include(c => c.Address)
-                .AsNoTracking() // Verhindert das Tracking der Entität
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.CompanyId == id);
 
             if (company == null)
@@ -73,20 +64,12 @@ namespace SAAS_Projectplanningtool.Pages.Settings
             try
             {
                 Address = company.Address;
-            }
-            catch (Exception ex)
-            {
-                return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Address, null) });
-            }
-            try
-            {
-                if (_dayMap != null)
-                {
-                    foreach (var day in _dayMap)
-                    {
-                        SelectedWorkDays[day.Key] = Company.DefaultWorkDays.Contains(day.Key);
-                    }
-                }
+
+                // Load working days checkboxes
+                _defaultWorkingTimeHandler.LoadWorkingDaysToProperties(company.DefaultWorkDays);
+
+                // Load working hours
+                _defaultWorkingTimeHandler.LoadWorkingHoursToProperties(company.DefaultWorkingHours);
             }
             catch (Exception ex)
             {
@@ -100,6 +83,14 @@ namespace SAAS_Projectplanningtool.Pages.Settings
         public async Task<IActionResult> OnPostAsync()
         {
             await _logger.Log(null, User, null, "Companies/Edit<OnPost>Beginn");
+
+            // Validate working hours
+            if (!_defaultWorkingTimeHandler.ValidateWorkingHours())
+            {
+                ModelState.AddModelError("", "Bitte stellen Sie sicher, dass die Endzeit nach der Startzeit liegt.");
+                return Page();
+            }
+
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -116,7 +107,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
                     return NotFound();
                 }
 
-                // Adresse aktualisieren
+                // Update address
                 try
                 {
                     existingCompany.Address.Country = Address.Country;
@@ -131,14 +122,11 @@ namespace SAAS_Projectplanningtool.Pages.Settings
                     return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, existingCompany, null) });
                 }
 
+                // Update working days
+                existingCompany.DefaultWorkDays = _defaultWorkingTimeHandler.GetSelectedWorkingDays();
 
-                if (SelectedWorkDays != null)
-                {
-                    existingCompany.DefaultWorkDays = SelectedWorkDays
-                        .Where(day => day.Value)
-                        .Select(day => day.Key)
-                        .ToList();
-                }
+                // Update working hours
+                existingCompany.DefaultWorkingHours = _defaultWorkingTimeHandler.GetWorkingHoursFromProperties();
 
                 existingCompany.CompanyName = Company.CompanyName;
                 existingCompany.SectorId = Company.SectorId;
@@ -159,8 +147,11 @@ namespace SAAS_Projectplanningtool.Pages.Settings
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Company, null) });
             }
+
             await _logger.Log(null, User, null, "Companies/Edit<OnPost>End");
             return RedirectToPage("/Index");
         }
+
+
     }
 }

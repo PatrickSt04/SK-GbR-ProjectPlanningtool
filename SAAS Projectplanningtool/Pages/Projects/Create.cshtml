@@ -9,9 +9,10 @@
 <h1>Projektanlage</h1>
 <hr />
 <div class="row">
-    
+
+
+    <div class="col-md-4">
         <form method="post">
-        <div class="col-md-4">
             <div class="form-group">
                 <label asp-for="Project.ProjectName" class="control-label">Name</label>
                 <input asp-for="Project.ProjectName" class="form-control" />
@@ -51,10 +52,117 @@
             <div class="form-group">
                 <input type="submit" value="Speichern & Weiter zur Terminplanung" class="btn btn-primary" />
             </div>
-            </div>
         </form>
+    </div>
 
-    
+    <div class="col-md-4">
+        <h5>Arbeitszeit-Konfiguration</h5>
+        <hr />
+
+        <!-- Quick Presets -->
+        <div class="quick-presets">
+            <h6>Schnelleinstellungen:</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary preset-btn" onclick="setStandardWorkWeek()">
+                Standard (Mo-Fr 8:00-17:00)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary preset-btn" onclick="setFlexibleWorkWeek()">
+                Flexibel (Mo-Fr 9:00-18:00)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary preset-btn" onclick="setPartTimeWeek()">
+                Teilzeit (Mo-Mi 8:00-16:00)
+            </button>
+        </div>
+
+        <div class="working-hours-section">
+            <h6>Arbeitstage & -zeiten</h6>
+
+            <div class="working-time-row" id="monday-row">
+                <div class="form-check day-checkbox">
+                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Monday" id="monday" onchange="toggleDay('monday')">
+                    <label class="form-check-label" for="monday">Montag</label>
+                </div>
+                <div class="d-flex align-items-center mt-2" id="monday-times">
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.MondayStart" class="form-control time-input" />
+                    <span class="mx-2">bis</span>
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.MondayEnd" class="form-control time-input" />
+                </div>
+            </div>
+
+            <div class="working-time-row" id="tuesday-row">
+                <div class="form-check day-checkbox">
+                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Tuesday" id="tuesday" onchange="toggleDay('tuesday')">
+                    <label class="form-check-label" for="tuesday">Dienstag</label>
+                </div>
+                <div class="d-flex align-items-center mt-2" id="tuesday-times">
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.TuesdayStart" class="form-control time-input" />
+                    <span class="mx-2">bis</span>
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.TuesdayEnd" class="form-control time-input" />
+                </div>
+            </div>
+
+            <div class="working-time-row" id="wednesday-row">
+                <div class="form-check day-checkbox">
+                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Wednesday" id="wednesday" onchange="toggleDay('wednesday')">
+                    <label class="form-check-label" for="wednesday">Mittwoch</label>
+                </div>
+                <div class="d-flex align-items-center mt-2" id="wednesday-times">
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.WednesdayStart" class="form-control time-input" />
+                    <span class="mx-2">bis</span>
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.WednesdayEnd" class="form-control time-input" />
+                </div>
+            </div>
+
+            <div class="working-time-row" id="thursday-row">
+                <div class="form-check day-checkbox">
+                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Thursday" id="thursday" onchange="toggleDay('thursday')">
+                    <label class="form-check-label" for="thursday">Donnerstag</label>
+                </div>
+                <div class="d-flex align-items-center mt-2" id="thursday-times">
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.ThursdayStart" class="form-control time-input" />
+                    <span class="mx-2">bis</span>
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.ThursdayEnd" class="form-control time-input" />
+                </div>
+            </div>
+
+            <div class="working-time-row" id="friday-row">
+                <div class="form-check day-checkbox">
+                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Friday" id="friday" onchange="toggleDay('friday')">
+                    <label class="form-check-label" for="friday">Freitag</label>
+                </div>
+                <div class="d-flex align-items-center mt-2" id="friday-times">
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.FridayStart" class="form-control time-input" />
+                    <span class="mx-2">bis</span>
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.FridayEnd" class="form-control time-input" />
+                </div>
+            </div>
+
+            <div class="working-time-row" id="saturday-row">
+                <div class="form-check day-checkbox">
+                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Saturday" id="saturday" onchange="toggleDay('saturday')">
+                    <label class="form-check-label" for="saturday">Samstag</label>
+                </div>
+                <div class="d-flex align-items-center mt-2" id="saturday-times">
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.SaturdayStart" class="form-control time-input" />
+                    <span class="mx-2">bis</span>
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.SaturdayEnd" class="form-control time-input" />
+                </div>
+            </div>
+
+            <div class="working-time-row" id="sunday-row">
+                <div class="form-check day-checkbox">
+                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Sunday" id="sunday" onchange="toggleDay('sunday')">
+                    <label class="form-check-label" for="sunday">Sonntag</label>
+                </div>
+                <div class="d-flex align-items-center mt-2" id="sunday-times">
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.SundayStart" class="form-control time-input" />
+                    <span class="mx-2">bis</span>
+                    <input type="time" asp-for="_defaultWorkingTimeHandler.SundayEnd" class="form-control time-input" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
 <div>
@@ -62,5 +170,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
