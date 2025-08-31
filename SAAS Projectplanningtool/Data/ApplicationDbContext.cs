@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 using SAAS_Projectplanningtool.Models;
-using SAAS_Projectplanningtool.Models.RessourcePlanning;
 
 
 namespace SAAS_Projectplanningtool.Data
@@ -26,7 +25,8 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.IndustrySector> IndustrySector { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.LicenseModel> LicenseModel { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.IndependentTables.State> State { get; set; } = default!;
-        public DbSet<SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource> ProjectTaskRessource { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskHourlyRateGroup> ProjectTaskHourlyRateGroup { get; set; } = default!;
+
 
         public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -109,21 +109,6 @@ namespace SAAS_Projectplanningtool.Data
                 .WithMany()
                 .HasForeignKey(pt => pt.LatestModifierId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ProjectTaskRessource>()
-                .HasOne(ptr => ptr.CreatedByEmployee)
-                .WithMany()
-                .HasForeignKey(ptr => ptr.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ProjectTaskRessource>()
-                .HasOne(ptr => ptr.LatestModifier)
-                .WithMany()
-                .HasForeignKey(ptr => ptr.LatestModifierId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-           
-
             modelBuilder.Entity<Address>()
                 .HasOne(a => a.CreatedByEmployee)
                 .WithMany()

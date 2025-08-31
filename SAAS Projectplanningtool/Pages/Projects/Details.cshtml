@@ -71,9 +71,7 @@
                     </div>
                     <div class="stat-content">
                         @{
-                            double progressPercentage = Model.TotalTasks > 0
-                            ? ((double)Model.CompletetedTasks / Model.TotalTasks) * 100
-                            : 0;
+                            double progressPercentage = Model.ProgressInDecimals * 100;
                         }
                         <h3>@((int)progressPercentage)%</h3>
                         <p>Fortschritt</p>
@@ -275,8 +273,8 @@
                             </a>
                         </button>
                         <button type="button" class="btn btn-outline-secondary btn-sm">
-                            <a asp-page="/Projects/Ressourceplanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
-                                <i class="fas fa-users me-1"></i>Ressourcenplanung
+                            <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                <i class="fas fa-users me-1"></i>Budgetplanung
                             </a>
                         </button>
                     </div>

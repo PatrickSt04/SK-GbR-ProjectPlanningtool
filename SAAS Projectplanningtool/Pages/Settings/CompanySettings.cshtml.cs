@@ -23,6 +23,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
         public EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+
             _userManager = userManager;
             _logger = new Logger(context, userManager);
             _defaultWorkingTimeHandler = new DefaultWorkingTimeHandler(context, userManager);
