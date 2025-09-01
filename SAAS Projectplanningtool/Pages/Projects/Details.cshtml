@@ -105,164 +105,248 @@
         </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="content-grid">
-
-        <!-- Project Information Section -->
-        <section class="project-info-section">
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
-                </div>
-                <div class="card-body">
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Projektleiter</label>
-                            <span>@Model.Project.ResponsiblePerson?.EmployeeDisplayName</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Kunde</label>
-                            <span>@Model.Project.Customer?.CustomerName</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Status</label>
-                            <span class="project-status">@Model.Project.State?.StateName</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Beschreibung</label>
-                            <span>@Model.Project.ProjectDescription</span>
-                        </div>
+    <!-- Two Column Layout -->
+    <div class="two-column-layout">
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- Project Information Section -->
+            <section class="project-info-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Last Modification Section -->
-        <section class="modification-section">
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-history me-2"></i>Letzte Änderung</h2>
-                </div>
-                <div class="card-body">
-                    <div class="modification-info">
-                        <div class="modifier-details">
-                            <div class="modifier-name">
-                                <i class="fas fa-user me-2"></i>
-                                @Model.Project.LatestModifier?.EmployeeDisplayName
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Projektleiter</label>
+                                <span>@Model.Project.ResponsiblePerson?.EmployeeDisplayName</span>
                             </div>
-                            <div class="modification-time">
-                                <i class="fas fa-clock me-2"></i>
-                                @Model.Project.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm")
+                            <div class="info-item">
+                                <label>Kunde</label>
+                                <span>@Model.Project.Customer?.CustomerName</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Status</label>
+                                <span class="project-status">@Model.Project.State?.StateName</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Beschreibung</label>
+                                <span>@Model.Project.ProjectDescription</span>
                             </div>
                         </div>
-                        <div class="modification-text">
-                            <i class="fas fa-edit me-2"></i>
-                            @Model.Project.LatestModificationText
-                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Tasks Section -->
-        <section class="tasks-section">
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
-                    <div class="card-actions">
-                        @{
-                            bool showCompleted = Model.showCompleted;
-
-                        }
-                        <form method="get" class="d-inline">
-                            <input type="hidden" name="id" value="@Model.Project.ProjectId" />
-                            <input type="hidden" asp-for="showCompleted" value="@(!Model.showCompleted)" />
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas @(showCompleted ? "fa-eye-slash" : "fa-eye") me-1"></i>
-                                @(showCompleted ? "Abgeschlossene ausblenden" : "Abgeschlossene einblenden")
-                            </button>
-                        </form>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="showAddTaskModal()">
-                            <i class="fas fa-plus me-1"></i>Aufgabe hinzufügen
-                        </button>
+            <!-- Last Modification Section -->
+            <section class="modification-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history me-2"></i>Letzte Änderung</h2>
                     </div>
-                </div>
-                <div class="card-body">
-                    <div class="tasks-container">
-                        <div class="task-list">
-                            @foreach (var task in Model.TaskCatalog)
-                            {
-                                bool isCompleted = task.State?.StateName == "Abgeschlossen";
-                                if (isCompleted && !showCompleted) continue;
-
-                                <div class="task-item @(isCompleted ? "completed" : "")">
-                                    <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
-                                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
-                                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                                        <input type="hidden" name="StateId" value="@task.StateId" />
-
-                                        <div class="task-checkbox">
-                                            <input class="form-check-input" type="checkbox"
-                                                   onchange="this.form.submit();"
-                                            @(isCompleted ? "checked" : "") />
-                                        </div>
-                                        <div class="task-content">
-                                            <div class="task-name">@task.ProjectTaskName</div>
-                                            <div class="task-status">
-                                                <span class="status-badge">@task.State?.StateName</span>
-                                                @if (task.StartDate.HasValue || task.EndDate.HasValue)
-                                                {
-                                                    <span class="task-dates">
-                                                        @if (task.StartDate.HasValue)
-                                                        {
-                                                            <span>@task.StartDate.Value.ToString("dd.MM")</span>
-                                                        }
-                                                        @if (task.StartDate.HasValue && task.EndDate.HasValue)
-                                                        {
-                                                            <span> - </span>
-                                                        }
-                                                        @if (task.EndDate.HasValue)
-                                                        {
-                                                            <span>@task.EndDate.Value.ToString("dd.MM")</span>
-                                                        }
-                                                    </span>
-                                                }
-                                            </div>
-                                        </div>
-                                        <div class="task-actions">
-                                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                                    onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger"
-                                                    onclick="deleteItem('@task.ProjectTaskId', 'task', '@task.ProjectTaskName')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </form>
+                    <div class="card-body">
+                        <div class="modification-info">
+                            <div class="modifier-details">
+                                <div class="modifier-name">
+                                    <i class="fas fa-user me-2"></i>
+                                    @Model.Project.LatestModifier?.EmployeeDisplayName
                                 </div>
+                                <div class="modification-time">
+                                    <i class="fas fa-clock me-2"></i>
+                                    @Model.Project.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            </div>
+                            <div class="modification-text">
+                                <i class="fas fa-edit me-2"></i>
+                                @Model.Project.LatestModificationText
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <!-- Tasks Section -->
+            <section class="tasks-section">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Aufgabenkatalog Header -->
+                        <div class="task-catalog-header">
+                            <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="task-catalog-actions">
+                            @{
+                                bool showCompleted = Model.showCompleted;
                             }
+                            <form method="get" class="d-inline">
+                                <input type="hidden" name="id" value="@Model.Project.ProjectId" />
+                                <input type="hidden" asp-for="showCompleted" value="@(!Model.showCompleted)" />
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas @(showCompleted ? "fa-eye-slash" : "fa-eye") me-1"></i>
+                                    Abgeschlossene
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-primary" onclick="showAddTaskModal()">
+                                <i class="fas fa-plus me-1"></i>
+                                Aufgabe hinzufügen
+                            </button>
                         </div>
 
-                        <!-- Progress Circle -->
-                        <div class="progress-visualization">
-                            <div class="progress-circle">
-                                <svg class="progress-ring" width="120" height="120">
-                                    <circle class="progress-ring-circle" stroke="#e6e6e6" stroke-width="8" fill="transparent" r="52" cx="60" cy="60" />
-                                    <circle class="progress-ring-circle progress-ring-fill" stroke="#28a745" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"
-                                            style="stroke-dasharray: @(2 * Math.PI * 52); stroke-dashoffset: @(2 * Math.PI * 52 * (1 - progressPercentage / 100));" />
-                                </svg>
-                                <div class="progress-text">
-                                    <span class="progress-percentage">@((int)progressPercentage)%</span>
-                                    <span class="progress-label">Abgeschlossen</span>
+                        <!-- Tasks Container -->
+                        <div class="tasks-main-container">
+                            <!-- Task List -->
+                            <div class="task-list-container">
+                                <div class="task-list" id="taskList">
+                                    @{
+                                        var allFilteredTasks = Model.TaskCatalog.Where(task =>
+                                        {
+                                            bool isCompleted = task.State?.StateName == "Abgeschlossen";
+                                            return !isCompleted || showCompleted;
+                                        }).ToList();
+
+                                        var visibleTasks = allFilteredTasks.Take(5).ToList();
+                                        var hiddenTasksCount = allFilteredTasks.Count() - 5;
+                                    }
+
+                                    @foreach (var task in visibleTasks)
+                                    {
+                                        bool isCompleted = task.State?.StateName == "Abgeschlossen";
+
+                                        <div class="task-item @(isCompleted ? "completed" : "")">
+                                            <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
+                                                <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
+                                                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                                                <input type="hidden" name="StateId" value="@task.StateId" />
+
+                                                <div class="task-checkbox">
+                                                    <input class="form-check-input" type="checkbox"
+                                                           onchange="this.form.submit();"
+                                                    @(isCompleted ? "checked" : "") />
+                                                </div>
+                                                <div class="task-content">
+                                                    <div class="task-name">@task.ProjectTaskName</div>
+                                                    <div class="task-details">
+                                                        <span class="status-badge @(isCompleted ? "completed" : "pending")">
+                                                            @task.State?.StateName
+                                                        </span>
+                                                        @if (task.StartDate.HasValue || task.EndDate.HasValue)
+                                                        {
+                                                            <span class="task-dates">
+                                                                @if (task.StartDate.HasValue)
+                                                                {
+                                                                    <span>@task.StartDate.Value.ToString("dd.MM")</span>
+                                                                }
+                                                                @if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                                                {
+                                                                    <span> - </span>
+                                                                }
+                                                                @if (task.EndDate.HasValue)
+                                                                {
+                                                                    <span>@task.EndDate.Value.ToString("dd.MM")</span>
+                                                                }
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div class="task-actions">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                            onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                            onclick="deleteItem('@task.ProjectTaskId', 'task', '@task.ProjectTaskName')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    }
+
+                                    <!-- Hidden tasks container -->
+                                    @if (hiddenTasksCount > 0)
+                                    {
+                                        <div id="hiddenTasks" style="display: none;">
+                                            @foreach (var task in allFilteredTasks.Skip(5))
+                                            {
+                                                bool isCompleted = task.State?.StateName == "Abgeschlossen";
+
+                                                <div class="task-item @(isCompleted ? "completed" : "")">
+                                                    <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
+                                                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
+                                                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                                                        <input type="hidden" name="StateId" value="@task.StateId" />
+
+                                                        <div class="task-checkbox">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                   onchange="this.form.submit();"
+                                                            @(isCompleted ? "checked" : "") />
+                                                        </div>
+                                                        <div class="task-content">
+                                                            <div class="task-name">@task.ProjectTaskName</div>
+                                                            <div class="task-details">
+                                                                <span class="status-badge @(isCompleted ? "completed" : "pending")">
+                                                                    @task.State?.StateName
+                                                                </span>
+                                                                @if (task.StartDate.HasValue || task.EndDate.HasValue)
+                                                                {
+                                                                    <span class="task-dates">
+                                                                        @if (task.StartDate.HasValue)
+                                                                        {
+                                                                            <span>@task.StartDate.Value.ToString("dd.MM")</span>
+                                                                        }
+                                                                        @if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                                                        {
+                                                                            <span> - </span>
+                                                                        }
+                                                                        @if (task.EndDate.HasValue)
+                                                                        {
+                                                                            <span>@task.EndDate.Value.ToString("dd.MM")</span>
+                                                                        }
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        <div class="task-actions">
+                                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                    onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                    onclick="deleteItem('@task.ProjectTaskId', 'task', '@task.ProjectTaskName')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
                                 </div>
+
+                                <!-- Show More Button -->
+                                @if (hiddenTasksCount > 0)
+                                {
+                                    <div class="show-more-container">
+                                        <button type="button" class="btn btn-outline-secondary" id="showMoreBtn" onclick="toggleMoreTasks()">
+                                            <i class="fas fa-chevron-down me-1"></i>
+                                            <span id="showMoreText">@hiddenTasksCount weitere Aufgaben anzeigen</span>
+                                        </button>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
+    </div>
 
+    <!-- Full Width Sections Below -->
+    <div class="full-width-sections">
         <!-- Project Structure Section -->
         <section class="structure-section">
             <div class="card">
@@ -342,306 +426,477 @@
 }
 
 <!-- Add Partial Modals for ProjectHandling -->
-@* @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSubSectionModal.cshtml", Model) *@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionModal.cshtml", (ProjectHandlerPageModel)Model)
-@* @await Html.PartialAsync("~/Pages/Projects/Modals/_AddItemModal.cshtml", Model) *@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
-<!-- Hier ViewData Context, da Modal je nach Aufrufpage unterschiedlich aufgebaut ist-->
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "TaskCatalog" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", (ProjectHandlerPageModel)Model)
 
+@section Styles {
+    <style>
+        /* Base Styles */
+        .project-details-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
+        /* Header Section */
+        .project-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            color: white;
+        }
 
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-<style>
-    .project-details-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 20px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    /* Header Section */
-    .project-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 30px;
-        color: white;
-    }
-
-    .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .header-left h1 {
-        margin: 0;
-        font-size: 2rem;
-        font-weight: 600;
-    }
-
-    .project-meta {
-        display: flex;
-        gap: 20px;
-        margin-top: 10px;
-        opacity: 0.9;
-    }
-
-    .creator-info, .creation-date {
-        display: flex;
-        align-items: center;
-        font-size: 0.9rem;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 15px;
-    }
-
-    /* Statistics Cards */
-    .statistics-section .stat-card {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        display: flex;
-        align-items: center;
-        transition: transform 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-    }
-
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        margin-right: 15px;
-    }
-
-    .stat-tasks .stat-icon {
-        background: #28a745;
-    }
-
-    .stat-progress .stat-icon {
-        background: #17a2b8;
-    }
-
-    .stat-timeline .stat-icon {
-        background: #ffc107;
-    }
-
-    .stat-deadline .stat-icon {
-        background: #dc3545;
-    }
-
-    .stat-content h3 {
-        font-size: 1.8rem;
-        font-weight: bold;
-        margin: 0;
-        color: #333;
-    }
-
-    .stat-content p {
-        margin: 0;
-        color: #6c757d;
-        font-size: 0.9rem;
-    }
-
-    /* Content Grid */
-    .content-grid {
-        display: grid;
-        gap: 30px;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    }
-
-    /* Cards */
-    .card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
-
-    .card-header {
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        padding: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-        .card-header h2 {
+        .header-left h1 {
             margin: 0;
-            font-size: 1.3rem;
-            color: #333;
+            font-size: 2rem;
             font-weight: 600;
         }
 
-    .card-actions {
-        display: flex;
-        gap: 10px;
-    }
+        .project-meta {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
 
-    .card-body {
-        padding: 20px;
-    }
-
-    /* Project Info Grid */
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-    }
-
-    .info-item {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-
-        .info-item label {
-            font-weight: 600;
-            color: #495057;
+        .creator-info, .creation-date {
+            display: flex;
+            align-items: center;
             font-size: 0.9rem;
         }
 
-        .info-item span {
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Statistics Cards */
+        .statistics-section .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-right: 15px;
+        }
+
+        .stat-tasks .stat-icon {
+            background: #28a745;
+        }
+
+        .stat-progress .stat-icon {
+            background: #17a2b8;
+        }
+
+        .stat-timeline .stat-icon {
+            background: #ffc107;
+        }
+
+        .stat-deadline .stat-icon {
+            background: #dc3545;
+        }
+
+        .stat-content h3 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+            color: #333;
+        }
+
+        .stat-content p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Two Column Layout */
+        .two-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .right-column {
+            /* Takes the right column */
+        }
+
+        /* Full Width Sections */
+        .full-width-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .card-header h2 {
+                margin: 0;
+                font-size: 1.3rem;
+                color: #333;
+                font-weight: 600;
+            }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Project Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+            .info-item label {
+                font-weight: 600;
+                color: #495057;
+                font-size: 0.9rem;
+            }
+
+            .info-item span {
+                color: #333;
+                font-size: 1rem;
+            }
+
+        .project-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: #e7f3ff;
+            color: #0066cc;
+            font-weight: 500;
+            font-size: 0.9rem;
+            width: fit-content;
+        }
+
+        /* Modification Section */
+        .modification-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modifier-details {
+            display: flex;
+            gap: 30px;
+        }
+
+        .modifier-name, .modification-time, .modification-text {
+            display: flex;
+            align-items: center;
+            color: #495057;
+        }
+
+        /* Task Catalog Styles */
+        .task-catalog-header {
+            margin-bottom: 20px;
+        }
+
+            .task-catalog-header h2 {
+                margin: 0;
+                font-size: 1.5rem;
+                color: #333;
+                font-weight: 600;
+            }
+
+        .task-catalog-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tasks-main-container {
+            display: block;
+        }
+
+        .task-list-container {
+            width: 100%;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 16px;
+            background: #ffffff;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+            .task-item:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transform: translateY(-1px);
+            }
+
+            .task-item.completed {
+                background: #f8f9fa;
+                border-color: #dee2e6;
+            }
+
+                .task-item.completed .task-name {
+                    text-decoration: line-through;
+                    color: #6c757d;
+                }
+
+        .task-form {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .task-checkbox {
+            flex-shrink: 0;
+        }
+
+            .task-checkbox .form-check-input {
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                border: 2px solid #dee2e6;
+            }
+
+                .task-checkbox .form-check-input:checked {
+                    background-color: #28a745;
+                    border-color: #28a745;
+                }
+
+        .task-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .task-name {
+            font-weight: 500;
             color: #333;
             font-size: 1rem;
+            line-height: 1.4;
         }
 
-    .project-status {
-        padding: 4px 12px;
-        border-radius: 12px;
-        background: #e7f3ff;
-        color: #0066cc;
-        font-weight: 500;
-        font-size: 0.9rem;
-        width: fit-content;
-    }
-
-    /* Modification Section */
-    .modification-info {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .modifier-details {
-        display: flex;
-        gap: 30px;
-    }
-
-    .modifier-name, .modification-time, .modification-text {
-        display: flex;
-        align-items: center;
-        color: #495057;
-    }
-
-    /* Tasks Section */
-    .tasks-container {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 30px;
-        align-items: start;
-    }
-
-    .task-list {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .task-item {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        background: white;
-        transition: all 0.3s ease;
-    }
-
-        .task-item:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        .task-details {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        .task-item.completed {
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+            .status-badge.completed {
+                background: #d4edda;
+                color: #155724;
+            }
+
+            .status-badge.pending {
+                background: #fff3cd;
+                color: #856404;
+            }
+
+        .task-dates {
+            font-size: 0.85rem;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+            .task-dates::before {
+                content: "📅";
+                margin-right: 4px;
+            }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .show-more-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+            .show-more-container .btn {
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: 500;
+            }
+
+        /* Structure Section */
+        #gantt-container {
             background: #f8f9fa;
-            opacity: 0.7;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-    .task-form {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
+        .gantt-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            background: #e9ecef;
+            padding: 15px;
+            font-weight: 600;
+            color: #495057;
+        }
 
-    .task-checkbox {
-        flex-shrink: 0;
-    }
+        .gantt-task-list-body {
+            min-height: 200px;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+        }
 
-    .task-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
+        /* Quick Actions Section */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
 
-    .task-name {
-        font-weight: 500;
-        color: #333;
-    }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
 
-    .task-status {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+            .action-btn.primary {
+                background: #007bff;
+                color: white;
+            }
 
-    .status-badge {
-        padding: 2px 8px;
-        border-radius: 12px;
-        background: #e7f3ff;
-        color: #0066cc;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
+                .action-btn.primary:hover {
+                    background: #0056b3;
+                    transform: translateY(-2px);
+                }
 
-    .task-dates {
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
+            .action-btn.secondary {
+                background: #f8f9fa;
+                color: #495057;
+                border: 1px solid #dee2e6;
+            }
 
-    .task-actions {
-        display: flex;
-        gap: 5px;
-        flex-shrink: 0;
-    }
+                .action-btn.secondary:hover {
+                    background: #e9ecef;
+                    color: #495057;
+                    text-decoration: none;
+                    transform: translateY(-2px);
+                }
 
-    /* Progress Circle */
-    .progress-visualization {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+        /* Notification Alert */
+        .notification-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
 
-    .progress-circle {
-        position: relative;
-    }
-
-    .progress-ring {
-        transform: rotate(-90deg);
-    }
-
-</style>
+        </style>
+    
+}
 
 <script src="~/js/ModalFunctions.js"></script>
+<script>
+    function toggleMoreTasks() {
+        const hiddenTasks = document.getElementById('hiddenTasks');
+        const showMoreBtn = document.getElementById('showMoreBtn');
+        const showMoreText = document.getElementById('showMoreText');
+        const icon = showMoreBtn.querySelector('i');
+
+        if (hiddenTasks.style.display === 'none') {
+            hiddenTasks.style.display = 'block';
+            showMoreText.textContent = 'Weniger anzeigen';
+            icon.className = 'fas fa-chevron-up me-1';
+        } else {
+            hiddenTasks.style.display = 'none';
+            // Get the count from the button text
+            const matches = showMoreText.textContent.match(/(\d+)/);
+            const count = matches ? matches[1] : '0';
+            showMoreText.textContent = count + ' weitere Aufgaben anzeigen';
+            icon.className = 'fas fa-chevron-down me-1';
+        }
+    }
+</script>
