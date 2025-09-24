@@ -153,15 +153,19 @@ namespace SAAS_Projectplanningtool.Pages
         public void LoadDefaultWorkTimesOfCompany(string? companyId)
         {
             if (string.IsNullOrEmpty(companyId)) return;
+
             var company = _context.Company
-                .Include(c => c.DefaultWorkingHours)
-                .Include(c => c.DefaultWorkDays)
                 .FirstOrDefault(c => c.CompanyId == companyId);
+
             if (company != null)
             {
+                // List<int> ist direkt aus DB lesbar (falls EF Core das unterstützt, siehe unten)
                 LoadWorkingDaysToProperties(company.DefaultWorkDays);
+
+                // Dictionary wird automatisch aus JSON-String umgewandelt
                 LoadWorkingHoursToProperties(company.DefaultWorkingHours);
             }
         }
+
     }
 }

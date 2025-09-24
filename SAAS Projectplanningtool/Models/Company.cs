@@ -31,7 +31,18 @@ namespace SAAS_Projectplanningtool.Models
 
         // The company's default working days
         // Represented as numbers from 1 to 7 (Monday - Sunday)
-        public List<int>? DefaultWorkDays { get; set; } = new(new int[] { 1, 2, 3, 4, 5 });
+        [Column(TypeName = "nvarchar(max)")]
+        public string? DefaultWorkDaysJson { get; set; }
+        // Helper property to work with default work days in code (not mapped to database)
+        [NotMapped]
+        public List<int> DefaultWorkDays
+        {
+            get => string.IsNullOrEmpty(DefaultWorkDaysJson)
+                ? new List<int> { 1, 2, 3, 4, 5 }
+                : JsonSerializer.Deserialize<List<int>>(DefaultWorkDaysJson) ?? new List<int> { 1, 2, 3, 4, 5 };
+
+            set => DefaultWorkDaysJson = JsonSerializer.Serialize(value);
+        }
 
         // Default working hours - stored as JSON string in database
         [Column(TypeName = "nvarchar(max)")]

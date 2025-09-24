@@ -57,7 +57,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             try
             {
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid && !_defaultWorkingTimeHandler.ValidateWorkingHours())
                 {
                     //fill default workingtimes with workingtimes from the company itself
                     var employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));

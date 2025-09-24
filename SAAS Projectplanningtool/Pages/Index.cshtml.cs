@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
-using SAAS_Projectplanningtool.Models.RessourcePlanning;
-using SAAS_Projectplanningtool.Models.IndependentTables;
 
 namespace SAAS_Projectplanningtool.Pages
 {
@@ -185,14 +183,6 @@ namespace SAAS_Projectplanningtool.Pages
                 .Include(t => t.ProjectSection)
                     .ThenInclude(ps => ps!.Project)
                 .Include(t => t.State)
-                .Include(t => t.ProjectTaskRessource)
-                    .ThenInclude(ptr => ptr!.EmployeeRessources)
-                .Where(t => t.CompanyId == companyId &&
-                           t.ProjectTaskRessource != null &&
-                           t.ProjectTaskRessource.EmployeeRessources != null &&
-                           t.ProjectTaskRessource.EmployeeRessources.Any(e => e.EmployeeId == currentEmployeeId) &&
-                           t.State != null &&
-                           t.State.StateName != "Completed")
                 .OrderBy(t => t.EndDate)
                 .Take(10)
                 .ToListAsync();
@@ -226,26 +216,26 @@ namespace SAAS_Projectplanningtool.Pages
 
             EmployeeWorkload = new List<EmployeeWorkloadDto>();
 
-            foreach (var employee in employees)
-            {
-                var taskCount = await _context.ProjectTask
-                    .Include(t => t.ProjectTaskRessource)
-                        .ThenInclude(ptr => ptr!.EmployeeRessources)
-                    .CountAsync(t => t.CompanyId == companyId &&
-                               t.ProjectTaskRessource != null &&
-                               t.ProjectTaskRessource.EmployeeRessources != null &&
-                               t.ProjectTaskRessource.EmployeeRessources.Any(e => e.EmployeeId == employee.EmployeeId) &&
-                               t.State != null &&
-                               t.State.StateName != "Completed");
+            //foreach (var employee in employees)
+            //{
+            //    var taskCount = await _context.ProjectTask
+            //        .Include(t => t.ProjectTaskRessource)
+            //            .ThenInclude(ptr => ptr!.EmployeeRessources)
+            //        .CountAsync(t => t.CompanyId == companyId &&
+            //                   t.ProjectTaskRessource != null &&
+            //                   t.ProjectTaskRessource.EmployeeRessources != null &&
+            //                   t.ProjectTaskRessource.EmployeeRessources.Any(e => e.EmployeeId == employee.EmployeeId) &&
+            //                   t.State != null &&
+            //                   t.State.StateName != "Completed");
 
-                EmployeeWorkload.Add(new EmployeeWorkloadDto
-                {
-                    EmployeeId = employee.EmployeeId,
-                    EmployeeDisplayName = employee.EmployeeDisplayName,
-                    TaskCount = taskCount,
-                    HourlyRateGroup = employee.HourlyRateGroup
-                });
-            }
+            //    EmployeeWorkload.Add(new EmployeeWorkloadDto
+            //    {
+            //        EmployeeId = employee.EmployeeId,
+            //        EmployeeDisplayName = employee.EmployeeDisplayName,
+            //        TaskCount = taskCount,
+            //        HourlyRateGroup = employee.HourlyRateGroup
+            //    });
+            //}
 
             // Calculate hourly rate statistics
             var hourlyRates = await _context.HourlyRateGroup

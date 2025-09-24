@@ -1,0 +1,1090 @@
+﻿@page
+@using SAAS_Projectplanningtool.Models.Budgetplanning
+@using System
+@using System.Globalization
+@model SAAS_Projectplanningtool.Pages.Projects.BudgetPlanningModel
+
+@{
+    ViewData["Title"] = "Budgetplanung - " + Model.Project?.ProjectName;
+}
+
+<!-- Modern CSS Styling -->
+<style>
+    :root {
+        --primary-color: #667eea;
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-color: #f093fb;
+        --accent-color: #4facfe;
+        --success-color: #00d4aa;
+        --warning-color: #ffc107;
+        --danger-color: #ff6b6b;
+        --light-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+        --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+        --border-radius: 12px;
+        --border-radius-sm: 6px;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-primary);
+        min-height: 100vh;
+    }
+
+    .main-container {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        margin: 2rem auto;
+        padding: 2rem;
+        max-width: 1400px;
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+    .edit-btn {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: white;
+    }
+
+        .edit-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+    /* Modern Table Styling */
+    .modern-table {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+
+        .modern-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modern-table thead th {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.25rem 1rem;
+            font-weight: 600;
+            text-align: left;
+            border: none;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+            .modern-table tbody tr:hover {
+                background: #f8fafc;
+                transform: translateY(-1px);
+            }
+
+        .modern-table tbody td {
+            padding: 1rem;
+            border: none;
+            vertical-align: middle;
+        }
+
+    /* Section Styling */
+    .section-row {
+        background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%);
+        font-weight: 600;
+        position: relative;
+    }
+
+        .section-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-gradient);
+        }
+
+    .toggle-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-right: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+        .toggle-icon:hover {
+            background: var(--accent-color);
+            transform: scale(1.1);
+        }
+
+    /* Status Badge */
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+        text-align: center;
+        min-width: 100px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Modern Buttons */
+    .modern-btn {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius-sm);
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        .modern-btn.success {
+            background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+        }
+
+        .modern-btn.warning {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        }
+
+        .modern-btn.small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+    /* HRG Display Container */
+    .hrg-display-container {
+        max-width: 400px;
+        font-size: 0.9rem;
+    }
+
+    .no-hrg-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* HRG Cards Grid */
+    .hrg-cards-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    /* Individual HRG Card */
+    .hrg-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px 12px;
+        transition: all 0.2s ease;
+        border-left: 4px solid var(--primary-color);
+    }
+
+        .hrg-card:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left-color: var(--accent-color);
+        }
+
+    .hrg-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .hrg-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .hrg-count-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .hrg-card-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .hrg-rate {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .hrg-total {
+        color: var(--success-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    /* Summary Card */
+    .hrg-summary-card {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 8px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+        }
+
+    .summary-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .summary-value {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .total-row {
+        border-top: 1px solid #bbdefb;
+        padding-top: 6px;
+        margin-top: 6px;
+    }
+
+    .total-value {
+        color: var(--success-color);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .estimate-row {
+        background: rgba(255,255,255,0.5);
+        border-radius: 4px;
+        padding: 6px 8px;
+        margin-top: 6px;
+        margin-bottom: 0;
+    }
+
+    .estimate-value {
+        color: var(--accent-color);
+        font-weight: 600;
+    }
+
+        .estimate-value small {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+    /* Task Table Enhancement */
+    .task-table {
+        margin-left: 2rem;
+        margin-top: 1rem;
+        background: var(--light-bg);
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+    }
+
+        .task-table table {
+            margin: 0;
+        }
+
+        .task-table thead th {
+            background: #e2e8f0;
+            color: var(--text-primary);
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .task-table tbody td {
+            padding: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+    .nested-content {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        padding: 1.5rem;
+        margin: 0.5rem 0;
+        border-radius: var(--border-radius-sm);
+        border-left: 4px solid var(--accent-color);
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 1.5rem 2rem;
+    }
+
+        .modal-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+    .btn-close {
+        background: rgba(255,255,255,0.3);
+        border-radius: 50%;
+        opacity: 1;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        border: none;
+        padding: 1.5rem 2rem;
+        background: var(--light-bg);
+    }
+
+    /* Form Controls */
+    .form-control {
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius-sm);
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+    #totalCostPerHour {
+        font-weight: bold;
+        color: var(--success-color);
+        font-size: 1.1rem;
+    }
+
+</style>
+
+<div class="main-container">
+    <!-- Modern Page Header -->
+    <div class="page-header">
+        <h1>
+            <span>
+                <i class="fas fa-chart-line me-2"></i>
+                Budgetplanung - @Model.Project?.ProjectName
+            </span>
+            <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="edit-btn">
+                <i class="fas fa-edit"></i>
+            </a>
+        </h1>
+    </div>
+
+    <!-- Modern Project Structure Table -->
+    <div class="modern-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-project-diagram me-2"></i>Name</th>
+                    <th><i class="fas fa-calendar-alt me-2"></i>Start</th>
+                    <th><i class="fas fa-calendar-check me-2"></i>Ende</th>
+                    <th><i class="fas fa-clock me-2"></i>Dauer (Tage)</th>
+                    <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var topSections = Model.Project.ProjectSections
+                    .Where(ps => ps.ParentSectionId == null)
+                    .OrderBy(ps => ps.ProjectSectionName);
+
+                    RenderSections(topSections, level: 0);
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal bleibt unverändert -->
+<div class="modal fade" id="addHRGsModal" data-task-id="" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="SaveHRGs">
+                <input type="hidden" name="ProjectTaskId" id="hrgProjectTaskId" />
+                <input type="hidden" name="ProjectId" id="hrgProjectId" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-users-cog me-2"></i>
+                        Budgetplanung – Stundensatzgruppen
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-list me-2"></i>
+                                Verfügbare Stundensatzgruppen
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                        <tr>
+                                            <th>Stundensatzgruppe</th>
+                                            <th>Stundensatz (€)</th>
+                                            <th>Anzahl Arbeiter</th>
+                                            <th>Aktion</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="availableHRGsTable">
+                                        @if (Model.AllHourlyRateGroups != null)
+                                        {
+                                            @foreach (var hrg in Model.AllHourlyRateGroups.Where(h => !h.DeleteFlag))
+                                            {
+                                                <tr data-hrg-id="@hrg.HourlyRateGroupId">
+                                                    <td><strong>@hrg.HourlyRateGroupName</strong></td>
+                                                    <td><span class="text-success fw-bold">@hrg.HourlyRate.ToString("F2") €</span></td>
+                                                    <td>
+                                                        <input type="number"
+                                                               class="form-control hrg-amount"
+                                                               min="0"
+                                                               value="0"
+                                                               style="width: 100px;"
+                                                               data-hrg-id="@hrg.HourlyRateGroupId"
+                                                               data-hrg-name="@hrg.HourlyRateGroupName"
+                                                               data-hourly-rate="@hrg.HourlyRate"
+                                                               placeholder="0" />
+                                                    </td>
+                                                    <td>
+                                                        <button type="button"
+                                                                class="modern-btn success small add-hrg-btn"
+                                                                data-hrg-id="@hrg.HourlyRateGroupId"
+                                                                data-hrg-name="@hrg.HourlyRateGroupName"
+                                                                data-hourly-rate="@hrg.HourlyRate">
+                                                            <i class="fas fa-plus"></i> Hinzufügen
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="border-color: var(--border-color); margin: 2rem 0;" />
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Eingeplante Stundensatzgruppen
+                            </h6>
+                            <div id="selectedHRGsContainer">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead style="background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%); color: white;">
+                                            <tr>
+                                                <th>Stundensatzgruppe</th>
+                                                <th>Stundensatz (€)</th>
+                                                <th>Anzahl Arbeiter</th>
+                                                <th>Gesamtkosten/Stunde (€)</th>
+                                                <th>Aktion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="selectedHRGsTable">
+                                            <!-- Dynamisch gefüllte Einträge -->
+                                        </tbody>
+                                        <tfoot style="background: var(--light-bg);">
+                                            <tr>
+                                                <th colspan="3" class="text-end">Gesamtsumme pro Stunde:</th>
+                                                <th id="totalCostPerHour">0.00 €</th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+
+                                <div id="noHRGsMessage" class="text-center py-4" style="display: none; background: var(--light-bg); border-radius: var(--border-radius-sm);">
+                                    <i class="fas fa-info-circle text-muted me-2"></i>
+                                    <em class="text-muted">Noch keine Stundensatzgruppen eingeplant</em>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="hiddenInputsContainer"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Abbrechen
+                    </button>
+                    <button type="submit" class="modern-btn">
+                        <i class="fas fa-save me-1"></i>Stundensatzgruppen speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private void RenderSections(IEnumerable<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection> sections, int level)
+    {
+        if (sections == null || !sections.Any())
+            return;
+
+        foreach (var ps in sections)
+        {
+            bool hasChildren =
+                (ps.SubSections != null && ps.SubSections.Any()) ||
+                (ps.ProjectTasks != null && ps.ProjectTasks.Any());
+
+            <tr class="section-row">
+                <td>
+                    @if (hasChildren)
+                    {
+                        <span class="toggle-icon" onclick="toggleRow('row-@ps.ProjectSectionId', this)" style="margin-left:@(level * 20)px;">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                    }
+                    else
+                    {
+                        <span style="display:inline-block; margin-left:@((level * 20) + 32)px;"></span>
+                    }
+                    <strong>@ps.ProjectSectionName</strong>
+                </td>
+                @{
+                    var allTasks = GetAllTasks(ps);
+                    DateOnly? sectionStart = allTasks.Any() ? allTasks.Min(t => t.StartDate) : null;
+                    DateOnly? sectionEnd = allTasks.Any() ? allTasks.Max(t => t.EndDate) : null;
+                    int? sectionDuration = (sectionStart.HasValue && sectionEnd.HasValue) ? (sectionEnd.Value.DayNumber - sectionStart.Value.DayNumber + 1) : null;
+                }
+                <td>
+                    <i class="fas fa-calendar-alt me-1 text-muted"></i>
+                    @(sectionStart.HasValue ? sectionStart.Value.ToString("dd.MM.yyyy") : "Nicht verfügbar")
+                </td>
+                <td>
+                    <i class="fas fa-calendar-check me-1 text-muted"></i>
+                    @(sectionEnd.HasValue ? sectionEnd.Value.ToString("dd.MM.yyyy") : "Nicht verfügbar")
+                </td>
+                <td>
+                    <i class="fas fa-clock me-1 text-muted"></i>
+                    @(sectionDuration.HasValue ? sectionDuration.Value.ToString() : "Nicht verfügbar")
+                </td>
+                <td>
+                    <div class="status-badge" style="background-color:@ps.State?.Color;">
+                        @(ps.State?.StateName ?? "Kein Status")
+                    </div>
+                </td>
+            </tr>
+
+            if (hasChildren)
+            {
+                <tr id="row-@ps.ProjectSectionId" style="display:none">
+                    <td colspan="5">
+                        <div class="nested-content">
+                            @if (ps.ProjectTasks != null && ps.ProjectTasks.Any())
+                            {
+                                <div class="task-table">
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th><i class="fas fa-tasks me-1"></i>Aufgabe</th>
+                                                <th><i class="fas fa-calendar-alt me-1"></i>Start</th>
+                                                <th><i class="fas fa-calendar-check me-1"></i>Ende</th>
+                                                <th><i class="fas fa-clock me-1"></i>Dauer</th>
+                                                <th><i class="fas fa-users me-1"></i>Stundensatzgruppen</th>
+                                                <th><i class="fas fa-cog me-1"></i>Aktionen</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var task in ps.ProjectTasks)
+                                            {
+                                                <tr>
+                                                    <td><strong>@task.ProjectTaskName</strong></td>
+                                                    <td>@task.StartDate?.ToString("dd.MM.yyyy")</td>
+                                                    <td>@task.EndDate?.ToString("dd.MM.yyyy")</td>
+                                                    @{
+                                                        int? dauer = null;
+                                                        if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                                        {
+                                                            var start = new DateTime(task.StartDate.Value.Year, task.StartDate.Value.Month, task.StartDate.Value.Day);
+                                                            var end = new DateTime(task.EndDate.Value.Year, task.EndDate.Value.Month, task.EndDate.Value.Day);
+                                                            dauer = (end - start).Days + 1;
+                                                        }
+                                                    }
+                                                    <td>@(dauer.HasValue ? dauer.ToString() : "N/A")</td>
+                                                    <td>
+                                                        @if (task.ProjectTaskHourlyRateGroups?.Any() == true)
+                                                        {
+                                                            <!-- Moderne Anzeige der Stundensatzgruppen -->
+                                                            <div class="hrg-display-container">
+                                                                <!-- Status Badge -->
+                                                                <div class="d-flex align-items-center mb-2">
+                                                                    <span class="status-badge" style="background: var(--success-color); margin-right: 10px;">
+                                                                        <i class="fas fa-check me-1"></i>Konfiguriert (@task.ProjectTaskHourlyRateGroups.Count HRG)
+                                                                    </span>
+                                                                </div>
+
+                                                                <!-- HRG Cards -->
+                                                                <div class="hrg-cards-grid">
+                                                                    @{
+                                                                        decimal totalCostPerHour = 0;
+                                                                        int totalWorkers = 0;
+                                                                    }
+                                                                    @foreach (var hrg in task.ProjectTaskHourlyRateGroups)
+                                                                    {
+                                                                        <!-- FEHLT Berechnung der Kosten anhand default Worktimes/ Days -->
+                                                                        decimal groupCost = (decimal)(hrg.Amount * hrg.HourlyRateGroup.HourlyRate);
+                                                                        totalCostPerHour += groupCost;
+                                                                        totalWorkers += hrg.Amount;
+
+                                                                        <div class="hrg-card">
+                                                                            <div class="hrg-card-header">
+                                                                                <div class="hrg-name">@hrg.HourlyRateGroup.HourlyRateGroupName</div>
+                                                                                <div class="hrg-count-badge">@hrg.Amount</div>
+                                                                            </div>
+                                                                            <div class="hrg-card-body">
+                                                                                <div class="hrg-rate">@hrg.HourlyRateGroup.HourlyRate.ToString("F2")€/h</div>
+                                                                                <div class="hrg-total">
+                                                                                    <i class="fas fa-calculator me-1"></i>
+                                                                                    @groupCost.ToString("F2")€/h
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    }
+                                                                </div>
+
+                                                                <!-- Gesamtkosten Summary -->
+                                                                <div class="hrg-summary-card">
+                                                                    <div class="summary-row">
+                                                                        <span class="summary-label">
+                                                                            <i class="fas fa-users me-1"></i>Gesamt Arbeiter:
+                                                                        </span>
+                                                                        <span class="summary-value">@totalWorkers</span>
+                                                                    </div>
+                                                                    <div class="summary-row total-row">
+                                                                        <span class="summary-label">
+                                                                            <i class="fas fa-euro-sign me-1"></i>Kosten/Stunde:
+                                                                        </span>
+                                                                        <span class="summary-value total-value">@totalCostPerHour.ToString("F2")€</span>
+                                                                    </div>
+
+                                                                    @if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                                                    {
+
+                                                                        int taskDays = (task.EndDate.Value.DayNumber - task.StartDate.Value.DayNumber + 1);
+                                                                        decimal estimatedTotalCost = totalCostPerHour * taskDays * 8; // 8 Stunden pro Tag angenommen
+
+                                                                        <div class="summary-row estimate-row">
+                                                                            <span class="summary-label">
+                                                                                <i class="fas fa-chart-line me-1"></i>Geschätzte Gesamtkosten:
+                                                                            </span>
+                                                                            <span class="summary-value estimate-value">
+                                                                                @estimatedTotalCost.ToString("F2")€
+                                                                                <small class="text-muted">(@taskDays Tage × 8h)</small>
+                                                                            </span>
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="no-hrg-container">
+                                                                <span class="status-badge" style="background: var(--warning-color);">
+                                                                    <i class="fas fa-exclamation-triangle me-1"></i>Nicht gepflegt
+                                                                </span>
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @{
+                                                            bool hasHRG = task?.ProjectTaskHourlyRateGroups?.Any() == true;
+                                                        }
+                                                        <button class="modern-btn @(hasHRG ? "warning" : "success") small open-resource-modal"
+                                                                data-bs-target="#addHRGsModal"
+                                                                data-task-id="@task.ProjectTaskId"
+                                                                data-bs-toggle="modal">
+                                                            <i class="fas @(hasHRG ? "fa-edit" : "fa-plus-circle")"></i>
+                                                            @(hasHRG ? "Ändern" : "Hinzufügen")
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <em>Keine Aufgaben vorhanden</em>
+                                </div>
+                            }
+
+                            @if (ps.SubSections != null && ps.SubSections.Any())
+                            {
+                                <div class="mt-3">
+                                    <div class="modern-table">
+                                        <table class="table">
+                                            <tbody>
+                                                @{
+                                                    RenderSections(ps.SubSections, level + 1);
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    }
+
+    private List<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask> GetAllTasks(SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection section)
+    {
+        var tasks = new List<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask>();
+        if (section.ProjectTasks != null)
+            tasks.AddRange(section.ProjectTasks);
+
+        if (section.SubSections != null)
+        {
+            foreach (var sub in section.SubSections)
+                tasks.AddRange(GetAllTasks(sub));
+        }
+        return tasks;
+    }
+}
+
+<script>
+    let selectedHRGs = new Map();
+    document.addEventListener('DOMContentLoaded', function() {
+       
+
+        // Enhanced toggle function
+        window.toggleRow = function(rowId, iconElem) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            const icon = iconElem.querySelector('i');
+
+            if (row.style.display === "none" || row.style.display === "") {
+                row.style.display = "table-row";
+                icon.className = "fas fa-minus";
+                iconElem.style.background = "var(--accent-color)";
+            } else {
+                row.style.display = "none";
+                icon.className = "fas fa-plus";
+                iconElem.style.background = "var(--primary-color)";
+            }
+        };
+        //Add button functionality
+       document.addEventListener('click', function(e) {
+        if (e.target.closest('.add-hrg-btn')) {
+            const btn = e.target.closest('.add-hrg-btn');
+            const hrgId = btn.dataset.hrgId;
+            const hrgName = btn.dataset.hrgName;
+            const hourlyRate = parseFloat(btn.dataset.hourlyRate);
+
+            const row = btn.closest('tr'); // nur Input in dieser Zeile greifen
+            const amountInput = row.querySelector(`input[data-hrg-id="${hrgId}"]`);
+            const amount = parseInt(amountInput.value) || 0;
+
+            if (amount <= 0) {
+                showNotification('Bitte geben Sie eine gültige Anzahl von Arbeitern ein.', 'warning');
+                amountInput.focus();
+                return;
+            }
+
+            // Wenn die HRG bereits existiert, addiere die Anzahl
+            if (selectedHRGs.has(hrgId)) {
+                const existing = selectedHRGs.get(hrgId);
+                existing.amount += amount;
+                selectedHRGs.set(hrgId, existing);
+            } else {
+                selectedHRGs.set(hrgId, {
+                    id: hrgId,
+                    name: hrgName,
+                    hourlyRate: hourlyRate,
+                    amount: amount
+                });
+            }
+
+            amountInput.value = 0;
+            updateSelectedHRGsTable();
+            showNotification(`${hrgName} wurde erfolgreich hinzugefügt!`, 'success');
+        }
+    });
+
+
+        // Remove button functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-hrg-btn')) {
+                const btn = e.target.closest('.remove-hrg-btn');
+                const hrgId = btn.dataset.hrgId;
+                const hrgName = selectedHRGs.get(hrgId)?.name;
+
+                selectedHRGs.delete(hrgId);
+                updateSelectedHRGsTable();
+                showNotification(`${hrgName} wurde entfernt.`, 'info');
+            }
+        });
+
+        // Amount change functionality
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('selected-hrg-amount')) {
+                const hrgId = e.target.dataset.hrgId;
+                const newAmount = parseInt(e.target.value) || 0;
+
+                if (selectedHRGs.has(hrgId)) {
+                    const hrg = selectedHRGs.get(hrgId);
+                    hrg.amount = newAmount;
+                    selectedHRGs.set(hrgId, hrg);
+                    updateSelectedHRGsTable();
+                }
+            }
+        });
+
+        // Update Selected HRGs Table
+        function updateSelectedHRGsTable() {
+            const tableBody = document.getElementById('selectedHRGsTable');
+            const noHRGsMessage = document.getElementById('noHRGsMessage');
+            const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
+
+            tableBody.innerHTML = '';
+            hiddenInputsContainer.innerHTML = '';
+
+            let totalCostPerHour = 0;
+            let index = 0;
+
+            if (selectedHRGs.size === 0) {
+                noHRGsMessage.style.display = 'block';
+            } else {
+                noHRGsMessage.style.display = 'none';
+
+                selectedHRGs.forEach((hrg) => {
+                    const totalCost = hrg.hourlyRate * hrg.amount;
+                    totalCostPerHour += totalCost;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${hrg.name}</strong></td>
+                        <td><span class="text-success fw-bold">${hrg.hourlyRate.toFixed(2)} €</span></td>
+                        <td>
+                            <input type="number"
+                                   class="form-control selected-hrg-amount"
+                                   min="1"
+                                   value="${hrg.amount}"
+                                   style="width: 100px;"
+                                   data-hrg-id="${hrg.id}" />
+                        </td>
+                        <td><span class="fw-bold text-primary">${totalCost.toFixed(2)} €</span></td>
+                        <td>
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm remove-hrg-btn"
+                                    data-hrg-id="${hrg.id}"
+                                    title="Entfernen">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+
+                    // Hidden Inputs für das neue Datenmodell
+                    const hrgIdInput = document.createElement('input');
+                    hrgIdInput.type = 'hidden';
+                    hrgIdInput.name = `HRGAmounts[${index}].HourlyRateGroupId`;
+                    hrgIdInput.value = hrg.id;
+                    hiddenInputsContainer.appendChild(hrgIdInput);
+
+                    const hrgNameInput = document.createElement('input');
+                    hrgNameInput.type = 'hidden';
+                    hrgNameInput.name = `HRGAmounts[${index}].HourlyRateGroupName`;
+                    hrgNameInput.value = hrg.name;
+                    hiddenInputsContainer.appendChild(hrgNameInput);
+
+                    const hourlyRateInput = document.createElement('input');
+                    hourlyRateInput.type = 'hidden';
+                    hourlyRateInput.name = `HRGAmounts[${index}].HourlyRate`;
+                    hourlyRateInput.value = hrg.hourlyRate;
+                    hiddenInputsContainer.appendChild(hourlyRateInput);
+
+                    const amountInput = document.createElement('input');
+                    amountInput.type = 'hidden';
+                    amountInput.name = `HRGAmounts[${index}].Amount`;
+                    amountInput.value = hrg.amount;
+                    hiddenInputsContainer.appendChild(amountInput);
+
+                    index++;
+                });
+            }
+
+            document.getElementById('totalCostPerHour').textContent = totalCostPerHour.toFixed(2) + ' €';
+        }
+
+        // Modal event handlers
+        document.querySelectorAll(".open-resource-modal").forEach(btn => {
+            btn.addEventListener("click", function (e) {
+                const taskId = this.getAttribute("data-task-id");
+                const projectId = '@Model.Project?.ProjectId';
+
+                document.getElementById("hrgProjectTaskId").value = taskId;
+                document.getElementById("hrgProjectId").value = projectId;
+            });
+        });
+
+        // Modal reset when opened
+        document.getElementById('addHRGsModal').addEventListener('shown.bs.modal', function() {
+
+            initializeSelectedHRGsTable(document.getElementById("hrgProjectTaskId").value);
+            document.querySelectorAll('.hrg-amount').forEach(input => {
+                input.value = 0;
+            });
+        });
+
+        async function initializeSelectedHRGsTable(taskId) {
+            selectedHRGs.clear();
+
+            try {
+                const response = await fetch(`/Projects/BudgetPlanning?handler=ReadTaskHRGs&taskId=${taskId}`);
+                if (!response.ok) throw new Error("Fehler beim Laden der HRGs");
+
+                const data = await response.json();
+                // Erwartetes JSON: [{ hourlyRateGroupId, hourlyRateGroupName, hourlyRate, amount }, ...]
+
+                data.forEach(hrg => {
+                    selectedHRGs.set(hrg.hourlyRateGroupId, {
+                        id: hrg.hourlyRateGroupId,
+                        name: hrg.hourlyRateGroupName,
+                        hourlyRate: parseFloat(hrg.hourlyRate),
+                        amount: hrg.amount
+                    });
+                });
+
+                updateSelectedHRGsTable();
+            } catch (err) {
+                console.error(err);
+                showNotification("Fehler beim Laden der geplanten Stundensatzgruppen", "error");
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const existingNotifications = document.querySelectorAll('.custom-notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `custom-notification alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'error' ? 'danger' : 'info'}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                max-width: 300px;
+                box-shadow: var(--shadow-lg);
+                border-radius: var(--border-radius);
+            `;
+
+            const icon = type === 'success' ? 'check-circle' :
+                        type === 'warning' ? 'exclamation-triangle' :
+                        type === 'error' ? 'times-circle' : 'info-circle';
+
+            notification.innerHTML = `
+                <i class="fas fa-${icon} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 4000);
+        }
+    });
+</script>

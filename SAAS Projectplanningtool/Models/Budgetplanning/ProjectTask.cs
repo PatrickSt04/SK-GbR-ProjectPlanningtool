@@ -1,5 +1,4 @@
-﻿using SAAS_Projectplanningtool.Models.RessourcePlanning;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
@@ -20,12 +19,6 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public string? ProjectSectionId { get; set; }
         [ForeignKey(nameof(ProjectSectionId))]
         public ProjectSection? ProjectSection { get; set; }
-
-        // Reference to the ProjectTaskRessource Entry ( contains - if created - List of Employee Ressources or Hourly Rate Groups )
-        public string? ProjectTaskRessourceId { get; set; }
-        [ForeignKey(nameof(ProjectTaskRessourceId))]
-        public ProjectTaskRessource? ProjectTaskRessource { get; set; }
-
 
         // Start Date of Project
         [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}")]
@@ -58,5 +51,9 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public Employee? CreatedByEmployee { get; set; }
         public DateTime? CreatedTimestamp { get; set; }
 
+
+        // Amount of Workers per hourly rate group
+        // p. Ex: < 5, Polier > 
+        public ICollection<ProjectTaskHourlyRateGroup> ProjectTaskHourlyRateGroups { get; set; } = new List<ProjectTaskHourlyRateGroup>();
     }
 }
