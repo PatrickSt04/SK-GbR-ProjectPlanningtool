@@ -69,11 +69,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return NotFound();
             }
 
-            if (HRGAmounts == null || !HRGAmounts.Any())
-            {
-                ModelState.AddModelError(string.Empty, "Bitte mindestens eine Stundensatzgruppe angeben.");
-                return Page();
-            }
+            //if (HRGAmounts == null || !HRGAmounts.Any())
+            //{
+            //    ModelState.AddModelError(string.Empty, "Bitte mindestens eine Stundensatzgruppe angeben.");
+            //    return Page();
+            //}
 
             var task = await GetProjectTaskAsync(ProjectTaskId);
             if (task == null)
@@ -100,11 +100,27 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             // letzte Änderung hinzufügen
             task = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Stundensatzgruppen gepflegt", task, false);
 
-         
+
 
             await _context.SaveChangesAsync();
 
             return RedirectToPage(new { id = projectId });
+        }
+
+        public async Task<JsonResult> OnGetReadTaskHRGs(string taskId)
+        {
+            var hrgs = await _context.ProjectTaskHourlyRateGroup
+                .Where(x => x.ProjectTaskId == taskId)
+                .Select(x => new
+                {
+                    hourlyRateGroupId = x.HourlyRateGroupId,
+                    hourlyRateGroupName = x.HourlyRateGroup.HourlyRateGroupName,
+                    hourlyRate = x.HourlyRateGroup.HourlyRate,
+                    amount = x.Amount
+                })
+            .ToListAsync();
+
+            return new JsonResult(hrgs);
         }
 
     }

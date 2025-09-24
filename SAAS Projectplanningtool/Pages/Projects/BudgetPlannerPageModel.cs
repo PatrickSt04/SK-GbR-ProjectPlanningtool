@@ -26,7 +26,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         //[BindProperty]
         //public string ProjectTaskId { get; set; } = "";
 
-        
+
 
         public List<HourlyRateGroup> AllHourlyRateGroups { get; set; } = new List<HourlyRateGroup>();
 
@@ -34,11 +34,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         //[BindProperty]
         //public Dictionary<int, HourlyRateGroup> AmountPerHourlyRateGroup { get; set; } = new Dictionary<int, HourlyRateGroup>();
 
-       
+
 
         protected async Task<ProjectTask> GetProjectTaskAsync(string projectTaskId)
         {
             var existing = await _context.ProjectTask
+                .Include(pt => pt.ProjectTaskHourlyRateGroups)
                 .FirstOrDefaultAsync(x => x.ProjectTaskId == projectTaskId);
             return existing;
         }
