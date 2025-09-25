@@ -13,11 +13,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
 
         public ProjectsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _projectStatisticsCalculator = new ProjectStatisticsCalculator(_context, _userManager);
         }
 
         // Current User Data
@@ -26,7 +28,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public string? CurrentUserRole { get; set; }
 
         // Projects Data
-        public IEnumerable<Project> Projects { get; set; } = new List<Project>();
+        public class ProjectWithBudget
+        {
+            public Project Project { get; set; }
+            public double UsedBudget { get; set; }
+        }
+        public IEnumerable<ProjectWithBudget> Projects { get; set; } = new List<ProjectWithBudget>();
 
         // Statistics
         public int ActiveProjectsCount { get; set; }
@@ -228,10 +235,25 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             if (CurrentPage > TotalPages && TotalPages > 0) CurrentPage = TotalPages;
 
             // Apply pagination
-            Projects = await query
+            var tmp_Projects = await query
                 .Skip((CurrentPage - 1) * PageSize)
                 .Take(PageSize)
                 .ToListAsync();
+
+            Projects = new List<ProjectWithBudget>();
+            foreach (var project in tmp_Projects)
+            {
+                double usedBudget = 0;
+                if (project.ProjectBudget != null)
+                {
+                    usedBudget = _projectStatisticsCalculator.CalculateBudgetStatisticsAsync(project.ProjectId, User).Result.UsedBudget;
+                }
+                ((List<ProjectWithBudget>)Projects).Add(new ProjectWithBudget
+                {
+                    Project = project,
+                    UsedBudget = usedBudget
+                });
+            }
         }
 
         private IQueryable<Project> ApplyFilters(IQueryable<Project> query)
@@ -447,31 +469,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         private async Task<IActionResult> ExportToCsv(List<Project> projects)
         {
-            var csv = "Projektname,Kunde,Status,Projektleiter,Startdatum,Enddatum,Budget Initial,Budget Verwendet\n";
+            // Implementierung für PDF-Export
+            // Hier würden Sie eine PDF-Bibliothek wie iTextSharp verwenden
+            return BadRequest("CSV-Export noch nicht implementiert");
 
-            foreach (var project in projects)
-            {
-                csv += $"\"{project.ProjectName}\"," +
-                       $"\"{project.Customer?.CustomerName ?? ""}\"," +
-                       $"\"{project.State?.StateName ?? ""}\"," +
-                       $"\"{project.ResponsiblePerson?.EmployeeDisplayName ?? ""}\"," +
-                       $"\"{project.StartDate?.ToString("dd.MM.yyyy") ?? ""}\"," +
-                       $"\"{project.EndDate?.ToString("dd.MM.yyyy") ?? ""}\"," +
-                       $"\"{project.ProjectBudget?.InitialBudget.ToString("F2") ?? "0"}\"," +
-                       $"\"{project.ProjectBudget?.UsedBudget.ToString("F2") ?? "0"}\"\n";
-            }
-
-            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
-            var fileName = $"Projekte_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-
-            return File(bytes, "text/csv", fileName);
         }
-    }
 
-    // Helper classes for AJAX requests
-    public class ArchiveProjectRequest
-    {
-        public string ProjectId { get; set; } = string.Empty;
+        // Helper classes for AJAX requests
+        public class ArchiveProjectRequest
+        {
+            public string ProjectId { get; set; } = string.Empty;
+        }
     }
 
     // Extension methods for better filtering

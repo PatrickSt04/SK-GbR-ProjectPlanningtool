@@ -207,22 +207,22 @@
             <div class="row g-4">
                 @foreach (var project in Model.Projects)
                 {
-                    var progressPercentage = CalculateProgress(project);
-                    var statusClass = GetStatusClass(project.State?.StateName);
-                    var priorityClass = GetPriorityClass(project);
+                    var progressPercentage = CalculateProgress(project.Project);
+                    var statusClass = GetStatusClass(project.Project.State?.StateName);
+                    var priorityClass = GetPriorityClass(project.Project);
 
                     <div class="col-lg-4 col-md-6">
                         <div class="project-card @priorityClass">
                             <div class="project-header">
                                 <div class="project-title">
                                     <h5>
-                                        <a asp-page="Details" asp-route-id="@project.ProjectId" 
+                                        <a asp-page="Details" asp-route-id="@project.Project.ProjectId" 
                                         class="text-decoration-none">
-                                            @project.ProjectName
+                                            @project.Project.ProjectName
                                         </a>
                                     </h5>
                                     <span class="project-status @statusClass">
-                                        @project.State?.StateName
+                                        @project.Project.State?.StateName
                                     </span>
                                 </div>
                                 <div class="project-actions">
@@ -233,29 +233,29 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <a class="dropdown-item" asp-page="Details" asp-route-id="@project.ProjectId">
+                                                <a class="dropdown-item" asp-page="Details" asp-route-id="@project.Project.ProjectId">
                                                     <i class="fas fa-eye me-2"></i>Details
                                                 </a>
                                             </li>
                                             @if (Model.CanEditProjects)
                                             {
                                                 <li>
-                                                    <a class="dropdown-item" asp-page="Edit" asp-route-id="@project.ProjectId">
+                                                    <a class="dropdown-item" asp-page="Edit" asp-route-id="@project.Project.ProjectId">
                                                         <i class="fas fa-edit me-2"></i>Bearbeiten
                                                     </a>
                                                 </li>
                                             }
                                             <li>
-                                                <a class="dropdown-item" href="#" onclick="duplicateProject('@project.ProjectId')">
+                                                <a class="dropdown-item" href="#" onclick="duplicateProject('@project.Project.ProjectId')">
                                                     <i class="fas fa-copy me-2"></i>Duplizieren
                                                 </a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
-                                            @if (project.IsArchived != true)
+                                            @if (project.Project.IsArchived != true)
                                             {
                                                 <li>
-                                                    <a class="dropdown-item text-warning" href="#" 
-                                                    onclick="archiveProject('@project.ProjectId')">
+                                                    <a class="dropdown-item text-warning" href="#"
+                                                       onclick="archiveProject('@project.Project.ProjectId')">
                                                         <i class="fas fa-archive me-2"></i>Archivieren
                                                     </a>
                                                 </li>
@@ -263,8 +263,8 @@
                                             else
                                             {
                                                 <li>
-                                                    <a class="dropdown-item text-success" href="#" 
-                                                    onclick="unarchiveProject('@project.ProjectId')">
+                                                    <a class="dropdown-item text-success" href="#"
+                                                       onclick="unarchiveProject('@project.Project.ProjectId')">
                                                         <i class="fas fa-box-open me-2"></i>Reaktivieren
                                                     </a>
                                                 </li>
@@ -275,35 +275,35 @@
                             </div>
 
                             <div class="project-content">
-                                <p class="project-description">@project.ProjectDescription</p>
+                                <p class="project-description">@project.Project.ProjectDescription</p>
 
                                 <div class="project-meta">
                                     <div class="meta-item">
                                         <i class="fas fa-user text-muted me-1"></i>
-                                        <span>@project.Customer?.CustomerName</span>
+                                        <span>@project.Project.Customer?.CustomerName</span>
                                     </div>
                                     <div class="meta-item">
                                         <i class="fas fa-user-tie text-muted me-1"></i>
-                                        <span>@project.ResponsiblePerson?.EmployeeDisplayName</span>
+                                        <span>@project.Project.ResponsiblePerson?.EmployeeDisplayName</span>
                                     </div>
                                 </div>
 
                                 <div class="project-dates">
                                     <div class="date-item">
                                         <small class="text-muted">Start:</small>
-                                        <span>@(project.StartDate?.ToString("dd.MM.yyyy") ?? "Nicht gesetzt")</span>
+                                        <span>@(project.Project.StartDate?.ToString("dd.MM.yyyy") ?? "Nicht gesetzt")</span>
                                     </div>
                                     <div class="date-item">
                                         <small class="text-muted">Ende:</small>
-                                        <span>@(project.EndDate?.ToString("dd.MM.yyyy") ?? "Nicht gesetzt")</span>
+                                        <span>@(project.Project.EndDate?.ToString("dd.MM.yyyy") ?? "Nicht gesetzt")</span>
                                     </div>
                                 </div>
 
-                                @if (project.ProjectBudget != null)
+                                @if (project.Project.ProjectBudget != null)
                                 {
-                                    var budgetPercentage = project.ProjectBudget.InitialBudget > 0 
-                                        ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100 
-                                        : 0;
+                                    var budgetPercentage = project.Project.ProjectBudget.InitialBudget > 0
+                                    ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
+                                    : 0;
 
                                     <div class="project-budget">
                                         <div class="budget-header">
@@ -315,7 +315,7 @@
                                             style="width: @budgetPercentage%"></div>
                                         </div>
                                         <div class="budget-details">
-                                            <small>@project.ProjectBudget.UsedBudget.ToString("C") / @project.ProjectBudget.InitialBudget.ToString("C")</small>
+                                            <small>@project.UsedBudget.ToString("C") / @project.Project.ProjectBudget.InitialBudget.ToString("C")</small>
                                         </div>
                                     </div>
                                 }
@@ -414,39 +414,39 @@
                     <tbody>
                         @foreach (var project in Model.Projects)
                         {
-                       
-                            var progressPercentage = CalculateProgress(project);
-                            var statusClass = GetStatusClass(project.State?.StateName);
+
+                            var progressPercentage = CalculateProgress(project.Project);
+                            var statusClass = GetStatusClass(project.Project.State?.StateName);
                             
                             <tr>
                                 <td>
                                     <div class="project-name-cell">
                                         <strong>
-                                            <a asp-page="Details" asp-route-id="@project.ProjectId" 
+                                            <a asp-page="Details" asp-route-id="@project.Project.ProjectId"
                                                class="text-decoration-none">
-                                                @project.ProjectName
+                                                @project.Project.ProjectName
                                             </a>
                                         </strong>
-                                        @if (project.IsArchived == true)
+                                        @if (project.Project.IsArchived == true)
                                         {
                                             <span class="badge bg-secondary ms-2">Archiviert</span>
                                         }
                                     </div>
                                 </td>
-                                <td>@project.Customer?.CustomerName</td>
+                                <td>@project.Project.Customer?.CustomerName</td>
                                 <td>
                                     <span class="badge @statusClass">
-                                        @project.State?.StateName
+                                        @project.Project.State?.StateName
                                     </span>
                                 </td>
-                                <td>@project.ResponsiblePerson?.EmployeeDisplayName</td>
-                                <td>@(project.StartDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                <td>@project.Project.ResponsiblePerson?.EmployeeDisplayName</td>
+                                <td>@(project.Project.StartDate?.ToString("dd.MM.yyyy") ?? "-")</td>
                                 <td>
-                                    @if (project.EndDate.HasValue)
+                                    @if (project.Project.EndDate.HasValue)
                                     {
-                                        var isOverdue = project.EndDate < DateOnly.FromDateTime(DateTime.Now) && project.IsArchived != true;
+                                        var isOverdue = project.Project.EndDate < DateOnly.FromDateTime(DateTime.Now) && project.Project.IsArchived != true;
                                         <span class="@(isOverdue ? "text-danger fw-bold" : "")">
-                                            @project.EndDate.Value.ToString("dd.MM.yyyy")
+                                            @project.Project.EndDate.Value.ToString("dd.MM.yyyy")
                                         </span>
                                         @if (isOverdue)
                                         {
@@ -459,15 +459,15 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (project.ProjectBudget != null)
+                                    @if (project.Project.ProjectBudget != null)
                                     {
-                                        var budgetPercentage = project.ProjectBudget.InitialBudget > 0 
-                                            ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100 
-                                            : 0;
+                                        var budgetPercentage = project.Project.ProjectBudget.InitialBudget > 0
+                                        ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
+                                        : 0;
                                         
                                         <div class="budget-cell">
                                             <small class="text-muted d-block">
-                                                @project.ProjectBudget.UsedBudget.ToString("C") / @project.ProjectBudget.InitialBudget.ToString("C")
+                                                @project.UsedBudget.ToString("C") / @project.Project.ProjectBudget.InitialBudget.ToString("C")
                                             </small>
                                             <div class="progress progress-sm">
                                                 <div class="progress-bar @GetBudgetClass(budgetPercentage)" 
@@ -490,13 +490,13 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a asp-page="Details" asp-route-id="@project.ProjectId" 
+                                        <a asp-page="Details" asp-route-id="@project.Project.ProjectId"
                                            class="btn btn-outline-primary btn-sm" title="Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         @if (Model.CanEditProjects)
                                         {
-                                            <a asp-page="Edit" asp-route-id="@project.ProjectId" 
+                                            <a asp-page="Edit" asp-route-id="@project.Project.ProjectId"
                                                class="btn btn-outline-secondary btn-sm" title="Bearbeiten">
                                                 <i class="fas fa-edit"></i>
                                             </a>
@@ -507,15 +507,15 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <a class="dropdown-item" href="#" onclick="duplicateProject('@project.ProjectId')">
+                                                <a class="dropdown-item" href="#" onclick="duplicateProject('@project.Project.ProjectId')">
                                                     <i class="fas fa-copy me-2"></i>Duplizieren
                                                 </a>
                                             </li>
-                                            @if (project.IsArchived != true)
+                                            @if (project.Project.IsArchived != true)
                                             {
                                                 <li>
-                                                    <a class="dropdown-item text-warning" href="#" 
-                                                       onclick="archiveProject('@project.ProjectId')">
+                                                    <a class="dropdown-item text-warning" href="#"
+                                                       onclick="archiveProject('@project.Project.ProjectId')">
                                                         <i class="fas fa-archive me-2"></i>Archivieren
                                                     </a>
                                                 </li>
@@ -523,8 +523,8 @@
                                             else
                                             {
                                                 <li>
-                                                    <a class="dropdown-item text-success" href="#" 
-                                                       onclick="unarchiveProject('@project.ProjectId')">
+                                                    <a class="dropdown-item text-success" href="#"
+                                                       onclick="unarchiveProject('@project.Project.ProjectId')">
                                                         <i class="fas fa-box-open me-2"></i>Reaktivieren
                                                     </a>
                                                 </li>
@@ -613,7 +613,7 @@
         return "priority-low";
     }
     
-    private string GetBudgetClass(float percentage)
+    private string GetBudgetClass(double percentage)
     {
         if (percentage > 90) return "bg-danger";
         if (percentage > 75) return "bg-warning";

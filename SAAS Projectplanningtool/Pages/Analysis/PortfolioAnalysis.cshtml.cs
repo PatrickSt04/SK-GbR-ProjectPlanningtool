@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
+using SAAS_Projectplanningtool.Pages.Projects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +15,14 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
     public class PortfolioAnalysisModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public PortfolioAnalysisModel(ApplicationDbContext context)
+        public PortfolioAnalysisModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _projectStatisticsCalculator = new ProjectStatisticsCalculator(_context, userManager);
+            _userManager = userManager;
         }
 
         // KPI Properties
@@ -136,8 +142,7 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
                     var taskProgress = tasks.Any() ?
                         (decimal)tasks.Count(t => t.State?.StateName == "Abgeschlossen") / tasks.Count() * 100 : 0;
 
-                    var budgetUsage = p.ProjectBudget != null && p.ProjectBudget.InitialBudget > 0 ?
-                        (decimal)p.ProjectBudget.UsedBudget / (decimal)p.ProjectBudget.InitialBudget * 100 : 0;
+                    var budgetUsage = _projectStatisticsCalculator.CalculateBudgetStatisticsAsync(p.ProjectId, User).Result.UsedBudget;
 
                     return new ProjectProgressData
                     {
@@ -145,7 +150,7 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
                         ProjectName = p.ProjectName,
                         TimeProgress = Math.Min(timeProgress, 100),
                         TaskProgress = taskProgress,
-                        BudgetUsage = (float)budgetUsage,
+                        BudgetUsage = (double)budgetUsage,
                         InitialBudget = p.ProjectBudget?.InitialBudget ?? 0
                     };
                 })
@@ -171,7 +176,7 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
                         CompletionRate = taskProgress,
                         ResponsiblePerson = p.ResponsiblePerson?.EmployeeDisplayName ?? "N/A",
                         BudgetRemaining = p.ProjectBudget != null ?
-                            p.ProjectBudget.InitialBudget - p.ProjectBudget.UsedBudget : 0
+                            p.ProjectBudget.InitialBudget - _projectStatisticsCalculator.CalculateBudgetStatisticsAsync(p.ProjectId, User).Result.UsedBudget : 0
                     };
                 })
                 .OrderByDescending(p => p.DaysOverdue)
@@ -211,7 +216,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
                     // Budget overrun factor
                     if (p.ProjectBudget != null && p.ProjectBudget.InitialBudget > 0)
                     {
-                        var budgetUsage = (decimal)p.ProjectBudget.UsedBudget / (decimal)p.ProjectBudget.InitialBudget;
+                        //var budgetUsage = (decimal)p.ProjectBudget.UsedBudget / (decimal)p.ProjectBudget.InitialBudget
+                        var budgetUsage = (decimal)_projectStatisticsCalculator.CalculateBudgetStatisticsAsync(p.ProjectId, User).Result.UtilizationPercentage;
                         if (budgetUsage > 0.9m) riskScore += (budgetUsage - 0.9m) * 10; // Points for >90% usage
                     }
 
@@ -291,7 +297,7 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
             public int DaysOverdue { get; set; }
             public decimal CompletionRate { get; set; }
             public string ResponsiblePerson { get; set; }
-            public float BudgetRemaining { get; set; }
+            public double BudgetRemaining { get; set; }
         }
 
         public class ProjectProgressData
@@ -300,8 +306,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
             public string ProjectName { get; set; }
             public decimal TimeProgress { get; set; }
             public decimal TaskProgress { get; set; }
-            public float BudgetUsage { get; set; }
-            public float InitialBudget { get; set; }
+            public double BudgetUsage { get; set; }
+            public double InitialBudget { get; set; }
         }
 
         public class ChangeHotspot

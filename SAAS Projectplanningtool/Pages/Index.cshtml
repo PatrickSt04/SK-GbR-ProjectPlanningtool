@@ -81,21 +81,21 @@
 
                 @foreach (var project in visibleBudgetProjects)
                 {
-                    var budgetPercentage = project.ProjectBudget != null && project.ProjectBudget.InitialBudget > 0
-                    ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100
+                    var budgetPercentage = project.Project.ProjectBudget != null && project.Project.ProjectBudget.InitialBudget > 0
+                    ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
                     : 0;
                     var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
 
                     <div class="budget-item @warningClass">
                         <div class="budget-header">
-                            <span class="project-name">@project.ProjectName</span>
+                            <span class="project-name">@project.Project.ProjectName</span>
                             <span class="budget-percentage">@budgetPercentage.ToString("F1")%</span>
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: @budgetPercentage%"></div>
                         </div>
                         <div class="budget-details">
-                            <span>@project.ProjectBudget?.UsedBudget.ToString("C") von @project.ProjectBudget?.InitialBudget.ToString("C")</span>
+                            <span>@project.UsedBudget.ToString("C") von @project.Project.ProjectBudget?.InitialBudget.ToString("C")</span>
                         </div>
                     </div>
                 }
@@ -105,21 +105,21 @@
                     <div class="hidden-budget-items" id="hiddenBudgetItems" style="display: none;">
                         @foreach (var project in hiddenBudgetProjects)
                         {
-                            var budgetPercentage = project.ProjectBudget != null && project.ProjectBudget.InitialBudget > 0
-                            ? (project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget) * 100
+                            var budgetPercentage = project.Project.ProjectBudget != null && project.Project.ProjectBudget.InitialBudget > 0
+                            ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
                             : 0;
                             var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
 
                             <div class="budget-item @warningClass">
                                 <div class="budget-header">
-                                    <span class="project-name">@project.ProjectName</span>
+                                    <span class="project-name">@project.Project.ProjectName</span>
                                     <span class="budget-percentage">@budgetPercentage.ToString("F1")%</span>
                                 </div>
                                 <div class="progress-bar">
                                     <div class="progress-fill" style="width: @budgetPercentage%"></div>
                                 </div>
                                 <div class="budget-details">
-                                    <span>@project.ProjectBudget?.UsedBudget.ToString("C") von @project.ProjectBudget?.InitialBudget.ToString("C")</span>
+                                    <span>@project.UsedBudget.ToString("C") von @project.Project.ProjectBudget?.InitialBudget.ToString("C")</span>
                                 </div>
                             </div>
                         }
@@ -140,8 +140,8 @@
                         @foreach (var project in Model.HighBudgetProjects)
                         {
                             <li>
-                                <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId">@project.ProjectName</a>
-                                <span class="warning-percentage">@((project.ProjectBudget.UsedBudget / project.ProjectBudget.InitialBudget * 100).ToString("F1"))%</span>
+                                <a asp-page="/Projects/Details" asp-route-id="@project?.Project?.ProjectId">@project?.Project?.ProjectName</a>
+                                <span class="warning-percentage">@((project?.UsedBudget / project?.Project?.ProjectBudget?.InitialBudget * 100)?.ToString("F1"))%</span>
                             </li>
                         }
                     </ul>

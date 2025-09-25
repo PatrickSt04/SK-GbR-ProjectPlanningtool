@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
+using SAAS_Projectplanningtool.Pages.Projects;
 
 namespace SAAS_Projectplanningtool.Pages
 {
@@ -12,11 +13,13 @@ namespace SAAS_Projectplanningtool.Pages
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
 
         public Index1Model(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _projectStatisticsCalculator = new ProjectStatisticsCalculator(_context, _userManager);
         }
 
         // Current User Data
@@ -32,8 +35,13 @@ namespace SAAS_Projectplanningtool.Pages
         public int TotalProjectsCount { get; set; }
 
         // Budget Data
-        public List<Project> ProjectsWithBudget { get; set; } = new();
-        public List<Project> HighBudgetProjects { get; set; } = new();
+        public class ProjectWithBudget
+        {
+            public Project Project { get; set; }
+            public double UsedBudget { get; set; }
+        }
+        public List<ProjectWithBudget> ProjectsWithBudget { get; set; } = new();
+        public List<ProjectWithBudget> HighBudgetProjects { get; set; } = new();
 
         // Task Data
         public List<ProjectTask> MyOpenTasks { get; set; } = new();
@@ -157,7 +165,7 @@ namespace SAAS_Projectplanningtool.Pages
             var companyId = CurrentCompany!.CompanyId;
 
             // Projects with budget information
-            ProjectsWithBudget = await _context.Project
+            var tmp_ProjectsWithBudget = await _context.Project
                 .Include(p => p.ProjectBudget)
                 .Where(p => p.CompanyId == companyId &&
                            p.IsArchived != true &&
@@ -166,11 +174,35 @@ namespace SAAS_Projectplanningtool.Pages
                 .ToListAsync();
 
             // High budget projects (>90% used)
-            HighBudgetProjects = ProjectsWithBudget
+            var tmp_HighBudgetProjects = tmp_ProjectsWithBudget
                 .Where(p => p.ProjectBudget != null &&
                            p.ProjectBudget.InitialBudget > 0 &&
-                           (p.ProjectBudget.UsedBudget / p.ProjectBudget.InitialBudget) > 0.9f)
+                           (_projectStatisticsCalculator.CalculateBudgetStatisticsAsync(p.ProjectId, User).Result.UsedBudget / p.ProjectBudget.InitialBudget) > 0.9f)
                 .ToList();
+
+            ProjectsWithBudget
+                = new List<ProjectWithBudget>();
+            foreach (var project in tmp_ProjectsWithBudget)
+            {
+                var budgetStats = await _projectStatisticsCalculator.CalculateBudgetStatisticsAsync(project.ProjectId, User);
+                ProjectsWithBudget.Add(new ProjectWithBudget
+                {
+                    Project = project,
+                    UsedBudget = budgetStats.UsedBudget
+                });
+            }
+            HighBudgetProjects
+                = new List<ProjectWithBudget>();
+            foreach (var project in tmp_HighBudgetProjects)
+            {
+                var budgetStats = await _projectStatisticsCalculator.CalculateBudgetStatisticsAsync(project.ProjectId, User);
+                HighBudgetProjects.Add(new ProjectWithBudget
+                {
+                    Project = project,
+                    UsedBudget = budgetStats.UsedBudget
+                });
+            }
+
         }
 
         private async Task LoadTaskData()
