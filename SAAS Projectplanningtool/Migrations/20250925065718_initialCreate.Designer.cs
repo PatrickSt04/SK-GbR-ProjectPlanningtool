@@ -12,8 +12,8 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250830084152_dwd")]
-    partial class dwd
+    [Migration("20250925065718_initialCreate")]
+    partial class initialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -493,9 +493,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("ProjectTaskName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProjectTaskRessourceId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
@@ -512,11 +509,34 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasIndex("ProjectSectionId");
 
-                    b.HasIndex("ProjectTaskRessourceId");
-
                     b.HasIndex("StateId");
 
                     b.ToTable("ProjectTask");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskHourlyRateGroup", b =>
+                {
+                    b.Property<string>("ProjectTaskHourlyRateGroupId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HourlyRateGroupId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProjectTaskId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ProjectTaskHourlyRateGroupId");
+
+                    b.HasIndex("HourlyRateGroupId");
+
+                    b.HasIndex("ProjectTaskId");
+
+                    b.ToTable("ProjectTaskHourlyRateGroup");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Company", b =>
@@ -537,7 +557,7 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<DateTime?>("CreatedTimestamp")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("DefaultWorkDays")
+                    b.Property<string>("DefaultWorkDaysJson")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DefaultWorkingHoursJson")
@@ -659,9 +679,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("LatestModifierId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ProjectTaskRessourceId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("EmployeeId");
 
                     b.HasIndex("CompanyId");
@@ -675,8 +692,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("IdentityUserId");
 
                     b.HasIndex("LatestModifierId");
-
-                    b.HasIndex("ProjectTaskRessourceId");
 
                     b.ToTable("Employee");
                 });
@@ -802,48 +817,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("ExcecutingEmployeeId");
 
                     b.ToTable("Logfile");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource", b =>
-                {
-                    b.Property<string>("ProjectTaskRessourceId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CompanyId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CreatedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("CreatedTimestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LatestModificationText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LatestModificationTimestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LatestModifierId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ProjectTaskId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ProjectTaskName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ProjectTaskRessourceId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("LatestModifierId");
-
-                    b.HasIndex("ProjectTaskId");
-
-                    b.ToTable("ProjectTaskRessource");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1071,11 +1044,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("ProjectSectionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource", "ProjectTaskRessource")
-                        .WithMany()
-                        .HasForeignKey("ProjectTaskRessourceId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.State", "State")
                         .WithMany()
                         .HasForeignKey("StateId")
@@ -1089,9 +1057,26 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Navigation("ProjectSection");
 
-                    b.Navigation("ProjectTaskRessource");
-
                     b.Navigation("State");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskHourlyRateGroup", b =>
+                {
+                    b.HasOne("SAAS_Projectplanningtool.Models.HourlyRateGroup", "HourlyRateGroup")
+                        .WithMany()
+                        .HasForeignKey("HourlyRateGroupId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask", "ProjectTask")
+                        .WithMany("ProjectTaskHourlyRateGroups")
+                        .HasForeignKey("ProjectTaskId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("HourlyRateGroup");
+
+                    b.Navigation("ProjectTask");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Company", b =>
@@ -1194,11 +1179,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("LatestModifierId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource", null)
-                        .WithMany("EmployeeRessources")
-                        .HasForeignKey("ProjectTaskRessourceId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.Navigation("Company");
 
                     b.Navigation("CreatedByEmployee");
@@ -1246,37 +1226,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("ExcecutingEmployee");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource", b =>
-                {
-                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
-                        .WithMany()
-                        .HasForeignKey("LatestModifierId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask", "ProjectTask")
-                        .WithMany()
-                        .HasForeignKey("ProjectTaskId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Company");
-
-                    b.Navigation("CreatedByEmployee");
-
-                    b.Navigation("LatestModifier");
-
-                    b.Navigation("ProjectTask");
-                });
-
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.Project", b =>
                 {
                     b.Navigation("ProjectSections");
@@ -1289,9 +1238,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("SubSections");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.RessourcePlanning.ProjectTaskRessource", b =>
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask", b =>
                 {
-                    b.Navigation("EmployeeRessources");
+                    b.Navigation("ProjectTaskHourlyRateGroups");
                 });
 #pragma warning restore 612, 618
         }

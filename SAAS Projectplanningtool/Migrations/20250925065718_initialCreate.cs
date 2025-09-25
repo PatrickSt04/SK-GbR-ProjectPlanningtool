@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SAAS_Projectplanningtool.Migrations
 {
     /// <inheritdoc />
-    public partial class initialcreate : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -219,7 +219,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     SectorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LicenseId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     AddressId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DefaultWorkDays = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DefaultWorkDaysJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DefaultWorkingHoursJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -422,76 +423,6 @@ namespace SAAS_Projectplanningtool.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RessourceType",
-                columns: table => new
-                {
-                    RessourceTypeId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    RessourceTypeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsEmployeeRessourceType = table.Column<bool>(type: "bit", nullable: false),
-                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RessourceType", x => x.RessourceTypeId);
-                    table.ForeignKey(
-                        name: "FK_RessourceType_Company_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "Company",
-                        principalColumn: "CompanyId");
-                    table.ForeignKey(
-                        name: "FK_RessourceType_Employee_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_RessourceType_Employee_LatestModifierId",
-                        column: x => x.LatestModifierId,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Unit",
-                columns: table => new
-                {
-                    UnitId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Unit", x => x.UnitId);
-                    table.ForeignKey(
-                        name: "FK_Unit_Company_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "Company",
-                        principalColumn: "CompanyId");
-                    table.ForeignKey(
-                        name: "FK_Unit_Employee_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Unit_Employee_LatestModifierId",
-                        column: x => x.LatestModifierId,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Project",
                 columns: table => new
                 {
@@ -510,7 +441,9 @@ namespace SAAS_Projectplanningtool.Migrations
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DefaultWorkDays = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DefaultWorkingHoursJson = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -552,54 +485,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         column: x => x.StateId,
                         principalTable: "State",
                         principalColumn: "StateId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Ressource",
-                columns: table => new
-                {
-                    RessourceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    RessourceTypeId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    UnitId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CostsPerUnit = table.Column<float>(type: "real", nullable: false),
-                    RessourceName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Ressource", x => x.RessourceId);
-                    table.ForeignKey(
-                        name: "FK_Ressource_Company_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "Company",
-                        principalColumn: "CompanyId");
-                    table.ForeignKey(
-                        name: "FK_Ressource_Employee_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Ressource_Employee_LatestModifierId",
-                        column: x => x.LatestModifierId,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Ressource_RessourceType_RessourceTypeId",
-                        column: x => x.RessourceTypeId,
-                        principalTable: "RessourceType",
-                        principalColumn: "RessourceTypeId");
-                    table.ForeignKey(
-                        name: "FK_Ressource_Unit_UnitId",
-                        column: x => x.UnitId,
-                        principalTable: "Unit",
-                        principalColumn: "UnitId");
                 });
 
             migrationBuilder.CreateTable(
@@ -672,6 +557,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     StartDate = table.Column<DateOnly>(type: "date", nullable: true),
                     EndDate = table.Column<DateOnly>(type: "date", nullable: true),
                     StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    IsTaskCatalogEntry = table.Column<bool>(type: "bit", nullable: false),
+                    IsScheduleEntry = table.Column<bool>(type: "bit", nullable: false),
                     LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -711,50 +598,27 @@ namespace SAAS_Projectplanningtool.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProjectTaskRessource",
+                name: "ProjectTaskHourlyRateGroup",
                 columns: table => new
                 {
-                    ProjectTaskRessourceId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    RessourceId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ProjectTaskId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    AmountPerUnit = table.Column<float>(type: "real", nullable: false),
-                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ProjectTaskHourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProjectTaskId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    HourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Amount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProjectTaskRessource", x => x.ProjectTaskRessourceId);
+                    table.PrimaryKey("PK_ProjectTaskHourlyRateGroup", x => x.ProjectTaskHourlyRateGroupId);
                     table.ForeignKey(
-                        name: "FK_ProjectTaskRessource_Company_CompanyId",
-                        column: x => x.CompanyId,
-                        principalTable: "Company",
-                        principalColumn: "CompanyId");
+                        name: "FK_ProjectTaskHourlyRateGroup_HourlyRateGroup_HourlyRateGroupId",
+                        column: x => x.HourlyRateGroupId,
+                        principalTable: "HourlyRateGroup",
+                        principalColumn: "HourlyRateGroupId");
                     table.ForeignKey(
-                        name: "FK_ProjectTaskRessource_Employee_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ProjectTaskRessource_Employee_LatestModifierId",
-                        column: x => x.LatestModifierId,
-                        principalTable: "Employee",
-                        principalColumn: "EmployeeId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ProjectTaskRessource_ProjectTask_ProjectTaskId",
+                        name: "FK_ProjectTaskHourlyRateGroup_ProjectTask_ProjectTaskId",
                         column: x => x.ProjectTaskId,
                         principalTable: "ProjectTask",
                         principalColumn: "ProjectTaskId");
-                    table.ForeignKey(
-                        name: "FK_ProjectTaskRessource_Ressource_RessourceId",
-                        column: x => x.RessourceId,
-                        principalTable: "Ressource",
-                        principalColumn: "RessourceId");
                 });
 
             migrationBuilder.CreateIndex(
@@ -1017,84 +881,14 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "StateId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProjectTaskRessource_CompanyId",
-                table: "ProjectTaskRessource",
-                column: "CompanyId");
+                name: "IX_ProjectTaskHourlyRateGroup_HourlyRateGroupId",
+                table: "ProjectTaskHourlyRateGroup",
+                column: "HourlyRateGroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProjectTaskRessource_CreatedById",
-                table: "ProjectTaskRessource",
-                column: "CreatedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProjectTaskRessource_LatestModifierId",
-                table: "ProjectTaskRessource",
-                column: "LatestModifierId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProjectTaskRessource_ProjectTaskId",
-                table: "ProjectTaskRessource",
+                name: "IX_ProjectTaskHourlyRateGroup_ProjectTaskId",
+                table: "ProjectTaskHourlyRateGroup",
                 column: "ProjectTaskId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProjectTaskRessource_RessourceId",
-                table: "ProjectTaskRessource",
-                column: "RessourceId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Ressource_CompanyId",
-                table: "Ressource",
-                column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Ressource_CreatedById",
-                table: "Ressource",
-                column: "CreatedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Ressource_LatestModifierId",
-                table: "Ressource",
-                column: "LatestModifierId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Ressource_RessourceTypeId",
-                table: "Ressource",
-                column: "RessourceTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Ressource_UnitId",
-                table: "Ressource",
-                column: "UnitId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RessourceType_CompanyId",
-                table: "RessourceType",
-                column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RessourceType_CreatedById",
-                table: "RessourceType",
-                column: "CreatedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RessourceType_LatestModifierId",
-                table: "RessourceType",
-                column: "LatestModifierId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Unit_CompanyId",
-                table: "Unit",
-                column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Unit_CreatedById",
-                table: "Unit",
-                column: "CreatedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Unit_LatestModifierId",
-                table: "Unit",
-                column: "LatestModifierId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Address_Company_CompanyId",
@@ -1201,22 +995,13 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "Logfile");
 
             migrationBuilder.DropTable(
-                name: "ProjectTaskRessource");
+                name: "ProjectTaskHourlyRateGroup");
 
             migrationBuilder.DropTable(
                 name: "ProjectTask");
 
             migrationBuilder.DropTable(
-                name: "Ressource");
-
-            migrationBuilder.DropTable(
                 name: "ProjectSection");
-
-            migrationBuilder.DropTable(
-                name: "RessourceType");
-
-            migrationBuilder.DropTable(
-                name: "Unit");
 
             migrationBuilder.DropTable(
                 name: "Project");

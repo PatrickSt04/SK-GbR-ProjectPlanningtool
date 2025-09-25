@@ -672,6 +672,8 @@
                                                 <th><i class="fas fa-calendar-alt me-1"></i>Start</th>
                                                 <th><i class="fas fa-calendar-check me-1"></i>Ende</th>
                                                 <th><i class="fas fa-clock me-1"></i>Dauer</th>
+                                                <th><i class="fas fa-clock me-1"></i>AT</th>
+                                                <th><i class="fas fa-clock me-1"></i>AS</th>
                                                 <th><i class="fas fa-users me-1"></i>Stundensatzgruppen</th>
                                                 <th><i class="fas fa-cog me-1"></i>Aktionen</th>
                                             </tr>
@@ -692,7 +694,11 @@
                                                             dauer = (end - start).Days + 1;
                                                         }
                                                     }
-                                                    <td>@(dauer.HasValue ? dauer.ToString() : "N/A")</td>
+                                                    <td>@(dauer.HasValue ? dauer.ToString() : "N/A") d</td>
+                                                    <td>@task.DurationInDays AT</td>
+                                                    <td>@task.DurationInHours Std.</td>
+
+
                                                     <td>
                                                         @if (task.ProjectTaskHourlyRateGroups?.Any() == true)
                                                         {
@@ -713,7 +719,7 @@
                                                                     }
                                                                     @foreach (var hrg in task.ProjectTaskHourlyRateGroups)
                                                                     {
-                                                                        <!-- FEHLT Berechnung der Kosten anhand default Worktimes/ Days -->
+
                                                                         decimal groupCost = (decimal)(hrg.Amount * hrg.HourlyRateGroup.HourlyRate);
                                                                         totalCostPerHour += groupCost;
                                                                         totalWorkers += hrg.Amount;
@@ -751,17 +757,22 @@
 
                                                                     @if (task.StartDate.HasValue && task.EndDate.HasValue)
                                                                     {
+                                                                        // Kosten entsprechend der Task Dauer (Task Dauer / Default Workdays von Projekt)
+                                                                        // wird nach jeder HRG Änderung in der Tabelle aktualisiert
 
-                                                                        int taskDays = (task.EndDate.Value.DayNumber - task.StartDate.Value.DayNumber + 1);
-                                                                        decimal estimatedTotalCost = totalCostPerHour * taskDays * 8; // 8 Stunden pro Tag angenommen
+
+
+
+                                                                        // int taskDays = (task.EndDate.Value.DayNumber - task.StartDate.Value.DayNumber + 1);
+                                                                        // decimal estimatedTotalCost = totalCostPerHour * taskDays * 8;
 
                                                                         <div class="summary-row estimate-row">
                                                                             <span class="summary-label">
                                                                                 <i class="fas fa-chart-line me-1"></i>Geschätzte Gesamtkosten:
                                                                             </span>
                                                                             <span class="summary-value estimate-value">
-                                                                                @estimatedTotalCost.ToString("F2")€
-                                                                                <small class="text-muted">(@taskDays Tage × 8h)</small>
+                                                                                @task.TotalCosts?.ToString("F2")€
+                                                                                <small class="text-muted">(@task.DurationInDays Tage × Standard AZ)</small>
                                                                             </span>
                                                                         </div>
                                                                     }
@@ -842,7 +853,7 @@
 <script>
     let selectedHRGs = new Map();
     document.addEventListener('DOMContentLoaded', function() {
-       
+
 
         // Enhanced toggle function
         window.toggleRow = function(rowId, iconElem) {
