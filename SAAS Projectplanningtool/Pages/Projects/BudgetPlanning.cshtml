@@ -438,6 +438,352 @@
         font-size: 1.1rem;
     }
 
+    .budget-dashboard {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .dashboard-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+    }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 600;
+        }
+
+        .dashboard-header .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+    /* Budget Overview Cards */
+    .budget-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .budget-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .budget-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .budget-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .budget-card.primary::before {
+            background: var(--primary-gradient);
+        }
+
+        .budget-card.success::before {
+            background: var(--success-color);
+        }
+
+        .budget-card.warning::before {
+            background: var(--warning-color);
+        }
+
+        .budget-card.danger::before {
+            background: var(--danger-color);
+        }
+
+        .budget-card.info::before {
+            background: var(--info-color);
+        }
+
+    .budget-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .budget-card-title {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .budget-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .budget-card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .budget-card-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    /* Progress Bar */
+    .budget-progress {
+        background: #f1f3f4;
+        border-radius: 10px;
+        height: 12px;
+        overflow: hidden;
+        margin-top: 1rem;
+        position: relative;
+    }
+
+    .budget-progress-bar {
+        height: 100%;
+        border-radius: 10px;
+        background: var(--primary-gradient);
+        transition: width 1s ease-in-out;
+        position: relative;
+    }
+
+        .budget-progress-bar.success {
+            background: var(--success-color);
+        }
+
+        .budget-progress-bar.warning {
+            background: var(--warning-color);
+        }
+
+        .budget-progress-bar.danger {
+            background: var(--danger-color);
+        }
+
+    .budget-progress-text {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    /* Status Badge */
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+        .status-badge.on-track {
+            background: rgba(0, 212, 170, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-badge.warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: #e68900;
+        }
+
+        .status-badge.critical {
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--danger-color);
+        }
+
+        .status-badge.exceeded {
+            background: rgba(139, 0, 0, 0.1);
+            color: #8b0000;
+        }
+
+    /* Charts Container */
+    .charts-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+
+    .chart-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+
+    /* Top Sections */
+    .top-sections {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+
+    .section-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        background: var(--light-bg);
+        transition: all 0.2s ease;
+    }
+
+        .section-item:hover {
+            background: #e2e8f0;
+            transform: translateX(5px);
+        }
+
+        .section-item:last-child {
+            margin-bottom: 0;
+        }
+
+    .section-name {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .section-stats {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .section-cost {
+        font-weight: 700;
+        color: var(--success-color);
+    }
+
+    .section-percentage {
+        color: var(--text-secondary);
+        background: rgba(255, 255, 255, 0.8);
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+    }
+
+    .section-tasks {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    /* Task Statistics */
+    .task-statistics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .task-stat {
+        text-align: center;
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        background: var(--light-bg);
+    }
+
+    .task-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .task-stat-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* Loading Animation */
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 300px;
+        color: var(--text-secondary);
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+
+    /* Error State */
+    .error-message {
+        background: rgba(255, 107, 107, 0.1);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: var(--danger-color);
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+        .error-message i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
 </style>
 
 <div class="main-container">
@@ -602,6 +948,142 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+</div>
+<div class="main-container">
+    <div class="budget-dashboard">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1><i class="fas fa-chart-pie me-3"></i>Budget Statistiken</h1>
+            <div class="subtitle"> <span id="projectName">-</span></div>
+        </div>
+
+        <!-- Budget Overview Cards -->
+        <div class="budget-overview">
+            <div class="budget-card primary">
+                <div class="budget-card-header">
+                    <div class="budget-card-title">Gesamtbudget</div>
+                    <div class="budget-card-icon" style="background: var(--primary-gradient);">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+                <div class="budget-card-value">-</div>
+                <div class="budget-card-subtitle">Auftragsvolumen</div>
+            </div>
+
+            <div class="budget-card success">
+                <div class="budget-card-header">
+                    <div class="budget-card-title">Verbrauchtes Budget</div>
+                    <div class="budget-card-icon" style="background: var(--success-color);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="budget-card-value">-</div>
+                <div class="budget-card-subtitle">Bisher ausgegeben</div>
+                <div class="budget-progress">
+                    <div class="budget-progress-bar success" style="width: 0%"></div>
+                    <div class="budget-progress-text">0%</div>
+                </div>
+            </div>
+
+            <div class="budget-card info">
+                <div class="budget-card-header">
+                    <div class="budget-card-title">Verbleibendes Budget</div>
+                    <div class="budget-card-icon" style="background: var(--info-color);">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                </div>
+                <div class="budget-card-value">-</div>
+                <div class="budget-card-subtitle">
+                    <!-- Nachkalkulation: Used Budget wird als Initiales Auftragsvolumen übernommen-->
+                    <form method="post" asp-page-handler="RecalculateProjectBudget">
+                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                        <button type="submit" class="modern-btn small info">
+                            <i class="fas fa-calculator me-1"></i>
+                            Nachkalkulation anstoßen
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="budget-card warning">
+                <div class="budget-card-header">
+                    <div class="budget-card-title">Budget Status</div>
+                    <div class="budget-card-icon" style="background: var(--warning-color);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="budget-card-value">
+                    <span class="status-badge on-track" id="project_budget_state">
+                        <i class="fas fa-check-circle"></i>
+                        <!-- dynamically in js (Index for Budget State ex 1 = "Im Plan" 2 = "Warnung" ... -->
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Container -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-doughnut"></i>
+                    Budget Verteilung
+                </div>
+                <div class="chart-container">
+                    <canvas id="budgetDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Top 5 Kostenstellen
+                </div>
+                <div class="chart-container">
+                    <canvas id="topCostSectionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Cost Sections -->
+        <div class="top-sections">
+            <h3 class="chart-title">
+                <i class="fas fa-trophy"></i>
+                Kostenintensivste Bereiche
+            </h3>
+            <div id="topSectionsList">
+                <div class="section-item">Daten werden geladen...</div>
+            </div>
+        </div>
+
+        <!-- Task Statistics -->
+        <div class="task-statistics">
+            <div class="task-stat">
+                <div class="task-stat-value">-</div>
+                <div class="task-stat-label">Gesamt Tasks</div>
+            </div>
+            <div class="task-stat">
+                <div class="task-stat-value">-</div>
+                <div class="task-stat-label">Mit Budget</div>
+            </div>
+            <div class="task-stat">
+                <div class="task-stat-value">-</div>
+                <div class="task-stat-label">Ohne Budget</div>
+            </div>
+            <div class="task-stat">
+                <div class="task-stat-value">-</div>
+                <div class="task-stat-label">Ø Kosten/Task</div>
+            </div>
+            @* <div class="task-stat">
+                <div class="task-stat-value">-</div>
+                <div class="task-stat-label">Arbeitstage</div>
+            </div>
+            <div class="task-stat">
+                <div class="task-stat-value">-</div>
+                <div class="task-stat-label">Arbeitsstunden</div>
+            </div> *@
         </div>
     </div>
 </div>
@@ -851,251 +1333,409 @@
 }
 
 <script>
-    let selectedHRGs = new Map();
-    document.addEventListener('DOMContentLoaded', function() {
+        let selectedHRGs = new Map();
+        document.addEventListener('DOMContentLoaded', function() {
 
 
-        // Enhanced toggle function
-        window.toggleRow = function(rowId, iconElem) {
-            const row = document.getElementById(rowId);
-            if (!row) return;
+            // Enhanced toggle function
+            window.toggleRow = function(rowId, iconElem) {
+                const row = document.getElementById(rowId);
+                if (!row) return;
 
-            const icon = iconElem.querySelector('i');
+                const icon = iconElem.querySelector('i');
 
-            if (row.style.display === "none" || row.style.display === "") {
-                row.style.display = "table-row";
-                icon.className = "fas fa-minus";
-                iconElem.style.background = "var(--accent-color)";
-            } else {
-                row.style.display = "none";
-                icon.className = "fas fa-plus";
-                iconElem.style.background = "var(--primary-color)";
-            }
-        };
-        //Add button functionality
-       document.addEventListener('click', function(e) {
-        if (e.target.closest('.add-hrg-btn')) {
-            const btn = e.target.closest('.add-hrg-btn');
-            const hrgId = btn.dataset.hrgId;
-            const hrgName = btn.dataset.hrgName;
-            const hourlyRate = parseFloat(btn.dataset.hourlyRate);
-
-            const row = btn.closest('tr'); // nur Input in dieser Zeile greifen
-            const amountInput = row.querySelector(`input[data-hrg-id="${hrgId}"]`);
-            const amount = parseInt(amountInput.value) || 0;
-
-            if (amount <= 0) {
-                showNotification('Bitte geben Sie eine gültige Anzahl von Arbeitern ein.', 'warning');
-                amountInput.focus();
-                return;
-            }
-
-            // Wenn die HRG bereits existiert, addiere die Anzahl
-            if (selectedHRGs.has(hrgId)) {
-                const existing = selectedHRGs.get(hrgId);
-                existing.amount += amount;
-                selectedHRGs.set(hrgId, existing);
-            } else {
-                selectedHRGs.set(hrgId, {
-                    id: hrgId,
-                    name: hrgName,
-                    hourlyRate: hourlyRate,
-                    amount: amount
-                });
-            }
-
-            amountInput.value = 0;
-            updateSelectedHRGsTable();
-            showNotification(`${hrgName} wurde erfolgreich hinzugefügt!`, 'success');
-        }
-    });
-
-
-        // Remove button functionality
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-hrg-btn')) {
-                const btn = e.target.closest('.remove-hrg-btn');
+                if (row.style.display === "none" || row.style.display === "") {
+                    row.style.display = "table-row";
+                    icon.className = "fas fa-minus";
+                    iconElem.style.background = "var(--accent-color)";
+                } else {
+                    row.style.display = "none";
+                    icon.className = "fas fa-plus";
+                    iconElem.style.background = "var(--primary-color)";
+                }
+            };
+            //Add button functionality
+           document.addEventListener('click', function(e) {
+            if (e.target.closest('.add-hrg-btn')) {
+                const btn = e.target.closest('.add-hrg-btn');
                 const hrgId = btn.dataset.hrgId;
-                const hrgName = selectedHRGs.get(hrgId)?.name;
+                const hrgName = btn.dataset.hrgName;
+                const hourlyRate = parseFloat(btn.dataset.hourlyRate);
 
-                selectedHRGs.delete(hrgId);
-                updateSelectedHRGsTable();
-                showNotification(`${hrgName} wurde entfernt.`, 'info');
-            }
-        });
+                const row = btn.closest('tr'); // nur Input in dieser Zeile greifen
+                const amountInput = row.querySelector(`input[data-hrg-id="${hrgId}"]`);
+                const amount = parseInt(amountInput.value) || 0;
 
-        // Amount change functionality
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('selected-hrg-amount')) {
-                const hrgId = e.target.dataset.hrgId;
-                const newAmount = parseInt(e.target.value) || 0;
+                if (amount <= 0) {
+                    showNotification('Bitte geben Sie eine gültige Anzahl von Arbeitern ein.', 'warning');
+                    amountInput.focus();
+                    return;
+                }
 
+                // Wenn die HRG bereits existiert, addiere die Anzahl
                 if (selectedHRGs.has(hrgId)) {
-                    const hrg = selectedHRGs.get(hrgId);
-                    hrg.amount = newAmount;
-                    selectedHRGs.set(hrgId, hrg);
-                    updateSelectedHRGsTable();
-                }
-            }
-        });
-
-        // Update Selected HRGs Table
-        function updateSelectedHRGsTable() {
-            const tableBody = document.getElementById('selectedHRGsTable');
-            const noHRGsMessage = document.getElementById('noHRGsMessage');
-            const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
-
-            tableBody.innerHTML = '';
-            hiddenInputsContainer.innerHTML = '';
-
-            let totalCostPerHour = 0;
-            let index = 0;
-
-            if (selectedHRGs.size === 0) {
-                noHRGsMessage.style.display = 'block';
-            } else {
-                noHRGsMessage.style.display = 'none';
-
-                selectedHRGs.forEach((hrg) => {
-                    const totalCost = hrg.hourlyRate * hrg.amount;
-                    totalCostPerHour += totalCost;
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${hrg.name}</strong></td>
-                        <td><span class="text-success fw-bold">${hrg.hourlyRate.toFixed(2)} €</span></td>
-                        <td>
-                            <input type="number"
-                                   class="form-control selected-hrg-amount"
-                                   min="1"
-                                   value="${hrg.amount}"
-                                   style="width: 100px;"
-                                   data-hrg-id="${hrg.id}" />
-                        </td>
-                        <td><span class="fw-bold text-primary">${totalCost.toFixed(2)} €</span></td>
-                        <td>
-                            <button type="button"
-                                    class="btn btn-outline-danger btn-sm remove-hrg-btn"
-                                    data-hrg-id="${hrg.id}"
-                                    title="Entfernen">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-
-                    // Hidden Inputs für das neue Datenmodell
-                    const hrgIdInput = document.createElement('input');
-                    hrgIdInput.type = 'hidden';
-                    hrgIdInput.name = `HRGAmounts[${index}].HourlyRateGroupId`;
-                    hrgIdInput.value = hrg.id;
-                    hiddenInputsContainer.appendChild(hrgIdInput);
-
-                    const hrgNameInput = document.createElement('input');
-                    hrgNameInput.type = 'hidden';
-                    hrgNameInput.name = `HRGAmounts[${index}].HourlyRateGroupName`;
-                    hrgNameInput.value = hrg.name;
-                    hiddenInputsContainer.appendChild(hrgNameInput);
-
-                    const hourlyRateInput = document.createElement('input');
-                    hourlyRateInput.type = 'hidden';
-                    hourlyRateInput.name = `HRGAmounts[${index}].HourlyRate`;
-                    hourlyRateInput.value = hrg.hourlyRate;
-                    hiddenInputsContainer.appendChild(hourlyRateInput);
-
-                    const amountInput = document.createElement('input');
-                    amountInput.type = 'hidden';
-                    amountInput.name = `HRGAmounts[${index}].Amount`;
-                    amountInput.value = hrg.amount;
-                    hiddenInputsContainer.appendChild(amountInput);
-
-                    index++;
-                });
-            }
-
-            document.getElementById('totalCostPerHour').textContent = totalCostPerHour.toFixed(2) + ' €';
-        }
-
-        // Modal event handlers
-        document.querySelectorAll(".open-resource-modal").forEach(btn => {
-            btn.addEventListener("click", function (e) {
-                const taskId = this.getAttribute("data-task-id");
-                const projectId = '@Model.Project?.ProjectId';
-
-                document.getElementById("hrgProjectTaskId").value = taskId;
-                document.getElementById("hrgProjectId").value = projectId;
-            });
-        });
-
-        // Modal reset when opened
-        document.getElementById('addHRGsModal').addEventListener('shown.bs.modal', function() {
-
-            initializeSelectedHRGsTable(document.getElementById("hrgProjectTaskId").value);
-            document.querySelectorAll('.hrg-amount').forEach(input => {
-                input.value = 0;
-            });
-        });
-
-        async function initializeSelectedHRGsTable(taskId) {
-            selectedHRGs.clear();
-
-            try {
-                const response = await fetch(`/Projects/BudgetPlanning?handler=ReadTaskHRGs&taskId=${taskId}`);
-                if (!response.ok) throw new Error("Fehler beim Laden der HRGs");
-
-                const data = await response.json();
-                // Erwartetes JSON: [{ hourlyRateGroupId, hourlyRateGroupName, hourlyRate, amount }, ...]
-
-                data.forEach(hrg => {
-                    selectedHRGs.set(hrg.hourlyRateGroupId, {
-                        id: hrg.hourlyRateGroupId,
-                        name: hrg.hourlyRateGroupName,
-                        hourlyRate: parseFloat(hrg.hourlyRate),
-                        amount: hrg.amount
+                    const existing = selectedHRGs.get(hrgId);
+                    existing.amount += amount;
+                    selectedHRGs.set(hrgId, existing);
+                } else {
+                    selectedHRGs.set(hrgId, {
+                        id: hrgId,
+                        name: hrgName,
+                        hourlyRate: hourlyRate,
+                        amount: amount
                     });
-                });
-
-                updateSelectedHRGsTable();
-            } catch (err) {
-                console.error(err);
-                showNotification("Fehler beim Laden der geplanten Stundensatzgruppen", "error");
-            }
-        }
-
-        // Notification system
-        function showNotification(message, type = 'info') {
-            const existingNotifications = document.querySelectorAll('.custom-notification');
-            existingNotifications.forEach(n => n.remove());
-
-            const notification = document.createElement('div');
-            notification.className = `custom-notification alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'error' ? 'danger' : 'info'}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-                max-width: 300px;
-                box-shadow: var(--shadow-lg);
-                border-radius: var(--border-radius);
-            `;
-
-            const icon = type === 'success' ? 'check-circle' :
-                        type === 'warning' ? 'exclamation-triangle' :
-                        type === 'error' ? 'times-circle' : 'info-circle';
-
-            notification.innerHTML = `
-                <i class="fas fa-${icon} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-            `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
                 }
-            }, 4000);
+
+                amountInput.value = 0;
+                updateSelectedHRGsTable();
+                showNotification(`${hrgName} wurde erfolgreich hinzugefügt!`, 'success');
+            }
+        });
+
+
+            // Remove button functionality
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-hrg-btn')) {
+                    const btn = e.target.closest('.remove-hrg-btn');
+                    const hrgId = btn.dataset.hrgId;
+                    const hrgName = selectedHRGs.get(hrgId)?.name;
+
+                    selectedHRGs.delete(hrgId);
+                    updateSelectedHRGsTable();
+                    showNotification(`${hrgName} wurde entfernt.`, 'info');
+                }
+            });
+
+            // Amount change functionality
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('selected-hrg-amount')) {
+                    const hrgId = e.target.dataset.hrgId;
+                    const newAmount = parseInt(e.target.value) || 0;
+
+                    if (selectedHRGs.has(hrgId)) {
+                        const hrg = selectedHRGs.get(hrgId);
+                        hrg.amount = newAmount;
+                        selectedHRGs.set(hrgId, hrg);
+                        updateSelectedHRGsTable();
+                    }
+                }
+            });
+
+            // Update Selected HRGs Table
+            function updateSelectedHRGsTable() {
+                const tableBody = document.getElementById('selectedHRGsTable');
+                const noHRGsMessage = document.getElementById('noHRGsMessage');
+                const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
+
+                tableBody.innerHTML = '';
+                hiddenInputsContainer.innerHTML = '';
+
+                let totalCostPerHour = 0;
+                let index = 0;
+
+                if (selectedHRGs.size === 0) {
+                    noHRGsMessage.style.display = 'block';
+                } else {
+                    noHRGsMessage.style.display = 'none';
+
+                    selectedHRGs.forEach((hrg) => {
+                        const totalCost = hrg.hourlyRate * hrg.amount;
+                        totalCostPerHour += totalCost;
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><strong>${hrg.name}</strong></td>
+                            <td><span class="text-success fw-bold">${hrg.hourlyRate.toFixed(2)} €</span></td>
+                            <td>
+                                <input type="number"
+                                       class="form-control selected-hrg-amount"
+                                       min="1"
+                                       value="${hrg.amount}"
+                                       style="width: 100px;"
+                                       data-hrg-id="${hrg.id}" />
+                            </td>
+                            <td><span class="fw-bold text-primary">${totalCost.toFixed(2)} €</span></td>
+                            <td>
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm remove-hrg-btn"
+                                        data-hrg-id="${hrg.id}"
+                                        title="Entfernen">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+
+                        // Hidden Inputs für das neue Datenmodell
+                        const hrgIdInput = document.createElement('input');
+                        hrgIdInput.type = 'hidden';
+                        hrgIdInput.name = `HRGAmounts[${index}].HourlyRateGroupId`;
+                        hrgIdInput.value = hrg.id;
+                        hiddenInputsContainer.appendChild(hrgIdInput);
+
+                        const hrgNameInput = document.createElement('input');
+                        hrgNameInput.type = 'hidden';
+                        hrgNameInput.name = `HRGAmounts[${index}].HourlyRateGroupName`;
+                        hrgNameInput.value = hrg.name;
+                        hiddenInputsContainer.appendChild(hrgNameInput);
+
+                        const hourlyRateInput = document.createElement('input');
+                        hourlyRateInput.type = 'hidden';
+                        hourlyRateInput.name = `HRGAmounts[${index}].HourlyRate`;
+                        hourlyRateInput.value = hrg.hourlyRate;
+                        hiddenInputsContainer.appendChild(hourlyRateInput);
+
+                        const amountInput = document.createElement('input');
+                        amountInput.type = 'hidden';
+                        amountInput.name = `HRGAmounts[${index}].Amount`;
+                        amountInput.value = hrg.amount;
+                        hiddenInputsContainer.appendChild(amountInput);
+
+                        index++;
+                    });
+                }
+
+                document.getElementById('totalCostPerHour').textContent = totalCostPerHour.toFixed(2) + ' €';
+            }
+
+            // Modal event handlers
+            document.querySelectorAll(".open-resource-modal").forEach(btn => {
+                btn.addEventListener("click", function (e) {
+                    const taskId = this.getAttribute("data-task-id");
+                    const projectId = '@Model.Project?.ProjectId';
+
+                    document.getElementById("hrgProjectTaskId").value = taskId;
+                    document.getElementById("hrgProjectId").value = projectId;
+                });
+            });
+
+            // Modal reset when opened
+            document.getElementById('addHRGsModal').addEventListener('shown.bs.modal', function() {
+
+                initializeSelectedHRGsTable(document.getElementById("hrgProjectTaskId").value);
+                document.querySelectorAll('.hrg-amount').forEach(input => {
+                    input.value = 0;
+                });
+            });
+
+            async function initializeSelectedHRGsTable(taskId) {
+                selectedHRGs.clear();
+
+                try {
+                    const response = await fetch(`/Projects/BudgetPlanning?handler=ReadTaskHRGs&taskId=${taskId}`);
+                    if (!response.ok) throw new Error("Fehler beim Laden der HRGs");
+
+                    const data = await response.json();
+                    // Erwartetes JSON: [{ hourlyRateGroupId, hourlyRateGroupName, hourlyRate, amount }, ...]
+
+                    data.forEach(hrg => {
+                        selectedHRGs.set(hrg.hourlyRateGroupId, {
+                            id: hrg.hourlyRateGroupId,
+                            name: hrg.hourlyRateGroupName,
+                            hourlyRate: parseFloat(hrg.hourlyRate),
+                            amount: hrg.amount
+                        });
+                    });
+
+                    updateSelectedHRGsTable();
+                } catch (err) {
+                    console.error(err);
+                    showNotification("Fehler beim Laden der geplanten Stundensatzgruppen", "error");
+                }
+            }
+
+            // Notification system
+            function showNotification(message, type = 'info') {
+                const existingNotifications = document.querySelectorAll('.custom-notification');
+                existingNotifications.forEach(n => n.remove());
+
+                const notification = document.createElement('div');
+                notification.className = `custom-notification alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'error' ? 'danger' : 'info'}`;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 9999;
+                    max-width: 300px;
+                    box-shadow: var(--shadow-lg);
+                    border-radius: var(--border-radius);
+                `;
+
+                const icon = type === 'success' ? 'check-circle' :
+                            type === 'warning' ? 'exclamation-triangle' :
+                            type === 'error' ? 'times-circle' : 'info-circle';
+
+                notification.innerHTML = `
+                    <i class="fas fa-${icon} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                `;
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 4000);
+            }
+        });
+
+    //Budgetstats
+
+
+
+    // Globale Chart-Instanzen
+    let budgetDistributionChart;
+    let topCostSectionsChart;
+
+    // Seite laden
+    document.addEventListener('DOMContentLoaded', loadBudgetStatistics);
+
+    async function loadBudgetStatistics() {
+        try {
+            const response = await fetch('/Projects/BudgetPlanning?handler=BudgetStatistics&projectId=@Model.Project.ProjectId');
+            const statistics = await response.json();
+            updateDashboard(statistics);
+        } catch (error) {
+            console.error('Fehler beim Laden der Budget-Statistiken:', error);
         }
-    });
+    }
+
+    function updateDashboard(stats) {
+        if (!stats) return;
+
+        // Projektname
+        document.getElementById('projectName').textContent = stats.projectName;
+
+        updateBudgetCards(stats);
+        updateTaskStatistics(stats);
+        updateTopSections(stats.topCostSections);
+        updateCharts(stats);
+    }
+
+    // Budget-Karten
+    function updateBudgetCards(stats) {
+        const cards = document.querySelectorAll('.budget-card-value');
+        if (cards.length >= 3) {
+            cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
+            cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
+            cards[2].textContent = '€' + stats.remainingBudget.toLocaleString();
+        }
+
+        // Status Badge
+        //const statusBadge = document.querySelector('.status-badge');
+        const statusBadge = document.getElementById('project_budget_state');
+        const statusMap = {
+            0: { text: "Unbekannt", class: "on-track", icon: "fa-check-circle" },
+            1: { text: "Ausreichend", class: "on-track", icon: "fa-exclamation-triangle" },
+            2: { text: "Warnung", class: "warning", icon: "fa-times-circle" },
+            3: { text: "Kritisch", class: "critical", icon: "fa-ban" },
+            4: { text: "Überschritten", class: "exceeded", icon: "fa-ban" }
+        };
+        const status = statusMap[stats.budgetStatus] || statusMap[0];
+        statusBadge.className = `status-badge ${status.class}`;
+        statusBadge.innerHTML = `<i class="fas ${status.icon}"></i> ${status.text}`;
+
+        // Fortschrittsbalken
+        const progressBar = document.querySelector('.budget-progress-bar');
+        const progressText = document.querySelector('.budget-progress-text');
+        progressBar.style.width = stats.utilizationPercentage + '%';
+        progressText.textContent = stats.utilizationPercentage.toFixed(2) + '%';
+    }
+
+    // Task-Statistiken
+    function updateTaskStatistics(stats) {
+        const taskStats = document.querySelectorAll('.task-stat-value');
+        if (taskStats.length >= 4) {
+            taskStats[0].textContent = stats.totalTasks;
+            taskStats[1].textContent = stats.tasksWithCosts;
+            taskStats[2].textContent = stats.tasksWithoutCosts;
+            taskStats[3].textContent = '€' + (stats.tasksWithCosts > 0
+                ? (stats.usedBudget / stats.tasksWithCosts).toLocaleString()
+                : "0");
+            // taskStats[4].textContent = stats.detailedBreakdown
+            //     ? stats.detailedBreakdown.sectionBreakdowns.reduce((sum, s) => sum + (s.durationInDays || 0), 0)
+            //     : "-";
+            // taskStats[5].textContent = stats.detailedBreakdown
+            //     ? stats.detailedBreakdown.sectionBreakdowns.reduce((sum, s) => sum + (s.durationInHours || 0), 0)
+            //     : "-";
+        }
+    }
+
+    // Top-Cost-Sections
+    function updateTopSections(topSections) {
+        const container = document.getElementById('topSectionsList');
+        container.innerHTML = '';
+
+        if (!topSections || topSections.length === 0) {
+            container.innerHTML = '<div class="section-item">Keine Daten vorhanden</div>';
+            return;
+        }
+
+        topSections.forEach(section => {
+            const sectionHtml = `
+                <div class="section-item">
+                    <div class="section-name">${section.sectionName}</div>
+                    <div class="section-stats">
+                        <span class="section-cost">€${section.totalCosts.toLocaleString()}</span>
+                        <span class="section-percentage">${section.percentageOfTotal.toFixed(1)}%</span>
+                        <span class="section-tasks">${section.taskCount} Tasks</span>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += sectionHtml;
+        });
+    }
+
+    // Charts
+    function updateCharts(stats) {
+        const ctx1 = document.getElementById('budgetDistributionChart').getContext('2d');
+        if (budgetDistributionChart) budgetDistributionChart.destroy();
+        budgetDistributionChart = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['Verbraucht', 'Verbleibend'],
+                datasets: [{
+                    data: [stats.usedBudget, stats.remainingBudget],
+                    backgroundColor: ['#00d4aa', '#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
+                },
+                cutout: '60%'
+            }
+        });
+
+        const ctx2 = document.getElementById('topCostSectionsChart').getContext('2d');
+        if (topCostSectionsChart) topCostSectionsChart.destroy();
+        topCostSectionsChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: stats.topCostSections.map(s => s.sectionName),
+                datasets: [{
+                    data: stats.topCostSections.map(s => s.totalCosts),
+                    backgroundColor: ['#667eea', '#764ba2', '#4facfe', '#00d4aa', '#ffc107'],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: value => '€' + value.toLocaleString() }
+                    }
+                }
+            }
+        });
+    }
 </script>

@@ -13,11 +13,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
+        private readonly ProjectStatisticsCalculator _statisticsCalculator;
         public BudgetPlanningModel(ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(context, userManager);
+            _statisticsCalculator = new ProjectStatisticsCalculator(context, userManager);
         }
         [BindProperty]
         public Project Project { get; set; } = default!;
@@ -61,6 +63,45 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return Page();
         }
 
+        public async Task<IActionResult> OnGetBudgetStatistics(string? projectId)
+        {
+            if (projectId == null)
+            {
+                return new JsonResult(null);
+            }
+            var statistics = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
+            return new JsonResult(statistics);
+        }
+
+
+        public async Task<IActionResult> OnPostRecalculateProjectBudgetAsync(string? projectId)
+        {
+            if (projectId == null)
+            {
+                return NotFound();
+            }
+            // Übernimm used budget to project initial budget
+            var stats = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
+            var usedBudget = stats.UsedBudget;
+            var project = await GetProjectAsync(projectId);
+            if (project == null)
+            {
+                return NotFound();
+            }
+            var projectBudget = project.ProjectBudget;
+            if (projectBudget == null)
+            {
+                return NotFound();
+            }
+            projectBudget.InitialBudget = usedBudget;
+
+            _context.ProjectBudget.Update(projectBudget);
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage(new { id = projectId });
+        }
+
         // Handler für das Speichern der HourlyRateGroups
         public async Task<IActionResult> OnPostSaveHRGs(string? projectId, string? ProjectTaskId)
         {
@@ -68,6 +109,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return NotFound();
             }
+
+
 
             //if (HRGAmounts == null || !HRGAmounts.Any())
             //{
