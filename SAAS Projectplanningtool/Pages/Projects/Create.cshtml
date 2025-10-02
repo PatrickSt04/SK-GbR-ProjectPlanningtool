@@ -15,20 +15,20 @@
         <form method="post">
             <div class="form-group">
                 <label asp-for="Project.ProjectName" class="control-label">Name</label>
-                <input asp-for="Project.ProjectName" class="form-control" />
+                <input required asp-for="Project.ProjectName" class="form-control" />
                 <span asp-validation-for="Project.ProjectName" class="text-danger"></span>
             </div>
 
             <div class="form-group">
                 <label asp-for="Project.ProjectDescription" class="control-label">Beschreibung</label>
-                <textarea asp-for="Project.ProjectDescription" class="form-control"></textarea>
+                <textarea required asp-for="Project.ProjectDescription" class="form-control"></textarea>
                 <span asp-validation-for="Project.ProjectDescription" class="text-danger"></span>
             </div>
 
 
             <div class="form-group">
                 <label asp-for="Project.CustomerId" class="control-label">Kunde</label>
-                <select asp-for="Project.CustomerId" class="form-control" asp-items="Model.Customers">
+                <select required asp-for="Project.CustomerId" class="form-control" asp-items="Model.Customers">
                     <option value="">-- Bitte wählen --</option>
                 </select>
                 <span asp-validation-for="Project.CustomerId" class="text-danger"></span>
@@ -36,14 +36,14 @@
 
             <div class="form-group">
                 <label asp-for="Project.ResponsiblePersonId" class="control-label">Projektverantwortliche*r</label>
-                <select asp-for="Project.ResponsiblePersonId" class="form-control" asp-items="Model.ProjectLeads">
+                <select required asp-for="Project.ResponsiblePersonId" class="form-control" asp-items="Model.ProjectLeads">
                     <option value="">-- Bitte wählen --</option>
                 </select>
                 <span asp-validation-for="Project.ResponsiblePersonId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="InitialBudget" class="control-label">Verfügbares Budget</label>
-                <input asp-for="InitialBudget" class="form-control" />
+                <input required asp-for="InitialBudget" class="form-control" />
                 <span asp-validation-for="InitialBudget" class="text-danger"></span>
             </div>
 

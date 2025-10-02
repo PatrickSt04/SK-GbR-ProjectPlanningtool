@@ -365,6 +365,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     return RedirectToPage(new { id = Project.ProjectId });
                 }
             }
+            //Selected HRGS for Task delete
+            var hrgs = await _context.ProjectTaskHourlyRateGroup.Where(hrg => hrg.ProjectTaskId == taskId).ToListAsync();
+            if (hrgs.Any())
+            {
+                _context.ProjectTaskHourlyRateGroup.RemoveRange(hrgs);
+            }
+
 
             _context.ProjectTask.Remove(task);
             await _context.SaveChangesAsync();

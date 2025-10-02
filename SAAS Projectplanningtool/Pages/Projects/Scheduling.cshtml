@@ -114,8 +114,6 @@
 <!-- Hier ViewData Context, da Modal je nach Aufrufpage unterschiedlich aufgebaut ist-->
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "Scheduling" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", Model)
-
-
 <script>
 
     document.addEventListener('click', e => {
@@ -583,7 +581,7 @@
         });
     });
 </script>
-<script src="~/js/ModalFunctions.js"></script>
+ <script src="~/js/ModalFunctions.js"></script> 
 
 <!-- Include Bootstrap and FontAwesome if not already included -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
