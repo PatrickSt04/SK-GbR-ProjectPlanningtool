@@ -36,6 +36,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             public int Amount { get; set; }
         }
 
+        // DTO für Kostenzuweisung
+        public class ProjectCostAssignment
+        {
+            public string? ProjectAdditionalCostsId { get; set; }
+            public string AdditionalCostName { get; set; } = "";
+            public double AdditionalCostAmount { get; set; }
+        }
+
+        [BindProperty]
+        public List<ProjectCostAssignment> ProjectCosts { get; set; } = new();
+
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -71,6 +82,105 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
             var statistics = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
             return new JsonResult(statistics);
+        }
+
+
+
+        // Handler zum Speichern der Projektkosten
+        public async Task<IActionResult> OnPostSaveProjectCosts(string? projectId)
+        {
+            if (string.IsNullOrEmpty(projectId))
+            {
+                return NotFound();
+            }
+
+            var project = await GetProjectAsync(projectId);
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                // Alle bestehenden Kosten für das Projekt laden
+                var existingCosts = await _context.ProjectAdditionalCosts
+                    .Where(c => c.Project.ProjectId == projectId)
+                    .ToListAsync();
+
+                var existingCostIds = existingCosts.Select(c => c.ProjectAdditionalCostsId).ToHashSet();
+                var submittedCostIds = ProjectCosts
+                    .Where(c => !string.IsNullOrEmpty(c.ProjectAdditionalCostsId))
+                    .Select(c => c.ProjectAdditionalCostsId)
+                    .ToHashSet();
+
+                // Kosten löschen, die nicht mehr in der Submission sind
+                var costsToDelete = existingCosts
+                    .Where(c => !submittedCostIds.Contains(c.ProjectAdditionalCostsId))
+                    .ToList();
+                _context.ProjectAdditionalCosts.RemoveRange(costsToDelete);
+
+                // Durchlaufe alle übermittelten Kosten
+                foreach (var costDto in ProjectCosts.Where(c => !string.IsNullOrWhiteSpace(c.AdditionalCostName) && c.AdditionalCostAmount > 0))
+                {
+                    if (!string.IsNullOrEmpty(costDto.ProjectAdditionalCostsId) && existingCostIds.Contains(costDto.ProjectAdditionalCostsId))
+                    {
+                        // Bestehende Kosten aktualisieren
+                        var existingCost = existingCosts.First(c => c.ProjectAdditionalCostsId == costDto.ProjectAdditionalCostsId);
+                        existingCost.AdditionalCostName = costDto.AdditionalCostName.Trim();
+                        existingCost.AdditionalCostAmount = costDto.AdditionalCostAmount;
+
+                        // Latest Modification aktualisieren
+                        existingCost = await new CustomObjectModifier(_context, _userManager)
+                            .AddLatestModificationAsync(User, "Projektkosten aktualisiert", existingCost, false);
+
+                        _context.ProjectAdditionalCosts.Update(existingCost);
+                    }
+                    else
+                    {
+                        // Neue Kosten erstellen
+                        var newCost = new ProjectAdditionalCosts
+                        {
+                            AdditionalCostName = costDto.AdditionalCostName.Trim(),
+                            AdditionalCostAmount = costDto.AdditionalCostAmount,
+                            CompanyId = project.CompanyId
+                        };
+
+                        // Latest Modification hinzufügen
+                        newCost = await new CustomObjectModifier(_context, _userManager)
+                            .AddLatestModificationAsync(User, "Projektkosten erstellt", newCost, true);
+
+                        project.ProjectAdditionalCosts.Add(newCost);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return RedirectToPage(new { id = projectId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
+            }
+        }
+
+        // Handler zum Laden der Projektkosten
+        public async Task<JsonResult> OnGetReadProjectCosts(string projectId)
+        {
+            var costs = await _context.ProjectAdditionalCosts
+                .Include(c => c.LatestModifier)
+                .Where(c => c.Project.ProjectId == projectId)
+                .Select(c => new
+                {
+                    projectAdditionalCostsId = c.ProjectAdditionalCostsId,
+                    additionalCostName = c.AdditionalCostName,
+                    additionalCostAmount = c.AdditionalCostAmount ?? 0,
+                    createdTimestamp = c.CreatedTimestamp,
+                    latestModificationTimestamp = c.LatestModificationTimestamp,
+                    latestModifier = c.LatestModifier != null ? c.LatestModifier.EmployeeDisplayName : null
+                })
+                .ToListAsync();
+
+            return new JsonResult(costs);
         }
 
 

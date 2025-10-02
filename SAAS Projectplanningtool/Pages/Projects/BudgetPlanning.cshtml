@@ -784,6 +784,110 @@
             margin-bottom: 1rem;
             opacity: 0.7;
         }
+
+    /* Expenses Section */
+    .expenses-section {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+
+    .expenses-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .expenses-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .expense-item {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+        border-left: 4px solid var(--info-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .expense-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+    .expense-item-content {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .expense-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .expense-meta {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .expense-cost {
+        color: var(--info-color);
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .no-expenses {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+        background: var(--light-bg);
+        border-radius: var(--border-radius-sm);
+    }
+
+    .expense-total-card {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .expense-total-label {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .expense-total-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--info-color);
+    }
+
+    .modern-btn.info {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    }
 </style>
 
 <div class="main-container">
@@ -952,6 +1056,130 @@
     </div>
 
 </div>
+
+<!-- Zusätzliche Projektkosten Section -->
+<div class="main-container">
+    <div class="expenses-section">
+        <div class="expenses-header">
+            <h2 class="expenses-title">
+                <i class="fas fa-receipt"></i>
+                Zusätzliche Projektkosten
+            </h2>
+            <button class="modern-btn info small" data-bs-toggle="modal" data-bs-target="#addProjectCostsModal">
+                <i class="fas fa-plus-circle"></i>
+                Kosten verwalten
+            </button>
+        </div>
+
+        <div id="projectCostsDisplay">
+            <div class="no-expenses">
+                <i class="fas fa-info-circle me-2"></i>
+                <em>Keine zusätzlichen Projektkosten erfasst</em>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Zusätzliche Projektkosten -->
+<div class="modal fade" id="addProjectCostsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="SaveProjectCosts">
+                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+
+                <div class="modal-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-receipt me-2"></i>
+                        Zusätzliche Projektkosten verwalten
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Erfassen Sie hier projektbezogene Kosten, die nicht über Stundensatzgruppen abgedeckt werden (z.B. Material, Lizenzen, externe Dienstleister, Reisekosten).
+                        </p>
+                    </div>
+
+                    <!-- Bestehende Kosten -->
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-list me-2"></i>
+                            Erfasste Kosten
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white;">
+                                    <tr>
+                                        <th style="width: 45%;">Bezeichnung</th>
+                                        <th style="width: 25%;">Kosten (€)</th>
+                                        <th style="width: 20%;">Erstellt am</th>
+                                        <th style="width: 10%;">Aktion</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projectCostsTableBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Keine Kosten vorhanden
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot style="background: var(--light-bg);">
+                                    <tr>
+                                        <th class="text-end">Gesamtsumme:</th>
+                                        <th id="totalProjectCost" colspan="3">0.00 €</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr style="border-color: var(--border-color); margin: 1.5rem 0;" />
+
+                    <!-- Neue Kosten hinzufügen -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Neue Kosten hinzufügen
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="newCostName" class="form-label">Bezeichnung</label>
+                            <input type="text" class="form-control" id="newCostName" placeholder="z.B. Materialkosten">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="newCostAmount" class="form-label">Kosten (€)</label>
+                            <input type="number" class="form-control" id="newCostAmount" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="modern-btn success w-100" id="addCostBtn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="hiddenCostsContainer"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Abbrechen
+                    </button>
+                    <button type="submit" class="modern-btn info">
+                        <i class="fas fa-save me-1"></i>Kosten speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
 <div class="main-container">
     <div class="budget-dashboard">
         <!-- Dashboard Header -->
@@ -959,9 +1187,8 @@
             <h1><i class="fas fa-chart-pie me-3"></i>Budget Statistiken</h1>
             <div class="subtitle"> <span id="projectName">-</span></div>
         </div>
-
         <!-- Budget Overview Cards -->
-        <div class="budget-overview">
+        <div class="budget-overview" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
             <div class="budget-card primary">
                 <div class="budget-card-header">
                     <div class="budget-card-title">Gesamtbudget</div>
@@ -988,6 +1215,34 @@
                 </div>
             </div>
 
+            <div class="budget-card" style="border-top: 4px solid #9b59b6;">
+                <div class="budget-card-header">
+                    <div class="budget-card-title">Task-Kosten</div>
+                    <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+                <div class="budget-card-value" id="taskCostsValue">-</div>
+                <div class="budget-card-subtitle" id="taskCostsSubtitle">Personalkosten</div>
+                <div class="budget-progress" style="margin-top: 0.5rem;">
+                    <div class="budget-progress-bar" id="taskCostsProgressBar" style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
+                </div>
+            </div>
+
+            <div class="budget-card" style="border-top: 4px solid var(--info-color);">
+                <div class="budget-card-header">
+                    <div class="budget-card-title">Zusätzliche Kosten</div>
+                    <div class="budget-card-icon" style="background: var(--info-color);">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                </div>
+                <div class="budget-card-value" id="additionalCostsValue">-</div>
+                <div class="budget-card-subtitle" id="additionalCostsSubtitle">Material & Sonstiges</div>
+                <div class="budget-progress" style="margin-top: 0.5rem;">
+                    <div class="budget-progress-bar" id="additionalCostsProgressBar" style="width: 0%; background: var(--info-color);"></div>
+                </div>
+            </div>
+
             <div class="budget-card info">
                 <div class="budget-card-header">
                     <div class="budget-card-title">Verbleibendes Budget</div>
@@ -997,7 +1252,6 @@
                 </div>
                 <div class="budget-card-value">-</div>
                 <div class="budget-card-subtitle">
-                    <!-- Nachkalkulation: Used Budget wird als Initiales Auftragsvolumen übernommen-->
                     <form method="post" asp-page-handler="RecalculateProjectBudget">
                         <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                         <button type="submit" class="modern-btn small info">
@@ -1018,31 +1272,7 @@
                 <div class="budget-card-value">
                     <span class="status-badge on-track" id="project_budget_state">
                         <i class="fas fa-check-circle"></i>
-                        <!-- dynamically in js (Index for Budget State ex 1 = "Im Plan" 2 = "Warnung" ... -->
                     </span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts Container -->
-        <div class="charts-container">
-            <div class="chart-card">
-                <div class="chart-title">
-                    <i class="fas fa-chart-doughnut"></i>
-                    Budget Verteilung
-                </div>
-                <div class="chart-container">
-                    <canvas id="budgetDistributionChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">
-                    <i class="fas fa-chart-bar"></i>
-                    Top 5 Kostenstellen
-                </div>
-                <div class="chart-container">
-                    <canvas id="topCostSectionsChart"></canvas>
                 </div>
             </div>
         </div>
@@ -1076,14 +1306,6 @@
                 <div class="task-stat-value">-</div>
                 <div class="task-stat-label">Ø Kosten/Task</div>
             </div>
-            @* <div class="task-stat">
-                <div class="task-stat-value">-</div>
-                <div class="task-stat-label">Arbeitstage</div>
-            </div>
-            <div class="task-stat">
-                <div class="task-stat-value">-</div>
-                <div class="task-stat-label">Arbeitsstunden</div>
-            </div> *@
         </div>
     </div>
 </div>
@@ -1241,13 +1463,6 @@
                                                                     {
                                                                         // Kosten entsprechend der Task Dauer (Task Dauer / Default Workdays von Projekt)
                                                                         // wird nach jeder HRG Änderung in der Tabelle aktualisiert
-
-
-
-
-                                                                        // int taskDays = (task.EndDate.Value.DayNumber - task.StartDate.Value.DayNumber + 1);
-                                                                        // decimal estimatedTotalCost = totalCostPerHour * taskDays * 8;
-
                                                                         <div class="summary-row estimate-row">
                                                                             <span class="summary-label">
                                                                                 <i class="fas fa-chart-line me-1"></i>Geschätzte Gesamtkosten:
@@ -1581,8 +1796,272 @@
             }
         });
 
-    //Budgetstats
 
+    //Zusätzliche Aufwendungen JS
+        // ====== PROJECT COSTS MANAGEMENT ======
+    let projectCosts = [];
+
+    // Load project costs on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProjectCosts();
+    });
+
+    async function loadProjectCosts() {
+        const projectId = '@Model.Project.ProjectId';
+        try {
+            const response = await fetch(`/Projects/BudgetPlanning?handler=ReadProjectCosts&projectId=${projectId}`);
+            if (!response.ok) throw new Error("Fehler beim Laden der Kosten");
+
+            const data = await response.json();
+            displayProjectCosts(data);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function displayProjectCosts(costs) {
+        const container = document.getElementById('projectCostsDisplay');
+
+        if (!costs || costs.length === 0) {
+            container.innerHTML = `
+                <div class="no-expenses">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <em>Keine zusätzlichen Projektkosten erfasst</em>
+                </div>
+            `;
+            return;
+        }
+
+        let totalCost = 0;
+        let html = '';
+
+        costs.forEach(cost => {
+            totalCost += cost.additionalCostAmount;
+            const createdDate = cost.createdTimestamp ? new Date(cost.createdTimestamp).toLocaleDateString('de-DE') : 'Unbekannt';
+            const modifiedBy = cost.latestModifier || 'System';
+
+            html += `
+                <div class="expense-item">
+                    <div class="expense-item-content">
+                        <span class="expense-name">
+                            <i class="fas fa-tag me-2"></i>
+                            ${cost.additionalCostName}
+                        </span>
+                        <span class="expense-meta">
+                            <i class="fas fa-calendar me-1"></i>${createdDate}
+                            ${cost.latestModificationTimestamp ? `<i class="fas fa-edit ms-2 me-1"></i>Zuletzt geändert: ${new Date(cost.latestModificationTimestamp).toLocaleDateString('de-DE')}` : ''}
+                        </span>
+                    </div>
+                    <span class="expense-cost">
+                        ${cost.additionalCostAmount.toFixed(2)} €
+                    </span>
+                </div>
+            `;
+        });
+
+        html += `
+            <div class="expense-total-card">
+                <span class="expense-total-label">
+                    <i class="fas fa-calculator me-2"></i>
+                    Gesamte zusätzliche Kosten:
+                </span>
+                <span class="expense-total-value">
+                    ${totalCost.toFixed(2)} €
+                </span>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    // Initialize costs modal
+    document.getElementById('addProjectCostsModal').addEventListener('shown.bs.modal', async function() {
+        projectCosts = [];
+        const projectId = '@Model.Project.ProjectId';
+
+        try {
+            const response = await fetch(`/Projects/BudgetPlanning?handler=ReadProjectCosts&projectId=${projectId}`);
+            if (response.ok) {
+                const data = await response.json();
+                projectCosts = data.map(c => ({
+                    id: c.projectAdditionalCostsId,
+                    name: c.additionalCostName,
+                    amount: c.additionalCostAmount,
+                    createdTimestamp: c.createdTimestamp,
+                    isExisting: true
+                }));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
+        updateProjectCostsTable();
+        document.getElementById('newCostName').value = '';
+        document.getElementById('newCostAmount').value = '';
+    });
+
+    // Add cost button
+    document.getElementById('addCostBtn').addEventListener('click', function() {
+        const nameInput = document.getElementById('newCostName');
+        const amountInput = document.getElementById('newCostAmount');
+
+        const name = nameInput.value.trim();
+        const amount = parseFloat(amountInput.value) || 0;
+
+        if (!name) {
+            showNotification('Bitte geben Sie eine Bezeichnung ein.', 'warning');
+            nameInput.focus();
+            return;
+        }
+
+        if (amount <= 0) {
+            showNotification('Bitte geben Sie einen gültigen Betrag ein.', 'warning');
+            amountInput.focus();
+            return;
+        }
+
+        projectCosts.push({
+            id: null,
+            name,
+            amount,
+            createdTimestamp: new Date().toISOString(),
+            isExisting: false
+        });
+        updateProjectCostsTable();
+
+        nameInput.value = '';
+        amountInput.value = '';
+        nameInput.focus();
+
+        showNotification(`${name} wurde hinzugefügt!`, 'success');
+    });
+
+    // Allow Enter key in cost inputs
+    document.getElementById('newCostName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('newCostAmount').focus();
+        }
+    });
+
+    document.getElementById('newCostAmount').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('addCostBtn').click();
+        }
+    });
+
+    // Edit cost inline
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('edit-cost-name')) {
+            const index = parseInt(e.target.dataset.index);
+            projectCosts[index].name = e.target.value.trim();
+        } else if (e.target.classList.contains('edit-cost-amount')) {
+            const index = parseInt(e.target.dataset.index);
+            projectCosts[index].amount = parseFloat(e.target.value) || 0;
+            updateProjectCostsTable();
+        }
+    });
+
+    // Remove cost
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-cost-btn')) {
+            const btn = e.target.closest('.remove-cost-btn');
+            const index = parseInt(btn.dataset.index);
+            const costName = projectCosts[index].name;
+
+            projectCosts.splice(index, 1);
+            updateProjectCostsTable();
+            showNotification(`${costName} wurde entfernt.`, 'info');
+        }
+    });
+
+    // Update costs table in modal
+    function updateProjectCostsTable() {
+        const tableBody = document.getElementById('projectCostsTableBody');
+        const hiddenContainer = document.getElementById('hiddenCostsContainer');
+
+        tableBody.innerHTML = '';
+        hiddenContainer.innerHTML = '';
+
+        let totalCost = 0;
+
+        if (projectCosts.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Keine Kosten vorhanden
+                    </td>
+                </tr>
+            `;
+        } else {
+            projectCosts.forEach((cost, index) => {
+                totalCost += cost.amount;
+                const createdDate = cost.createdTimestamp ? new Date(cost.createdTimestamp).toLocaleDateString('de-DE') : 'Neu';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="text"
+                               class="form-control edit-cost-name"
+                               value="${cost.name}"
+                               data-index="${index}"
+                               placeholder="Bezeichnung" />
+                    </td>
+                    <td>
+                        <input type="number"
+                               class="form-control edit-cost-amount"
+                               value="${cost.amount}"
+                               step="0.01"
+                               min="0"
+                               data-index="${index}"
+                               placeholder="0.00" />
+                    </td>
+                    <td><small class="text-muted">${createdDate}</small></td>
+                    <td>
+                        <button type="button"
+                                class="btn btn-outline-danger btn-sm remove-cost-btn"
+                                data-index="${index}"
+                                title="Entfernen">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+
+                // Hidden inputs for form submission
+                if (cost.id) {
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = `ProjectCosts[${index}].ProjectAdditionalCostsId`;
+                    idInput.value = cost.id;
+                    hiddenContainer.appendChild(idInput);
+                }
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'hidden';
+                nameInput.name = `ProjectCosts[${index}].AdditionalCostName`;
+                nameInput.value = cost.name;
+                hiddenContainer.appendChild(nameInput);
+
+                const amountInput = document.createElement('input');
+                amountInput.type = 'hidden';
+                amountInput.name = `ProjectCosts[${index}].AdditionalCostAmount`;
+                amountInput.value = cost.amount;
+                hiddenContainer.appendChild(amountInput);
+            });
+        }
+
+        document.getElementById('totalProjectCost').textContent = totalCost.toFixed(2) + ' €';
+    }
+
+    // Reload costs after modal closes
+    document.getElementById('addProjectCostsModal').addEventListener('hidden.bs.modal', function() {
+        loadProjectCosts();
+    });
+
+    //Budgetstats
 
 
     // Globale Chart-Instanzen
@@ -1601,36 +2080,53 @@
             console.error('Fehler beim Laden der Budget-Statistiken:', error);
         }
     }
-
-    function updateDashboard(stats) {
+        function updateDashboard(stats) {
         if (!stats) return;
 
         // Projektname
         document.getElementById('projectName').textContent = stats.projectName;
 
         updateBudgetCards(stats);
+        updateAdditionalCostsCard(stats);
         updateTaskStatistics(stats);
         updateTopSections(stats.topCostSections);
-        updateCharts(stats);
+        // updateCharts(stats);
     }
 
-    // Budget-Karten
+    // Neue Funktion für zusätzliche Kosten Card
+    function updateAdditionalCostsCard(stats) {
+        const additionalCostsValue = document.getElementById('additionalCostsValue');
+        const additionalCostsSubtitle = document.getElementById('additionalCostsSubtitle');
+
+        if (additionalCostsValue) {
+            additionalCostsValue.textContent = '€' + stats.additionalCosts.toLocaleString();
+        }
+
+        if (additionalCostsSubtitle && stats.additionalCostBreakdown) {
+            const itemCount = stats.additionalCostBreakdown.itemCount;
+            additionalCostsSubtitle.textContent = itemCount > 0
+                ? `${itemCount} Position${itemCount !== 1 ? 'en' : ''} erfasst`
+                : 'Material & Sonstiges';
+        }
+    }
+        // Budget-Karten
     function updateBudgetCards(stats) {
         const cards = document.querySelectorAll('.budget-card-value');
-        if (cards.length >= 3) {
+        if (cards.length >= 4) {
             cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
             cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
-            cards[2].textContent = '€' + stats.remainingBudget.toLocaleString();
+            cards[2].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
+            cards[3].textContent = '€' + stats.additionalCosts.toLocaleString();
+            cards[4].textContent = '€' + stats.remainingBudget.toLocaleString();
         }
 
         // Status Badge
-        //const statusBadge = document.querySelector('.status-badge');
         const statusBadge = document.getElementById('project_budget_state');
         const statusMap = {
             0: { text: "Unbekannt", class: "on-track", icon: "fa-check-circle" },
-            1: { text: "Ausreichend", class: "on-track", icon: "fa-exclamation-triangle" },
-            2: { text: "Warnung", class: "warning", icon: "fa-times-circle" },
-            3: { text: "Kritisch", class: "critical", icon: "fa-ban" },
+            1: { text: "Ausreichend", class: "on-track", icon: "fa-check-circle" },
+            2: { text: "Warnung", class: "warning", icon: "fa-exclamation-triangle" },
+            3: { text: "Kritisch", class: "critical", icon: "fa-times-circle" },
             4: { text: "Überschritten", class: "exceeded", icon: "fa-ban" }
         };
         const status = statusMap[stats.budgetStatus] || statusMap[0];
@@ -1638,12 +2134,62 @@
         statusBadge.innerHTML = `<i class="fas ${status.icon}"></i> ${status.text}`;
 
         // Fortschrittsbalken
-        const progressBar = document.querySelector('.budget-progress-bar');
+        const progressBar = document.querySelector('.budget-progress-bar.success');
         const progressText = document.querySelector('.budget-progress-text');
-        progressBar.style.width = stats.utilizationPercentage + '%';
-        progressText.textContent = stats.utilizationPercentage.toFixed(2) + '%';
+        if (progressBar && progressText) {
+            progressBar.style.width = stats.utilizationPercentage + '%';
+            progressText.textContent = stats.utilizationPercentage.toFixed(2) + '%';
+        }
+
+        // Task-Kosten Card
+        updateTaskCostsCard(stats);
+
+        // Zusatzkosten Card
+        updateAdditionalCostsCard(stats);
     }
 
+    function updateTaskCostsCard(stats) {
+        const taskCostsValue = document.getElementById('taskCostsValue');
+        const taskCostsSubtitle = document.getElementById('taskCostsSubtitle');
+        const taskCostsProgressBar = document.getElementById('taskCostsProgressBar');
+
+        if (taskCostsValue) {
+            taskCostsValue.textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
+        }
+
+        if (taskCostsSubtitle) {
+            const tasksWithCosts = stats.tasksWithCosts || 0;
+            const totalTasks = stats.totalTasks || 0;
+            taskCostsSubtitle.textContent = `${tasksWithCosts} von ${totalTasks} Tasks`;
+        }
+
+        if (taskCostsProgressBar && stats.initialBudget > 0) {
+            const taskPercentage = (stats.usedBudgetFromTasks / stats.initialBudget) * 100;
+            taskCostsProgressBar.style.width = taskPercentage.toFixed(2) + '%';
+        }
+    }
+        // Funktion für zusätzliche Kosten Card
+    function updateAdditionalCostsCard(stats) {
+        const additionalCostsValue = document.getElementById('additionalCostsValue');
+        const additionalCostsSubtitle = document.getElementById('additionalCostsSubtitle');
+        const additionalCostsProgressBar = document.getElementById('additionalCostsProgressBar');
+
+        if (additionalCostsValue) {
+            additionalCostsValue.textContent = '€' + stats.additionalCosts.toLocaleString();
+        }
+
+        if (additionalCostsSubtitle && stats.additionalCostBreakdown) {
+            const itemCount = stats.additionalCostBreakdown.itemCount;
+            additionalCostsSubtitle.textContent = itemCount > 0
+                ? `${itemCount} Position${itemCount !== 1 ? 'en' : ''} erfasst`
+                : 'Material & Sonstiges';
+        }
+
+        if (additionalCostsProgressBar && stats.initialBudget > 0) {
+            const additionalPercentage = (stats.additionalCosts / stats.initialBudget) * 100;
+            additionalCostsProgressBar.style.width = additionalPercentage.toFixed(2) + '%';
+        }
+    }
     // Task-Statistiken
     function updateTaskStatistics(stats) {
         const taskStats = document.querySelectorAll('.task-stat-value');
@@ -1654,12 +2200,6 @@
             taskStats[3].textContent = '€' + (stats.tasksWithCosts > 0
                 ? (stats.usedBudget / stats.tasksWithCosts).toLocaleString()
                 : "0");
-            // taskStats[4].textContent = stats.detailedBreakdown
-            //     ? stats.detailedBreakdown.sectionBreakdowns.reduce((sum, s) => sum + (s.durationInDays || 0), 0)
-            //     : "-";
-            // taskStats[5].textContent = stats.detailedBreakdown
-            //     ? stats.detailedBreakdown.sectionBreakdowns.reduce((sum, s) => sum + (s.durationInHours || 0), 0)
-            //     : "-";
         }
     }
 
@@ -1685,57 +2225,6 @@
                 </div>
             `;
             container.innerHTML += sectionHtml;
-        });
-    }
-
-    // Charts
-    function updateCharts(stats) {
-        const ctx1 = document.getElementById('budgetDistributionChart').getContext('2d');
-        if (budgetDistributionChart) budgetDistributionChart.destroy();
-        budgetDistributionChart = new Chart(ctx1, {
-            type: 'doughnut',
-            data: {
-                labels: ['Verbraucht', 'Verbleibend'],
-                datasets: [{
-                    data: [stats.usedBudget, stats.remainingBudget],
-                    backgroundColor: ['#00d4aa', '#e2e8f0'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
-                },
-                cutout: '60%'
-            }
-        });
-
-        const ctx2 = document.getElementById('topCostSectionsChart').getContext('2d');
-        if (topCostSectionsChart) topCostSectionsChart.destroy();
-        topCostSectionsChart = new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: stats.topCostSections.map(s => s.sectionName),
-                datasets: [{
-                    data: stats.topCostSections.map(s => s.totalCosts),
-                    backgroundColor: ['#667eea', '#764ba2', '#4facfe', '#00d4aa', '#ffc107'],
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: value => '€' + value.toLocaleString() }
-                    }
-                }
-            }
         });
     }
 </script>

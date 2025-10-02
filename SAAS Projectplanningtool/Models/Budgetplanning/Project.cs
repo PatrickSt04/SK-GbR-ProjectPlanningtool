@@ -111,5 +111,8 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
                 { 7, new WorkingHours { StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(14, 0) } }  // Sunday
             };
         }
+
+        // Additional Costs for Project
+        public ICollection<ProjectAdditionalCosts> ProjectAdditionalCosts { get; set; } = new List<ProjectAdditionalCosts>();
     }
 }

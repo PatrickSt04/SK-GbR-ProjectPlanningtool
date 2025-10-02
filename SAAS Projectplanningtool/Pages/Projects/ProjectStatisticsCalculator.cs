@@ -60,17 +60,24 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
 
             // Berechne verwendetes Budget aus allen Tasks
-            var usedBudget = CalculateUsedBudget(project.ProjectSections);
-            var remainingBudget = project.ProjectBudget.InitialBudget - usedBudget;
+            var usedBudgetFromTasks = CalculateUsedBudget(project.ProjectSections);
+
+            // Berechne zusätzliche Projektkosten
+            var additionalCosts = await CalculateAdditionalProjectCostsAsync(projectId);
+
+            // Gesamtverbrauch = Task-Kosten + Zusätzliche Kosten
+            var totalUsedBudget = usedBudgetFromTasks + additionalCosts.TotalAmount;
+
+            var remainingBudget = project.ProjectBudget.InitialBudget - totalUsedBudget;
             var utilizationPercentage = project.ProjectBudget.InitialBudget > 0
-                ? (usedBudget / project.ProjectBudget.InitialBudget) * 100
+                ? (totalUsedBudget / project.ProjectBudget.InitialBudget) * 100
                 : 0;
 
             // Budget-Status bestimmen
             var budgetStatus = DetermineBudgetStatus(utilizationPercentage);
 
             // Detaillierte Aufschlüsselung erstellen
-            var budgetBreakdown = CreateBudgetBreakdown(project, usedBudget, remainingBudget, utilizationPercentage, budgetStatus);
+            var budgetBreakdown = CreateBudgetBreakdown(project, usedBudgetFromTasks, remainingBudget, utilizationPercentage, budgetStatus, additionalCosts);
 
             // Task-Statistiken berechnen
             var taskStatistics = CalculateTaskBudgetStatistics(project);
@@ -81,7 +88,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 ProjectName = project.ProjectName,
                 HasBudget = true,
                 InitialBudget = project.ProjectBudget.InitialBudget,
-                UsedBudget = usedBudget,
+                UsedBudget = totalUsedBudget,
+                UsedBudgetFromTasks = usedBudgetFromTasks,
+                AdditionalCosts = additionalCosts.TotalAmount,
                 RemainingBudget = remainingBudget,
                 UtilizationPercentage = utilizationPercentage,
                 BudgetStatus = budgetStatus,
@@ -91,7 +100,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 SectionCount = budgetBreakdown.SectionBreakdowns.Count,
                 DetailedBreakdown = budgetBreakdown,
                 TopCostSections = GetTopCostSections(budgetBreakdown, 5),
-                CostDistribution = CalculateCostDistribution(budgetBreakdown)
+                CostDistribution = CalculateCostDistribution(budgetBreakdown),
+                AdditionalCostBreakdown = additionalCosts
             };
         }
 
@@ -167,6 +177,30 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
+        /// Berechnet die zusätzlichen Projektkosten
+        /// </summary>
+        private async Task<AdditionalCostBreakdown> CalculateAdditionalProjectCostsAsync(string projectId)
+        {
+            var additionalCosts = await _context.ProjectAdditionalCosts
+                .Where(c => c.Project.ProjectId == projectId)
+                .Select(c => new AdditionalCostItem
+                {
+                    CostId = c.ProjectAdditionalCostsId,
+                    CostName = c.AdditionalCostName ?? "Unbenannt",
+                    Amount = c.AdditionalCostAmount ?? 0,
+                    CreatedTimestamp = c.CreatedTimestamp
+                })
+                .ToListAsync();
+
+            return new AdditionalCostBreakdown
+            {
+                TotalAmount = additionalCosts.Sum(c => c.Amount),
+                ItemCount = additionalCosts.Count,
+                Items = additionalCosts
+            };
+        }
+
+        /// <summary>
         /// Bestimmt den Budget-Status basierend auf der Nutzung
         /// </summary>
         private BudgetStatus DetermineBudgetStatus(double utilizationPercentage)
@@ -184,7 +218,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         /// <summary>
         /// Erstellt die detaillierte Budget-Aufschlüsselung
         /// </summary>
-        private BudgetBreakdown CreateBudgetBreakdown(Project project, double usedBudget, double remainingBudget, double utilizationPercentage, BudgetStatus status)
+        private BudgetBreakdown CreateBudgetBreakdown(Project project, double usedBudgetFromTasks, double remainingBudget,
+            double utilizationPercentage, BudgetStatus status, AdditionalCostBreakdown additionalCosts)
         {
             var sectionBreakdowns = new List<SectionBudgetBreakdown>();
 
@@ -202,11 +237,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 ProjectId = project.ProjectId,
                 ProjectName = project.ProjectName,
                 InitialBudget = project.ProjectBudget!.InitialBudget,
-                TotalUsedBudget = usedBudget,
+                TotalUsedBudget = usedBudgetFromTasks + additionalCosts.TotalAmount,
+                UsedBudgetFromTasks = usedBudgetFromTasks,
+                AdditionalCosts = additionalCosts.TotalAmount,
                 RemainingBudget = remainingBudget,
                 UtilizationPercentage = utilizationPercentage,
                 Status = status,
-                SectionBreakdowns = sectionBreakdowns
+                SectionBreakdowns = sectionBreakdowns,
+                AdditionalCostBreakdown = additionalCosts
             };
         }
 
@@ -325,6 +363,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             return await _context.Project
                 .Include(p => p.ProjectBudget)
+                .Include(p => p.ProjectAdditionalCosts)
                 .Include(p => p.ProjectSections.Where(ps => ps.CompanyId == companyId))
                     .ThenInclude(ps => ps.ProjectTasks)
                         .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
@@ -436,8 +475,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     SectionName = sb.SectionName,
                     TotalCosts = sb.TotalCosts,
                     TaskCount = sb.TaskCount,
-                    PercentageOfTotal = breakdown.TotalUsedBudget > 0
-                        ? (double)(sb.TotalCosts / breakdown.TotalUsedBudget) * 100
+                    PercentageOfTotal = breakdown.UsedBudgetFromTasks > 0
+                        ? (double)(sb.TotalCosts / breakdown.UsedBudgetFromTasks) * 100
                         : 0
                 })
                 .ToList();
@@ -523,6 +562,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         // Budget-Übersicht
         public double InitialBudget { get; set; }
         public double UsedBudget { get; set; }
+        public double UsedBudgetFromTasks { get; set; }
+        public double AdditionalCosts { get; set; }
         public double RemainingBudget { get; set; }
         public double UtilizationPercentage { get; set; }
         public BudgetStatus BudgetStatus { get; set; }
@@ -537,6 +578,28 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public BudgetBreakdown? DetailedBreakdown { get; set; }
         public List<TopCostSection> TopCostSections { get; set; } = new();
         public CostDistribution CostDistribution { get; set; } = new();
+        public AdditionalCostBreakdown AdditionalCostBreakdown { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Zusätzliche Projektkosten-Aufschlüsselung
+    /// </summary>
+    public class AdditionalCostBreakdown
+    {
+        public double TotalAmount { get; set; }
+        public int ItemCount { get; set; }
+        public List<AdditionalCostItem> Items { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Einzelner zusätzlicher Kostenposten
+    /// </summary>
+    public class AdditionalCostItem
+    {
+        public string CostId { get; set; } = string.Empty;
+        public string CostName { get; set; } = string.Empty;
+        public double Amount { get; set; }
+        public DateTime? CreatedTimestamp { get; set; }
     }
 
     /// <summary>
@@ -616,10 +679,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public string ProjectName { get; set; } = string.Empty;
         public double InitialBudget { get; set; }
         public double TotalUsedBudget { get; set; }
+        public double UsedBudgetFromTasks { get; set; }
+        public double AdditionalCosts { get; set; }
         public double RemainingBudget { get; set; }
         public double UtilizationPercentage { get; set; }
         public BudgetStatus Status { get; set; }
         public List<SectionBudgetBreakdown> SectionBreakdowns { get; set; } = new();
+        public AdditionalCostBreakdown AdditionalCostBreakdown { get; set; } = new();
     }
 
     public class SectionBudgetBreakdown
