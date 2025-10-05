@@ -1234,11 +1234,17 @@
     function updateBudgetCards(stats) {
         const cards = document.querySelectorAll('.budget-card-value');
         if (cards.length >= 4) {
+            // cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
+            // cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
+            // cards[2].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
+            // cards[3].textContent = '€' + stats.additionalCosts.toLocaleString();
+            // cards[4].textContent = '€' + stats.remainingBudget.toLocaleString();
             cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
             cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
-            cards[2].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
-            cards[3].textContent = '€' + stats.additionalCosts.toLocaleString();
-            cards[4].textContent = '€' + stats.remainingBudget.toLocaleString();
+            cards[2].textContent = '€' + stats.remainingBudget.toLocaleString();
+            cards[3].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
+            cards[4].textContent = '€' + stats.additionalCosts.toLocaleString();
+            
         }
 
         // Status Badge
