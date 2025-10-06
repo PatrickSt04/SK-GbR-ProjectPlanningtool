@@ -128,38 +128,44 @@
     const projectData = {
         project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
         {
-            Id = Model.Project?.ProjectId,
-            Name = Model.Project?.ProjectName,
-            StartDate = Model.Project?.StartDate?.ToString("yyyy-MM-dd"),
-            EndDate = Model.Project?.EndDate?.ToString("yyyy-MM-dd"),
-            Sections = Model.Project?.ProjectSections?.Where(s => s.ParentSectionId == null).Select(s => new
-            {
-                Id = s.ProjectSectionId,
-                Name = s.ProjectSectionName,
-                Type = "section",
-                SubSections = s.SubSections?.Select(sub => new
-                {
-                    Id = sub.ProjectSectionId,
-                    Name = sub.ProjectSectionName,
-                    Type = "subsection",
-                    Tasks = sub.ProjectTasks?.Select(t => new
-                    {
-                        Id = t.ProjectTaskId,
-                        Name = t.ProjectTaskName,
-                        StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                        EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                        Type = "task"
-                    })
-                }),
-                Tasks = s.ProjectTasks?.Select(t => new
-                {
-                    Id = t.ProjectTaskId,
-                    Name = t.ProjectTaskName,
-                    StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                    EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                    Type = "task"
-                })
-            })
+                        Id = Model.Project?.ProjectId,
+                        Name = Model.Project?.ProjectName,
+                        StartDate = Model.Project?.StartDate?.ToString("yyyy-MM-dd"),
+                        EndDate = Model.Project?.EndDate?.ToString("yyyy-MM-dd"),
+                        Sections = Model.Project?.ProjectSections?.Where(s => s.ParentSectionId == null).Select(s => new
+                        {
+                                        Id = s.ProjectSectionId,
+                                        Name = s.ProjectSectionName,
+                                        Type = "section",
+                                        SubSections = s.SubSections?.Select(sub => new
+                                        {
+                                                        Id = sub.ProjectSectionId,
+                                                        Name = sub.ProjectSectionName,
+                                                        Type = "subsection",
+                                                        Tasks = sub.ProjectTasks?.Select(t => new
+                                                        {
+                                                                        Id = t.ProjectTaskId,
+                                                                        Name = t.ProjectTaskName,
+                                                                        StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                                                                        EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                                                                        Type = "task",
+                                                                                                       //Hier müssen auch diese Attribute übergeben werden, damit sie im EditModal gesetzt werden können
+                                                                        IsTaskCatalogEntry = t.IsTaskCatalogEntry,
+                                                                        IsScheduleEntry = t.IsScheduleEntry
+                                                        })
+                                        }),
+                                        Tasks = s.ProjectTasks?.Select(t => new
+                                        {
+                                                        Id = t.ProjectTaskId,
+                                                        Name = t.ProjectTaskName,
+                                                        StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                                                        EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                                                        Type = "task",
+                                                                                   //Hier müssen auch diese Attribute übergeben werden, damit sie im EditModal gesetzt werden können
+                                                        IsTaskCatalogEntry = t.IsTaskCatalogEntry,
+                                                        IsScheduleEntry = t.IsScheduleEntry
+                                        })
+                        })
         }))
     };
 
@@ -274,17 +280,17 @@
                  </div>`;
         body.appendChild(footer);
 
-        // ---------- rekursive Hilfsfunktion ----------
+        //// ---------- rekursive Hilfsfunktion ----------
         function walk(node, depth) {
             renderTaskRow(node, body, depth);
 
             if (node.Type === 'task' || isCollapsed(node.Id)) return;
 
-            // Inline-Adder hinter jedem Nicht-Task
+        //     Inline-Adder hinter jedem Nicht-Task
             if (node.Type !== 'task') {
                 const adder = document.createElement('div');
                 adder.className = 'task-row adder-row';
-                adder.style.setProperty('--lvl', depth);      // ⬅︎  ebenfalls!
+                adder.style.setProperty('--lvl', depth);
                 adder.innerHTML = `
                        <div class="task-name">
                           <button class="btn btn-sm btn-outline-primary"
@@ -294,7 +300,6 @@
                        </div>`;
                 body.appendChild(adder);
             }
-
             // ---------- rekursiv weiterlaufen ----------
             if (node.SubSections) {
                 node.SubSections.forEach(sub => walk(sub, depth + 1));
@@ -305,7 +310,9 @@
         }
     }
 
-    function renderTaskRow(item, container, depth) {
+
+
+    function renderTaskRow(item, container, depth, additionalTaskobject) {
         /* Grundgerüst */
         const row = document.createElement('div');
         row.className = `task-row ${item.Type}`;
@@ -351,7 +358,9 @@
                     ${isTask ? `
                         <button class="btn btn-sm btn-outline-primary me-1"
                                 onclick="editTask('${item.Id}', '${item.Name}',
-                                                  '${item.StartDate || ''}', '${item.EndDate || ''}')">
+                                                  '${item.StartDate || ''}', '${item.EndDate || ''}',
+                                                  '${item.IsTaskCatalogEntry}', '${item.IsScheduleEntry}'
+                                                  )">
                             <i class="fas fa-edit"></i>
                         </button>` : ''}
                     <button class="btn btn-sm btn-outline-danger"
@@ -581,7 +590,7 @@
         });
     });
 </script>
- <script src="~/js/ModalFunctions.js"></script> 
+<script src="~/js/ModalFunctions.js"></script>
 
 <!-- Include Bootstrap and FontAwesome if not already included -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
