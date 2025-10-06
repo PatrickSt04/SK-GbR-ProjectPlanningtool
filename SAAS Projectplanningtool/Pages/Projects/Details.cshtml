@@ -223,7 +223,7 @@
                                                 <div class="task-checkbox">
                                                     <input class="form-check-input" type="checkbox"
                                                            onchange="this.form.submit();"
-                                                    @(isCompleted ? "checked" : "") />
+                                                           @(isCompleted ? "checked" : "") />
                                                 </div>
                                                 <div class="task-content">
                                                     <div class="task-name">@task.ProjectTaskName</div>
@@ -252,7 +252,7 @@
                                                 </div>
                                                 <div class="task-actions">
                                                     <button type="button" class="btn btn-sm btn-outline-primary"
-                                                            onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
+                                                            onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.IsTaskCatalogEntry)', '@(task.IsScheduleEntry)' )">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-danger"
@@ -281,7 +281,7 @@
                                                         <div class="task-checkbox">
                                                             <input class="form-check-input" type="checkbox"
                                                                    onchange="this.form.submit();"
-                                                            @(isCompleted ? "checked" : "") />
+                                                                   @(isCompleted ? "checked" : "") />
                                                         </div>
                                                         <div class="task-content">
                                                             <div class="task-name">@task.ProjectTaskName</div>
@@ -872,8 +872,8 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        </style>
-    
+    </style>
+
 }
 
 <script src="~/js/ModalFunctions.js"></script>

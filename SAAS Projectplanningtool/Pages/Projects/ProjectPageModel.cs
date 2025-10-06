@@ -197,7 +197,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 // Projectsections lesen
                 .Include(p => p.ProjectSections)
                 //deren Tasks
-                .ThenInclude(ps => ps.ProjectTasks)
+                .ThenInclude(ps => ps.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
                 .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
                 //.ThenInclude(pt => pt.State)
                 // Projectsections lesen

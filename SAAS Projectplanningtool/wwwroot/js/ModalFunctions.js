@@ -107,11 +107,13 @@
             if (m) new bootstrap.Modal(m).show();
         };
 
-        ns.editTask = function (taskId, taskName, startDate, endDate) {
+        ns.editTask = function (taskId, taskName, startDate, endDate, isTaskCatalogEntry, isScheduleEntry) {
             var idEl = el('editTaskId'); if (idEl) idEl.value = taskId || '';
             var nameEl = el('editTaskName'); if (nameEl) nameEl.value = taskName || '';
             var sEl = el('editTaskStartDate'); if (sEl) sEl.value = startDate || '';
             var eEl = el('editTaskEndDate'); if (eEl) eEl.value = endDate || '';
+            var tcEl = el('editTaskIsTaskCatalogEntry'); if (tcEl) tcEl.value = isTaskCatalogEntry || '';
+            var scEl = el('editTaskIsScheduleEntry'); if (scEl) scEl.value = isScheduleEntry || '';
             var m = el('editTaskModal'); if (m) new bootstrap.Modal(m).show();
         };
 

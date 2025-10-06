@@ -14,7 +14,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editTaskId" name="taskId" />
-                    @* <input type="hidden" name="projectId" value="@Model.Project.ProjectId" /> *@
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                     <div class="mb-3">
                         <label class="form-label">Aufgabenname</label>
                         <input type="text" class="form-control" id="editTaskName" name="name" />
@@ -29,6 +29,13 @@
                             <input type="date" class="form-control" id="editTaskEndDate" name="endDate" />
                         </div>
                     </div>
+
+                    <input asp-for="IsScheduleEntry" id="editTaskIsScheduleEntry" class="form-check-input" />
+                    <label asp-for="IsScheduleEntry" class="form-check-label">Im Terminplan speichern</label>
+
+                    <input asp-for="IsTaskCatalogEntry" id="editTaskIsTaskCatalogEntry" class="form-check-input" />
+                    <label asp-for="IsTaskCatalogEntry" class="form-check-label">Als Katalogeintrag speichern</label>
+                    
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
