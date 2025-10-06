@@ -28,9 +28,17 @@
 
             <div class="form-group">
                 <label asp-for="Project.CustomerId" class="control-label">Kunde</label>
-                <select required asp-for="Project.CustomerId" class="form-control" asp-items="Model.Customers">
-                    <option value="">-- Bitte wählen --</option>
-                </select>
+                @if(Model.customer == null)
+                {
+                    <select required asp-for="Project.CustomerId" class="form-control" asp-items="Model.Customers">
+                        <option value="">-- Bitte wählen --</option>
+                    </select>
+                }
+                else{
+                    <input required asp-for="Project.CustomerId" class="form-control" value="@Model.customer.CustomerId" readonly style="display:none"/>
+                    <input class="form-control" value="@Model.customer.CustomerName" readonly/>
+                }
+                
                 <span asp-validation-for="Project.CustomerId" class="text-danger"></span>
             </div>
 

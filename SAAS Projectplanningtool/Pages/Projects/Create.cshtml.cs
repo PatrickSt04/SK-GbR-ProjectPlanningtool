@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
@@ -20,6 +21,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
         public readonly DefaultWorkingTimeHandler _defaultWorkingTimeHandler;
+
+        public Customer? customer;
         public CreateModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
@@ -31,12 +34,21 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public Project Project { get; set; } = default!;
         public float InitialBudget { get; set; } = 0.0f;
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(string? customerid)
         {
             try
             {
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
-                await PublishCustomersAsync();
+
+                if (customerid != null)
+                {
+                    customer = await getCustomer(customerid);
+
+                }
+                else
+                {
+                    await PublishCustomersAsync();
+                }
                 await PublishProjectLeadsAsync();
 
                 //fill default workingtimes with workingtimes from the company itself
@@ -96,6 +108,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, null) });
             }
+        }
+
+        public async Task<Customer>? getCustomer(string customerId)
+        {
+            var employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+            return await _context.Customer.FirstOrDefaultAsync(c => c.CustomerId == customerId && c.CompanyId == employee.CompanyId);
         }
     }
 }

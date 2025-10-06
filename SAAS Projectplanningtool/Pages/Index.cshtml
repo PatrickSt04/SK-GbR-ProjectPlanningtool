@@ -27,89 +27,69 @@
     </div>
 
     <!-- Main Dashboard Grid -->
-    <div class="dashboard-grid">
+    <div class="dashboard-grid row">
         
         <!-- Project Overview Cards -->
-        <section class="overview-cards">
-            <div class="card-grid">
-                <div class="stat-card active-projects">
-                    <div class="card-header">
-                        <h3>Aktive Projekte</h3>
-                        <i class="fas fa-project-diagram"></i>
+        <div class="col-12">
+            <section class="overview-cards">
+                <div class="card-grid">
+                    <div class="stat-card active-projects">
+                        <div class="card-header">
+                            <h3>Aktive Projekte</h3>
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <div class="card-value">@Model.ActiveProjectsCount</div>
+                        <a asp-page="/Projects/Index" class="card-link">Alle anzeigen</a>
                     </div>
-                    <div class="card-value">@Model.ActiveProjectsCount</div>
-                    <a asp-page="/Projects/Index" class="card-link">Alle anzeigen</a>
-                </div>
 
-                <div class="stat-card archived-projects">
-                    <div class="card-header">
-                        <h3>Archivierte Projekte</h3>
-                        <i class="fas fa-archive"></i>
+                    <div class="stat-card archived-projects">
+                        <div class="card-header">
+                            <h3>Archivierte Projekte</h3>
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <div class="card-value">@Model.ArchivedProjectsCount</div>
+                        <a href="/Projects/Archive" class="card-link">Archiv öffnen</a>
                     </div>
-                    <div class="card-value">@Model.ArchivedProjectsCount</div>
-                    <a asp-page="/Projects/Archived" class="card-link">Archiv öffnen</a>
-                </div>
 
-                <div class="stat-card upcoming-projects">
-                    <div class="card-header">
-                        <h3>Startend in 30 Tagen</h3>
-                        <i class="fas fa-calendar-plus"></i>
+                    <div class="stat-card upcoming-projects">
+                        <div class="card-header">
+                            <h3>Startend in 30 Tagen</h3>
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="card-value">@Model.UpcomingProjectsCount</div>
+                        <a asp-page="/Projects/Upcoming" class="card-link">Details</a>
                     </div>
-                    <div class="card-value">@Model.UpcomingProjectsCount</div>
-                    <a asp-page="/Projects/Upcoming" class="card-link">Details</a>
-                </div>
 
-                <div class="stat-card overdue-projects">
-                    <div class="card-header">
-                        <h3>Überfällige Projekte</h3>
-                        <i class="fas fa-exclamation-triangle"></i>
+                    <div class="stat-card overdue-projects">
+                        <div class="card-header">
+                            <h3>Überfällige Projekte</h3>
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="card-value">@Model.OverdueProjectsCount</div>
+                        <a asp-page="/Projects/Overdue" class="card-link">Sofort handeln</a>
                     </div>
-                    <div class="card-value">@Model.OverdueProjectsCount</div>
-                    <a asp-page="/Projects/Overdue" class="card-link">Sofort handeln</a>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
 
         <!-- Budget Status Section -->
-        <section class="budget-section">
-            <h2>Budget-Status</h2>
-            <div class="budget-container">
-                @{
-                    var visibleBudgetProjects = Model.ProjectsWithBudget.Take(5);
-                    var hiddenBudgetProjects = Model.ProjectsWithBudget.Skip(5);
-                }
+        <div class="col-4">
+            <section class="overview-card budget-section">
+                <h2>Budget-Status</h2>
+                <div class="budget-container">
+                    @{
+                        var visibleBudgetProjects = Model.ProjectsWithBudget.Take(5);
+                        var hiddenBudgetProjects = Model.ProjectsWithBudget.Skip(5);
+                    }
 
-                @foreach (var project in visibleBudgetProjects)
-                {
-                    var budgetPercentage = project.Project.ProjectBudget != null && project.Project.ProjectBudget.InitialBudget > 0
-                    ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
-                    : 0;
-                    var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
+                    @foreach (var project in visibleBudgetProjects)
+                    {
+                        var budgetPercentage = project.Project.ProjectBudget != null && project.Project.ProjectBudget.InitialBudget > 0
+                        ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
+                        : 0;
+                        var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
 
-                    <div class="budget-item @warningClass">
-                        <div class="budget-header">
-                            <span class="project-name">@project.Project.ProjectName</span>
-                            <span class="budget-percentage">@budgetPercentage.ToString("F1")%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: @budgetPercentage%"></div>
-                        </div>
-                        <div class="budget-details">
-                            <span>@project.UsedBudget.ToString("C") von @project.Project.ProjectBudget?.InitialBudget.ToString("C")</span>
-                        </div>
-                    </div>
-                }
-
-                @if (hiddenBudgetProjects.Any())
-                {
-                    <div class="hidden-budget-items" id="hiddenBudgetItems" style="display: none;">
-                        @foreach (var project in hiddenBudgetProjects)
-                        {
-                            var budgetPercentage = project.Project.ProjectBudget != null && project.Project.ProjectBudget.InitialBudget > 0
-                            ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
-                            : 0;
-                            var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
-
+                        <a class="budget-item-link" href="Projects/BudgetPlanning?id=@project.Project.ProjectId">
                             <div class="budget-item @warningClass">
                                 <div class="budget-header">
                                     <span class="project-name">@project.Project.ProjectName</span>
@@ -122,355 +102,248 @@
                                     <span>@project.UsedBudget.ToString("C") von @project.Project.ProjectBudget?.InitialBudget.ToString("C")</span>
                                 </div>
                             </div>
-                        }
-                    </div>
+                        </a>
+                    }
 
-                    <button class="show-more-btn" id="showMoreBudget" onclick="toggleBudgetItems()">
-                        <i class="fas fa-chevron-down"></i>
-                        @hiddenBudgetProjects.Count() weitere anzeigen
-                    </button>
-                }
-            </div>
+                    @if (hiddenBudgetProjects.Any())
+                    {
+                        <div class="hidden-budget-items" id="hiddenBudgetItems" style="display: none;">
+                            @foreach (var project in hiddenBudgetProjects)
+                            {
+                                var budgetPercentage = project.Project.ProjectBudget != null && project.Project.ProjectBudget.InitialBudget > 0
+                                ? (project.UsedBudget / project.Project.ProjectBudget.InitialBudget) * 100
+                                : 0;
+                                var warningClass = budgetPercentage > 90 ? "budget-warning" : budgetPercentage > 75 ? "budget-caution" : "budget-ok";
 
-            @if (Model.HighBudgetProjects.Any())
-            {
-                <div class="budget-warnings">
-                    <h3><i class="fas fa-exclamation-circle"></i> Budget-Warnungen (>90%)</h3>
-                    <ul class="warning-list">
-                        @foreach (var project in Model.HighBudgetProjects)
-                        {
-                            <li>
-                                <a asp-page="/Projects/Details" asp-route-id="@project?.Project?.ProjectId">@project?.Project?.ProjectName</a>
-                                <span class="warning-percentage">@((project?.UsedBudget / project?.Project?.ProjectBudget?.InitialBudget * 100)?.ToString("F1"))%</span>
-                            </li>
-                        }
-                    </ul>
+                                <a class="budget-item-link" href="Projects/BudgetPlanning?id=@project.Project.ProjectId">
+                                    <div class="budget-item @warningClass">
+                                        <div class="budget-header">
+                                            <span class="project-name">@project.Project.ProjectName</span>
+                                            <span class="budget-percentage">@budgetPercentage.ToString("F1")%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: @budgetPercentage%"></div>
+                                        </div>
+                                        <div class="budget-details">
+                                            <span>@project.UsedBudget.ToString("C") von @project.Project.ProjectBudget?.InitialBudget.ToString("C")</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+
+                        <button class="show-more-btn" id="showMoreBudget" onclick="toggleBudgetItems()">
+                            <i class="fas fa-chevron-down"></i>
+                            @hiddenBudgetProjects.Count() weitere anzeigen
+                        </button>
+                    }
                 </div>
-            }
-        </section>
 
-
-        <!-- Tasks Cockpit -->
-        <section class="tasks-cockpit">
-            <h2>Aufgaben-Cockpit</h2>
-    
-            <div class="tasks-tabs">
-                <button class="tab-btn active" data-tab="my-tasks">Meine Aufgaben (@Model.MyOpenTasks.Count)</button>
-                <button class="tab-btn" data-tab="team-tasks">Team-Aufgaben (@Model.TeamTasks.Count)</button>
-            </div>
-
-            <div class="tab-content active" id="my-tasks">
-                @if (Model.MyOpenTasks.Any())
+                @if (Model.HighBudgetProjects.Any())
                 {
-                   
-                    var visibleMyTasks = Model.MyOpenTasks.Take(5);
-                    var hiddenMyTasks = Model.MyOpenTasks.Skip(5);
-                    
-            
-                    <div class="task-list">
-                        @foreach (var task in visibleMyTasks)
-                        {
-                            var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
-                    
-                            <div class="task-item @dueDateClass">
-                                <div class="task-info">
-                                    <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
-                                    <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
-                                    <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
-                                </div>
-                                <div class="task-meta">
-                                    @if (task.EndDate.HasValue)
-                                    {
-                                        <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-            
-                    @if (hiddenMyTasks.Any())
-                    {
-                        <div class="hidden-task-items" id="hiddenMyTasks" style="display: none;">
-                            <div class="task-list">
-                                @foreach (var task in hiddenMyTasks)
-                                {
-                                    var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
-                            
-                                    <div class="task-item @dueDateClass">
-                                        <div class="task-info">
-                                            <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
-                                            <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
-                                            <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
-                                        </div>
-                                        <div class="task-meta">
-                                            @if (task.EndDate.HasValue)
-                                            {
-                                                <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
-                                            }
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                
-                        <button class="show-more-btn" id="showMoreMyTasks" onclick="toggleMyTasks()">
-                            <i class="fas fa-chevron-down"></i>
-                            @hiddenMyTasks.Count() weitere anzeigen
-                        </button>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <i class="fas fa-check-circle"></i>
-                        <p>Keine offenen Aufgaben!</p>
+                    <div class="budget-warnings">
+                        <h3><i class="fas fa-exclamation-circle"></i> Budget-Warnungen (>90%)</h3>
+                        <ul class="warning-list">
+                            @foreach (var project in Model.HighBudgetProjects)
+                            {
+                                <li>
+                                    <a asp-page="/Projects/Details" asp-route-id="@project?.Project?.ProjectId">@project?.Project?.ProjectName</a>
+                                    <span class="warning-percentage">@((project?.UsedBudget / project?.Project?.ProjectBudget?.InitialBudget * 100)?.ToString("F1"))%</span>
+                                </li>
+                            }
+                        </ul>
                     </div>
                 }
-            </div>
-
-            <div class="tab-content" id="team-tasks">
-                @if (Model.TeamTasks.Any())
-                {
-                    
-                    var visibleTeamTasks = Model.TeamTasks.Take(5);
-                    var hiddenTeamTasks = Model.TeamTasks.Skip(5);
-                    
-            
-                    <div class="task-list">
-                        @foreach (var task in visibleTeamTasks)
-                        {
-                            var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
-                    
-                            <div class="task-item @dueDateClass">
-                                <div class="task-info">
-                                    <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
-                                    <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
-                                    <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
-                                </div>
-                                <div class="task-meta">
-                                    @if (task.EndDate.HasValue)
-                                    {
-                                        <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-            
-                    @if (hiddenTeamTasks.Any())
-                    {
-                        <div class="hidden-task-items" id="hiddenTeamTasks" style="display: none;">
-                            <div class="task-list">
-                                @foreach (var task in hiddenTeamTasks)
-                                {
-                                    var dueDateClass = task.EndDate.HasValue && task.EndDate < DateOnly.FromDateTime(DateTime.Now) ? "overdue" : "";
-                            
-                                    <div class="task-item @dueDateClass">
-                                        <div class="task-info">
-                                            <h4><a asp-page="/Tasks/Details" asp-route-id="@task.ProjectTaskId">@task.ProjectTaskName</a></h4>
-                                            <p class="task-project">@task.ProjectSection?.Project?.ProjectName</p>
-                                            <span class="task-state state-@task.State?.StateName?.ToLower()">@task.State?.StateName</span>
-                                        </div>
-                                        <div class="task-meta">
-                                            @if (task.EndDate.HasValue)
-                                            {
-                                                <span class="due-date">Fällig: @task.EndDate.Value.ToString("dd.MM.yyyy")</span>
-                                            }
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                
-                        <button class="show-more-btn" id="showMoreTeamTasks" onclick="toggleTeamTasks()">
-                            <i class="fas fa-chevron-down"></i>
-                            @hiddenTeamTasks.Count() weitere anzeigen
-                        </button>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <i class="fas fa-users"></i>
-                        <p>Keine Team-Aufgaben verfügbar</p>
-                    </div>
-                }
-            </div>
-        </section>
-
+            </section>
+        </div>
 
         <!-- Resources & Workload -->
-        <section class="resources-section">
-            <h2>Ressourcen & Auslastung</h2>
+        <div class="col-4">
+            <section class="overview-card resources-section">
+                <h2>Ressourcen & Auslastung</h2>
             
-            <div class="workload-grid">
-                @foreach (var employee in Model.EmployeeWorkload)
-                {
-                    var workloadClass = employee.TaskCount > 10 ? "high-workload" : employee.TaskCount > 5 ? "medium-workload" : "low-workload";
-                    
-                    <div class="workload-item @workloadClass">
-                        <div class="employee-info">
-                            <h4>@employee.EmployeeDisplayName</h4>
-                            <span class="hourly-rate">@employee.HourlyRateGroup?.HourlyRateGroupName (@employee.HourlyRateGroup?.HourlyRate.ToString("C")/h)</span>
-                        </div>
-                        <div class="workload-indicator">
-                            <span class="task-count">@employee.TaskCount Aufgaben</span>
-                            <div class="workload-bar">
-                                <div class="workload-fill" style="width: @Math.Min(employee.TaskCount * 10, 100)%"></div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <div class="hourly-rate-stats">
-                <h3>Stundensatz-Statistik</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">Durchschnittlicher Stundensatz:</span>
-                        <span class="stat-value">@Model.AverageHourlyRate.ToString("C")</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Höchster Stundensatz:</span>
-                        <span class="stat-value">@Model.HighestHourlyRate.ToString("C")</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Niedrigster Stundensatz:</span>
-                        <span class="stat-value">@Model.LowestHourlyRate.ToString("C")</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Recent Activities -->
-        <section class="activities-section">
-            <h2>Letzte Änderungen</h2>
-            <div class="activity-feed">
-                @foreach (var activity in Model.RecentActivities)
-                {
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas @activity.Icon"></i>
-                        </div>
-                        <div class="activity-content">
-                            <p class="activity-description">@activity.Description</p>
-                            <div class="activity-meta">
-                                <span class="activity-user">@activity.ModifierName</span>
-                                <span class="activity-time">@activity.Timestamp.ToString("dd.MM.yyyy HH:mm")</span>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </section>
-
-        <!-- Quick Actions -->
-        <section class="quick-actions">
-            <h2>Schnelle Aktionen</h2>
-            <div class="action-buttons">
-                @if (Model.CanCreateProjects)
-                {
-                    <a asp-page="/Projects/Create" class="action-btn primary">
-                        <i class="fas fa-plus"></i>
-                        Neues Projekt
-                    </a>
-                }
-                @if (Model.CanCreateTasks)
-                {
-                    <a asp-page="/Tasks/Create" class="action-btn secondary">
-                        <i class="fas fa-tasks"></i>
-                        Neue Aufgabe
-                    </a>
-                }
-                @if (Model.CanCreateCustomers)
-                {
-                    <a asp-page="/Customers/Create" class="action-btn secondary">
-                        <i class="fas fa-user-plus"></i>
-                        Neuer Kunde
-                    </a>
-                }
-                @if (Model.CanCreateEmployees)
-                {
-                    <a asp-page="/Employees/Create" class="action-btn secondary">
-                        <i class="fas fa-user-tie"></i>
-                        Neuer Mitarbeiter
-                    </a>
-                }
-            </div>
-        </section>
-
-        <!-- Calendar Widget -->
-        <section class="calendar-section">
-            <h2>Termine & Deadlines</h2>
-            <div class="calendar-widget">
-                <div class="calendar-header">
-                    <button class="calendar-nav" id="prevMonth">&lt;</button>
-                    <h3 id="currentMonth">@DateTime.Now.ToString("MMMM yyyy")</h3>
-                    <button class="calendar-nav" id="nextMonth">&gt;</button>
-                </div>
-                <div class="calendar-grid" id="calendarGrid">
-                    <!-- Calendar will be populated by JavaScript -->
-                </div>
-            </div>
-            
-            <div class="upcoming-events">
-                <h3>Diese Woche</h3>
-                <div class="event-list">
-                    @foreach (var eventItem in Model.ThisWeekEvents)
+                <div class="workload-grid">
+                    @foreach (var employee in Model.EmployeeWorkload)
                     {
-                        <div class="event-item">
-                            <div class="event-date">@eventItem.Date.ToString("dd.MM")</div>
-                            <div class="event-details">
-                                <span class="event-title">@eventItem.Title</span>
-                                <span class="event-type">@eventItem.Type</span>
+                        var workloadClass = employee.TaskCount > 10 ? "high-workload" : employee.TaskCount > 5 ? "medium-workload" : "low-workload";
+                    
+                        <div class="workload-item @workloadClass">
+                            <div class="employee-info">
+                                <h4>@employee.EmployeeDisplayName</h4>
+                                <span class="hourly-rate">@employee.HourlyRateGroup?.HourlyRateGroupName (@employee.HourlyRateGroup?.HourlyRate.ToString("C")/h)</span>
+                            </div>
+                            <div class="workload-indicator">
+                                <span class="task-count">@employee.TaskCount Aufgaben</span>
+                                <div class="workload-bar">
+                                    <div class="workload-fill" style="width: @Math.Min(employee.TaskCount * 10, 100)%"></div>
+                                </div>
                             </div>
                         </div>
                     }
                 </div>
-            </div>
-        </section>
 
-        <!-- Customer Snapshot -->
-        <section class="customers-section">
-            <h2>Kunden-Snapshot</h2>
-            <div class="customer-list">
-                <h3>Zuletzt hinzugefügte Kunden</h3>
-                @foreach (var customer in Model.RecentCustomers)
-                {
-                    <div class="customer-item">
-                        <div class="customer-info">
-                            <h4><a asp-page="/Customers/Details" asp-route-id="@customer.CustomerId">@customer.CustomerName</a></h4>
-                            <p class="customer-location">@customer.Address?.Street @customer.Address?.HouseNumber, @customer.Address?.City</p>
+                <div class="hourly-rate-stats">
+                    <h3>Stundensatz-Statistik</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Durchschnittlicher Stundensatz:</span>
+                            <span class="stat-value">@Model.AverageHourlyRate.ToString("C")</span>
                         </div>
-                        <div class="customer-actions">
-                            <a asp-page="/Projects/Create" asp-route-customerId="@customer.CustomerId" class="btn-small">Neues Projekt</a>
-                            <span class="customer-date">@customer.CreatedTimestamp?.ToString("dd.MM.yyyy")</span>
+                        <div class="stat-item">
+                            <span class="stat-label">Höchster Stundensatz:</span>
+                            <span class="stat-value">@Model.HighestHourlyRate.ToString("C")</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Niedrigster Stundensatz:</span>
+                            <span class="stat-value">@Model.LowestHourlyRate.ToString("C")</span>
                         </div>
                     </div>
-                }
-            </div>
-        </section>
+                </div>
+            </section>
+        </div>
 
-        <!-- System Info -->
-        <section class="system-info">
-            <h2>System-Information</h2>
-            <div class="info-cards">
-                <div class="info-card license-info">
-                    <h3><i class="fas fa-certificate"></i> Lizenz-Status</h3>
-                    <p><strong>@Model.CurrentCompany?.License?.LicenseName</strong></p>
-                    <p class="license-details">Aktive Benutzer: @Model.ActiveUsersCount</p>
-                </div>
-                
-                <div class="info-card system-stats">
-                    <h3><i class="fas fa-chart-bar"></i> System-Statistiken</h3>
-                    <ul>
-                        <li>Gesamt Projekte: @Model.TotalProjectsCount</li>
-                        <li>Gesamt Aufgaben: @Model.TotalTasksCount</li>
-                        <li>Aktive Mitarbeiter: @Model.ActiveUsersCount</li>
-                    </ul>
-                </div>
+        <div class="col-4">
+        <!-- Quick Actions -->
+            <div>
+                <section class="overview-card quick-actions">
+                    <h2>Schnelle Aktionen</h2>
+                    <div class="action-buttons">
+                        @if (Model.CanCreateProjects)
+                        {
+                            <a asp-page="/Projects/Create" class="action-btn primary">
+                                <i class="fas fa-plus"></i>
+                                Neues Projekt
+                            </a>
+                        }
+                        @if (Model.CanCreateTasks)
+                        {
+                            <a asp-page="/Tasks/Create" class="action-btn secondary">
+                                <i class="fas fa-tasks"></i>
+                                Neue Aufgabe
+                            </a>
+                        }
+                        @if (Model.CanCreateCustomers)
+                        {
+                            <a asp-page="/Customers/Create" class="action-btn secondary">
+                                <i class="fas fa-user-plus"></i>
+                                Neuer Kunde
+                            </a>
+                        }
+                        @if (Model.CanCreateEmployees)
+                        {
+                            <a asp-page="/Employees/Create" class="action-btn secondary">
+                                <i class="fas fa-user-tie"></i>
+                                Neuer Mitarbeiter
+                            </a>
+                        }
+                    </div>
+                </section>
             </div>
-        </section>
+
+            <div>
+                <!-- Calendar Widget -->
+                <section class="overview-card calendar-section">
+                    <h2>Termine & Deadlines</h2>
+                    <div class="calendar-widget">
+                        <div class="calendar-header">
+                            <button class="calendar-nav" id="prevMonth">&lt;</button>
+                            <span class="calendar-range" id="currentMonth">@DateTime.Now.ToString("MMMM yyyy")</span>
+                            <button class="calendar-nav" id="nextMonth">&gt;</button>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- Calendar will be populated by JavaScript -->
+                        </div>
+                    </div>
+            
+                    <div class="overview-card upcoming-events">
+                        <h3 class="calendar-range">Diese Woche</h3>
+                        <div class="event-list">
+                            @foreach (var eventItem in Model.ThisWeekEvents)
+                            {
+                                <div class="event-item">
+                                    <div class="event-date">@eventItem.Date.ToString("dd.MM")</div>
+                                    <div class="event-details">
+                                        <span class="event-title">@eventItem.Title</span>
+                                        <span class="event-type">@eventItem.Type</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Customer Snapshot -->
+        <div class="overview-card col-4">
+            <section class="customers-section">
+                <h2>Kunden-Snapshot</h2>
+                <div class="customer-list">
+                    <h3>Zuletzt hinzugefügte Kunden</h3>
+                    @foreach (var customer in Model.RecentCustomers)
+                    {
+                        <div class="customer-item">
+                            <div class="customer-info">
+                                <h4><a href="CustomerManagement/Details?id=@customer.CustomerId">@customer.CustomerName</a></h4>
+                                <p class="customer-location">@customer.Address?.Street @customer.Address?.HouseNumber, @customer.Address?.City</p>
+                                <p><span class="customer-date">@customer.CreatedTimestamp?.ToString("dd.MM.yyyy")</span></p>
+                            </div>
+                            <div class="customer-actions">
+                                <a asp-page="/Projects/Create" asp-route-customerId="@customer.CustomerId" class="btn-small">Neues Projekt</a>
+                                
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="col-4">
+            <section class="overview-card activities-section">
+                <h2>Letzte Änderungen</h2>
+                <div class="activity-feed">
+                    @foreach (var activity in Model.RecentActivities)
+                    {
+                        <div class="activity-item">
+                            @* <div class="activity-icon">
+                                <i class="fas @activity.Icon"></i>
+                            </div> *@
+                            <div class="activity-content">
+                                <p class="activity-description">@activity.Description</p>
+                                <div class="activity-meta">
+                                    <span class="activity-user">@activity.ModifierName</span>
+                                    <span class="activity-time">@activity.Timestamp.ToString("dd.MM.yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </div>
+        <!-- System Info -->
+        <div class="col-4">
+            <section class="overview-card system-info">
+                <h2>System-Information</h2>
+                <div class="info-cards">
+                    <div class="info-card license-info">
+                        <h3><i class="fas fa-certificate"></i> Lizenz-Status</h3>
+                        <p><strong>@Model.CurrentCompany?.License?.LicenseName</strong></p>
+                        <p class="license-details">Aktive Benutzer: @Model.ActiveUsersCount</p>
+                    </div>
+                
+                    <div class="info-card system-stats">
+                        <h3><i class="fas fa-chart-bar"></i> System-Statistiken</h3>
+                        <ul>
+                            <li>Gesamt Projekte: @Model.TotalProjectsCount</li>
+                            <li>Gesamt Aufgaben: @Model.TotalTasksCount</li>
+                            <li>Aktive Mitarbeiter: @Model.ActiveUsersCount</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
     </div>
 </div>
 
