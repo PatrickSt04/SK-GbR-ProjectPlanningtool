@@ -18,7 +18,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
-        public readonly DefaultWorkingTimeHandler _defaultWorkingTimeHandler;
+
 
         public EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
@@ -26,8 +26,9 @@ namespace SAAS_Projectplanningtool.Pages.Settings
 
             _userManager = userManager;
             _logger = new Logger(context, userManager);
-            _defaultWorkingTimeHandler = new DefaultWorkingTimeHandler(context, userManager);
+
         }
+
 
         [BindProperty]
         public Company Company { get; set; } = default!;
@@ -35,6 +36,9 @@ namespace SAAS_Projectplanningtool.Pages.Settings
         [BindProperty]
         public Address Address { get; set; } = default!;
 
+
+        [BindProperty]
+        public DefaultWorkingTimeHandler WorkingTime { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(string? id)
         {
@@ -67,10 +71,10 @@ namespace SAAS_Projectplanningtool.Pages.Settings
                 Address = company.Address;
 
                 // Load working days checkboxes
-                _defaultWorkingTimeHandler.LoadWorkingDaysToProperties(company.DefaultWorkDays);
+                WorkingTime.LoadFromWorkingDays(company.DefaultWorkDays);
 
                 // Load working hours
-                _defaultWorkingTimeHandler.LoadWorkingHoursToProperties(company.DefaultWorkingHours);
+                WorkingTime.LoadFromWorkingHours(company.DefaultWorkingHours);
             }
             catch (Exception ex)
             {
@@ -86,7 +90,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
             await _logger.Log(null, User, null, "Companies/Edit<OnPost>Beginn");
 
             // Validate working hours
-            if (!_defaultWorkingTimeHandler.ValidateWorkingHours())
+            if (!WorkingTime.IsValid())
             {
                 ModelState.AddModelError("", "Bitte stellen Sie sicher, dass die Endzeit nach der Startzeit liegt.");
                 return Page();
@@ -124,10 +128,10 @@ namespace SAAS_Projectplanningtool.Pages.Settings
                 }
 
                 // Update working days
-                existingCompany.DefaultWorkDays = _defaultWorkingTimeHandler.GetSelectedWorkingDays();
+                existingCompany.DefaultWorkDays = WorkingTime.GetSelectedWorkingDays();
 
                 // Update working hours
-                existingCompany.DefaultWorkingHours = _defaultWorkingTimeHandler.GetWorkingHoursFromProperties();
+                existingCompany.DefaultWorkingHours = WorkingTime.GetWorkingHours();
 
                 existingCompany.CompanyName = Company.CompanyName;
                 existingCompany.SectorId = Company.SectorId;

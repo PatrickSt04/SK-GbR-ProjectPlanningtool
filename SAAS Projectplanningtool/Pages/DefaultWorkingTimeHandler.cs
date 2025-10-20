@@ -10,162 +10,137 @@ namespace SAAS_Projectplanningtool.Pages
     public class DefaultWorkingTimeHandler
     {
 
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        public WorkDayConfig Monday { get; set; } = new() { StartTime = new(8, 0), EndTime = new(17, 0) };
+        public WorkDayConfig Tuesday { get; set; } = new() { StartTime = new(8, 0), EndTime = new(17, 0) };
+        public WorkDayConfig Wednesday { get; set; } = new() { StartTime = new(8, 0), EndTime = new(17, 0) };
+        public WorkDayConfig Thursday { get; set; } = new() { StartTime = new(8, 0), EndTime = new(17, 0) };
+        public WorkDayConfig Friday { get; set; } = new() { StartTime = new(8, 0), EndTime = new(17, 0) };
+        public WorkDayConfig Saturday { get; set; } = new() { StartTime = new(8, 0), EndTime = new(12, 0) };
+        public WorkDayConfig Sunday { get; set; } = new() { StartTime = new(10, 0), EndTime = new(14, 0) };
 
 
-        // Working Days properties for binding
-        [BindProperty]
-        public bool Monday { get; set; }
-        [BindProperty]
-        public bool Tuesday { get; set; }
-        [BindProperty]
-        public bool Wednesday { get; set; }
-        [BindProperty]
-        public bool Thursday { get; set; }
-        [BindProperty]
-        public bool Friday { get; set; }
-        [BindProperty]
-        public bool Saturday { get; set; }
-        [BindProperty]
-        public bool Sunday { get; set; }
-
-        // Working Hours properties for binding
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly MondayStart { get; set; } = new TimeOnly(8, 0);
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly MondayEnd { get; set; } = new TimeOnly(17, 0);
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly TuesdayStart { get; set; } = new TimeOnly(8, 0);
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly TuesdayEnd { get; set; } = new TimeOnly(17, 0);
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly WednesdayStart { get; set; } = new TimeOnly(8, 0);
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly WednesdayEnd { get; set; } = new TimeOnly(17, 0);
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly ThursdayStart { get; set; } = new TimeOnly(8, 0);
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly ThursdayEnd { get; set; } = new TimeOnly(17, 0);
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly FridayStart { get; set; } = new TimeOnly(8, 0);
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly FridayEnd { get; set; } = new TimeOnly(17, 0);
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly SaturdayStart { get; set; } = new TimeOnly(8, 0);
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly SaturdayEnd { get; set; } = new TimeOnly(12, 0);
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly SundayStart { get; set; } = new TimeOnly(10, 0);
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly SundayEnd { get; set; } = new TimeOnly(14, 0);
-
-
-
-        public DefaultWorkingTimeHandler(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-        }
-
-        public void LoadWorkingDaysToProperties(List<int>? workingDays)
-        {
-            if (workingDays == null) return;
-
-            Monday = workingDays.Contains(1);
-            Tuesday = workingDays.Contains(2);
-            Wednesday = workingDays.Contains(3);
-            Thursday = workingDays.Contains(4);
-            Friday = workingDays.Contains(5);
-            Saturday = workingDays.Contains(6);
-            Sunday = workingDays.Contains(7);
-        }
-
-        public void LoadWorkingHoursToProperties(Dictionary<int, WorkingHours> workingHours)
-        {
-            if (workingHours.ContainsKey(1)) { MondayStart = workingHours[1].StartTime; MondayEnd = workingHours[1].EndTime; }
-            if (workingHours.ContainsKey(2)) { TuesdayStart = workingHours[2].StartTime; TuesdayEnd = workingHours[2].EndTime; }
-            if (workingHours.ContainsKey(3)) { WednesdayStart = workingHours[3].StartTime; WednesdayEnd = workingHours[3].EndTime; }
-            if (workingHours.ContainsKey(4)) { ThursdayStart = workingHours[4].StartTime; ThursdayEnd = workingHours[4].EndTime; }
-            if (workingHours.ContainsKey(5)) { FridayStart = workingHours[5].StartTime; FridayEnd = workingHours[5].EndTime; }
-            if (workingHours.ContainsKey(6)) { SaturdayStart = workingHours[6].StartTime; SaturdayEnd = workingHours[6].EndTime; }
-            if (workingHours.ContainsKey(7)) { SundayStart = workingHours[7].StartTime; SundayEnd = workingHours[7].EndTime; }
-        }
-
+        /// <summary>
+        /// Gibt alle ausgewählten Arbeitstage als Liste zurück
+        /// </summary>
         public List<int> GetSelectedWorkingDays()
         {
-            var workingDays = new List<int>();
-            if (Monday) workingDays.Add(1);
-            if (Tuesday) workingDays.Add(2);
-            if (Wednesday) workingDays.Add(3);
-            if (Thursday) workingDays.Add(4);
-            if (Friday) workingDays.Add(5);
-            if (Saturday) workingDays.Add(6);
-            if (Sunday) workingDays.Add(7);
-            return workingDays;
+            var days = new List<int>();
+            if (Monday.IsActive) days.Add(1);
+            if (Tuesday.IsActive) days.Add(2);
+            if (Wednesday.IsActive) days.Add(3);
+            if (Thursday.IsActive) days.Add(4);
+            if (Friday.IsActive) days.Add(5);
+            if (Saturday.IsActive) days.Add(6);
+            if (Sunday.IsActive) days.Add(7);
+            return days;
         }
 
-        public Dictionary<int, WorkingHours> GetWorkingHoursFromProperties()
+        /// <summary>
+        /// Gibt die Arbeitszeiten als Dictionary zurück
+        /// </summary>
+        public Dictionary<int, WorkingHours> GetWorkingHours()
         {
             return new Dictionary<int, WorkingHours>
             {
-                { 1, new WorkingHours { StartTime = MondayStart, EndTime = MondayEnd } },
-                { 2, new WorkingHours { StartTime = TuesdayStart, EndTime = TuesdayEnd } },
-                { 3, new WorkingHours { StartTime = WednesdayStart, EndTime = WednesdayEnd } },
-                { 4, new WorkingHours { StartTime = ThursdayStart, EndTime = ThursdayEnd } },
-                { 5, new WorkingHours { StartTime = FridayStart, EndTime = FridayEnd } },
-                { 6, new WorkingHours { StartTime = SaturdayStart, EndTime = SaturdayEnd } },
-                { 7, new WorkingHours { StartTime = SundayStart, EndTime = SundayEnd } }
+                { 1, new WorkingHours { StartTime = Monday.StartTime, EndTime = Monday.EndTime } },
+                { 2, new WorkingHours { StartTime = Tuesday.StartTime, EndTime = Tuesday.EndTime } },
+                { 3, new WorkingHours { StartTime = Wednesday.StartTime, EndTime = Wednesday.EndTime } },
+                { 4, new WorkingHours { StartTime = Thursday.StartTime, EndTime = Thursday.EndTime } },
+                { 5, new WorkingHours { StartTime = Friday.StartTime, EndTime = Friday.EndTime } },
+                { 6, new WorkingHours { StartTime = Saturday.StartTime, EndTime = Saturday.EndTime } },
+                { 7, new WorkingHours { StartTime = Sunday.StartTime, EndTime = Sunday.EndTime } }
             };
         }
 
-        public bool ValidateWorkingHours()
+        /// <summary>
+        /// Lädt Arbeitstage aus einer Liste
+        /// </summary>
+        public void LoadFromWorkingDays(List<int>? workingDays)
         {
-            return MondayStart < MondayEnd &&
-                   TuesdayStart < TuesdayEnd &&
-                   WednesdayStart < WednesdayEnd &&
-                   ThursdayStart < ThursdayEnd &&
-                   FridayStart < FridayEnd &&
-                   SaturdayStart < SaturdayEnd &&
-                   SundayStart < SundayEnd;
+            if (workingDays == null) return;
+
+            Monday.IsActive = workingDays.Contains(1);
+            Tuesday.IsActive = workingDays.Contains(2);
+            Wednesday.IsActive = workingDays.Contains(3);
+            Thursday.IsActive = workingDays.Contains(4);
+            Friday.IsActive = workingDays.Contains(5);
+            Saturday.IsActive = workingDays.Contains(6);
+            Sunday.IsActive = workingDays.Contains(7);
         }
 
-        public void LoadDefaultWorkTimesOfCompany(string? companyId)
+        /// <summary>
+        /// Lädt Arbeitszeiten aus einem Dictionary
+        /// </summary>
+        public void LoadFromWorkingHours(Dictionary<int, WorkingHours>? workingHours)
         {
-            if (string.IsNullOrEmpty(companyId)) return;
+            if (workingHours == null) return;
 
-            var company = _context.Company
-                .FirstOrDefault(c => c.CompanyId == companyId);
+            if (workingHours.ContainsKey(1)) Monday.LoadFrom(workingHours[1]);
+            if (workingHours.ContainsKey(2)) Tuesday.LoadFrom(workingHours[2]);
+            if (workingHours.ContainsKey(3)) Wednesday.LoadFrom(workingHours[3]);
+            if (workingHours.ContainsKey(4)) Thursday.LoadFrom(workingHours[4]);
+            if (workingHours.ContainsKey(5)) Friday.LoadFrom(workingHours[5]);
+            if (workingHours.ContainsKey(6)) Saturday.LoadFrom(workingHours[6]);
+            if (workingHours.ContainsKey(7)) Sunday.LoadFrom(workingHours[7]);
+        }
 
-            if (company != null)
+        /// <summary>
+        /// Validiert alle Arbeitszeiten
+        /// </summary>
+        public bool IsValid()
+        {
+            return Monday.IsValid() &&
+                   Tuesday.IsValid() &&
+                   Wednesday.IsValid() &&
+                   Thursday.IsValid() &&
+                   Friday.IsValid() &&
+                   Saturday.IsValid() &&
+                   Sunday.IsValid();
+        }
+
+        /// <summary>
+        /// Setzt Standard-Arbeitszeiten (Mo-Fr 8:00-17:00)
+        /// </summary>
+        public void SetStandardWorkWeek()
+        {
+            Monday.IsActive = true;
+            Tuesday.IsActive = true;
+            Wednesday.IsActive = true;
+            Thursday.IsActive = true;
+            Friday.IsActive = true;
+            Saturday.IsActive = false;
+            Sunday.IsActive = false;
+
+            foreach (var day in new[] { Monday, Tuesday, Wednesday, Thursday, Friday })
             {
-                // List<int> ist direkt aus DB lesbar (falls EF Core das unterstützt, siehe unten)
-                LoadWorkingDaysToProperties(company.DefaultWorkDays);
-
-                // Dictionary wird automatisch aus JSON-String umgewandelt
-                LoadWorkingHoursToProperties(company.DefaultWorkingHours);
+                day.StartTime = new TimeOnly(8, 0);
+                day.EndTime = new TimeOnly(17, 0);
             }
         }
+    }
 
+    /// <summary>
+    /// Konfiguration für einen einzelnen Arbeitstag
+    /// </summary>
+    public class WorkDayConfig
+    {
+        public bool IsActive { get; set; }
+
+        [DataType(DataType.Time)]
+        public TimeOnly StartTime { get; set; }
+
+        [DataType(DataType.Time)]
+        public TimeOnly EndTime { get; set; }
+
+        public void LoadFrom(WorkingHours hours)
+        {
+            StartTime = hours.StartTime;
+            EndTime = hours.EndTime;
+        }
+
+        public bool IsValid()
+        {
+            return StartTime < EndTime;
+        }
     }
 }
