@@ -26,28 +26,241 @@
     </div>
 
     <!-- Modern Project Structure Table -->
-    <div class="modern-table">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th><i class="fas fa-project-diagram me-2"></i>Name</th>
-                    <th><i class="fas fa-calendar-alt me-2"></i>Start</th>
-                    <th><i class="fas fa-calendar-check me-2"></i>Ende</th>
-                    <th><i class="fas fa-clock me-2"></i>Dauer (Tage)</th>
-                    <th><i class="fas fa-info-circle me-2"></i>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{
-                    var topSections = Model.Project.ProjectSections
-                    .Where(ps => ps.ParentSectionId == null)
-                    .OrderBy(ps => ps.ProjectSectionName);
+    @if (Model.ScheduleAlreadyExists)
+    {
+        //Planung auf Basis eines bestehenden Zeitplans
 
-                    RenderSections(topSections, level: 0);
-                }
-            </tbody>
-        </table>
-    </div>
+        <div class="modern-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-project-diagram me-2"></i>Name</th>
+                        <th><i class="fas fa-calendar-alt me-2"></i>Start</th>
+                        <th><i class="fas fa-calendar-check me-2"></i>Ende</th>
+                        <th><i class="fas fa-clock me-2"></i>Dauer (Tage)</th>
+                        <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var topSections = Model.Project.ProjectSections
+                        .Where(ps => ps.ParentSectionId == null)
+                        .OrderBy(ps => ps.ProjectSectionName);
+
+                        RenderSections(topSections, level: 0);
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        //Planung des initialen Auftragsvolumens über Stundensatzgruppen & zusätzliche Kosten
+        //Button zur Übernahme des geplanten AV ins Projectbudget.InitialBudget
+        <!-- Initiale Budgetplanung ohne Terminplan -->
+        <div class="main-container mt-4">
+            <div class="modern-table">
+                <div class="card">
+                    <div class="card-header" style="background: var(--primary-gradient); color: white;">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calculator me-2"></i>
+                            Initiale Budgetplanung
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" asp-page-handler="SaveInitialBudgetPlanning">
+                            <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                            @* Hidden input mit gespeicherten Zusatzkosten als JSON *@
+                            @if (Model.InitialAdditionalCosts != null && Model.InitialAdditionalCosts.Any())
+                            {
+                                <input type="hidden"
+                                       id="savedInitialCostsData"
+                                       value='@System.Text.Json.JsonSerializer.Serialize(Model.InitialAdditionalCosts)' />
+                            }
+
+                            <div class="mb-4">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-users-cog me-2"></i>
+                                    Stundensatzgruppen und geschätzte Stunden
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="initialHRGTable">
+                                        <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                            <tr>
+                                                <th style="width: 30%;">Stundensatzgruppe</th>
+                                                <th style="width: 15%;">Stundensatz (€)</th>
+                                                <th style="width: 15%;">Anzahl Arbeiter</th>
+                                                <th style="width: 20%;">Geschätzte Stunden</th>
+                                                <th style="width: 20%;">Gesamtkosten (€)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="initialHRGTableBody">
+                                            @if (Model.AllHourlyRateGroups != null && Model.AllHourlyRateGroups.Any())
+                                            {
+                                                int index = 0;
+                                                @foreach (var hrg in Model.AllHourlyRateGroups.Where(h => !h.DeleteFlag))
+                                                {
+                                                    // Finde gespeicherte Werte für diese HRG
+                                                    var savedPlanning = Model.InitialHRGPlannings?.FirstOrDefault(p => p.HourlyRateGroupId == hrg.HourlyRateGroupId);
+                                                    var savedAmount = savedPlanning?.Amount ?? 0;
+                                                    var savedHours = savedPlanning?.EstimatedHours ?? 0;
+
+                                                    <tr data-hrg-id="@hrg.HourlyRateGroupId" data-index="@index">
+                                                        <td>
+                                                            <strong>@hrg.HourlyRateGroupName</strong>
+                                                            <input type="hidden" name="InitialHRGPlannings[@index].HourlyRateGroupId" value="@hrg.HourlyRateGroupId" />
+                                                            <input type="hidden" name="InitialHRGPlannings[@index].HourlyRateGroupName" value="@hrg.HourlyRateGroupName" />
+                                                            <input type="hidden" name="InitialHRGPlannings[@index].HourlyRate" value="@hrg.HourlyRate" />
+                                                        </td>
+                                                        <td>
+                                                            <span class="text-success fw-bold hourly-rate" data-rate="@hrg.HourlyRate">@hrg.HourlyRate.ToString("F2") €</span>
+                                                        </td>
+                                                        <td>
+                                                            <input type="number"
+                                                                   class="form-control initial-amount-input"
+                                                                   name="InitialHRGPlannings[@index].Amount"
+                                                                   min="0"
+                                                                   value="@savedAmount"
+                                                                   placeholder="0"
+                                                                   data-index="@index" />
+                                                        </td>
+                                                        <td>
+                                                            <input type="number"
+                                                                   class="form-control initial-hours-input"
+                                                                   name="InitialHRGPlannings[@index].EstimatedHours"
+                                                                   min="0"
+                                                                   step="0.5"
+                                                                   value="@savedHours"
+                                                                   placeholder="0.0"
+                                                                   data-index="@index" />
+                                                        </td>
+                                                        <td>
+                                                            <span class="fw-bold text-primary row-total">0.00 €</span>
+                                                        </td>
+                                                    </tr>
+                                                    index++;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted">
+                                                        <i class="fas fa-info-circle me-2"></i>
+                                                        Keine Stundensatzgruppen verfügbar
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot style="background: var(--light-bg);">
+                                            <tr>
+                                                <th colspan="4" class="text-end">Gesamtkosten Stundensatzgruppen:</th>
+                                                <th id="totalInitialHRGCost">0.00 €</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-receipt me-2"></i>
+                                    Zusätzliche Projektkosten (Material, Lizenzen, etc.)
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="initialAdditionalCostsTable">
+                                        <thead style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white;">
+                                            <tr>
+                                                <th style="width: 60%;">Bezeichnung</th>
+                                                <th style="width: 30%;">Kosten (€)</th>
+                                                <th style="width: 10%;">Aktion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="initialAdditionalCostsTableBody">
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    Noch keine zusätzlichen Kosten erfasst
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot style="background: var(--light-bg);">
+                                            <tr>
+                                                <th class="text-end">Gesamtsumme:</th>
+                                                <th colspan="2" id="totalInitialAdditionalCost">0.00 €</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+
+                                <!-- Neue Kosten hinzufügen -->
+                                <div class="card mt-3" style="border: 2px dashed var(--border-color);">
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="newInitialCostName" class="form-label">
+                                                    <i class="fas fa-tag me-1"></i>Bezeichnung
+                                                </label>
+                                                <input type="text"
+                                                       class="form-control"
+                                                       id="newInitialCostName"
+                                                       placeholder="z.B. Materialkosten, Softwarelizenzen">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="newInitialCostAmount" class="form-label">
+                                                    <i class="fas fa-euro-sign me-1"></i>Kosten (€)
+                                                </label>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="newInitialCostAmount"
+                                                       step="0.01"
+                                                       min="0"
+                                                       placeholder="0.00">
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button type="button"
+                                                        class="modern-btn success w-100"
+                                                        id="addInitialCostBtn">
+                                                    <i class="fas fa-plus"></i> Hinzufügen
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="hiddenInitialCostsContainer"></div>
+                            </div>
+
+                            <div class="card border-success mb-4">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-calculator me-2 text-success"></i>
+                                                Geplantes Auftragsvolumen:
+                                            </h5>
+                                            <small class="text-muted">
+                                                Stundensatzgruppen + Zusätzliche Kosten
+                                            </small>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <h3 class="mb-0 text-success" id="totalInitialBudget">0.00 €</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="modern-btn success">
+                                    <i class="fas fa-save me-2"></i>
+                                    Budget als Auftragsvolumen erfassen
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 <!-- Modal bleibt unverändert -->
@@ -179,29 +392,32 @@
 </div>
 
 <!-- Zusätzliche Projektkosten Section -->
-<div class="main-container">
-    <div class="expenses-section">
-        <div class="expenses-header">
-            <h2 class="expenses-title">
-                <i class="fas fa-receipt"></i>
-                Zusätzliche Projektkosten
-            </h2>
-            <button class="modern-btn info small" data-bs-toggle="modal" data-bs-target="#addProjectCostsModal">
-                <i class="fas fa-plus-circle"></i>
-                Kosten verwalten
-            </button>
-        </div>
+@if (Model.ScheduleAlreadyExists)
+{
+    <div class="main-container">
+        <div class="expenses-section">
+            <div class="expenses-header">
+                <h2 class="expenses-title">
+                    <i class="fas fa-receipt"></i>
+                    Zusätzliche Projektkosten
+                </h2>
+                <button class="modern-btn info small" data-bs-toggle="modal" data-bs-target="#addProjectCostsModal">
+                    <i class="fas fa-plus-circle"></i>
+                    Kosten verwalten
+                </button>
+            </div>
 
-        <div id="projectCostsDisplay">
-            <div class="no-expenses">
-                <i class="fas fa-info-circle me-2"></i>
-                <em>Keine zusätzlichen Projektkosten erfasst</em>
+            <div id="projectCostsDisplay">
+                <div class="no-expenses">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <em>Keine zusätzlichen Projektkosten erfasst</em>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
+}
 <!-- Modal für Zusätzliche Projektkosten -->
+
 <div class="modal fade" id="addProjectCostsModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -301,135 +517,154 @@
 
 
 
-<div class="main-container">
-    <div class="budget-dashboard">
-        <!-- Dashboard Header -->
-        <div class="dashboard-header">
-            <h1><i class="fas fa-chart-pie me-3"></i>Budget Statistiken</h1>
-            <div class="subtitle"> <span id="projectName">-</span></div>
-        </div>
-        <!-- Budget Overview Cards -->
-        <div class="budget-overview">
-            <div class="budget-card primary">
-                <div class="budget-card-header">
-                    <div class="budget-card-title">Gesamtbudget</div>
-                    <div class="budget-card-icon" style="background: var(--primary-gradient);">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                </div>
-                <div class="budget-card-value">-</div>
-                <div class="budget-card-subtitle">Auftragsvolumen</div>
+@if (Model.ScheduleAlreadyExists)
+{
+    <div class="main-container">
+        <div class="budget-dashboard">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h1><i class="fas fa-chart-pie me-3"></i>Budget Statistiken</h1>
+                <div class="subtitle"> <span id="projectName">-</span></div>
             </div>
-           
-            <div class="budget-card success">
-                <div class="budget-card-header">
-                    <div class="budget-card-title">Verbrauchtes Budget</div>
-                    <div class="budget-card-icon" style="background: var(--success-color);">
-                        <i class="fas fa-chart-line"></i>
+            <!-- Budget Overview Cards -->
+            <div class="budget-overview">
+                <div class="budget-card primary">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Gesamtbudget</div>
+                        <div class="budget-card-icon" style="background: var(--primary-gradient);">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value">-</div>
+                    <div class="budget-card-subtitle">Auftragsvolumen</div>
+                </div>
+
+                <div class="budget-card success">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Verbrauchtes Budget</div>
+                        <div class="budget-card-icon" style="background: var(--success-color);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value">-</div>
+                    <div class="budget-card-subtitle">Bisher ausgegeben</div>
+                    <div class="budget-progress">
+                        <div class="budget-progress-bar success" style="width: 0%"></div>
+                        <div class="budget-progress-text">0%</div>
                     </div>
                 </div>
-                <div class="budget-card-value">-</div>
-                <div class="budget-card-subtitle">Bisher ausgegeben</div>
-                <div class="budget-progress">
-                    <div class="budget-progress-bar success" style="width: 0%"></div>
-                    <div class="budget-progress-text">0%</div>
-                </div>
-            </div>
-            <div class="budget-card info">
-                <div class="budget-card-header">
-                    <div class="budget-card-title">Verbleibendes Budget</div>
-                    <div class="budget-card-icon" style="background: var(--info-color);">
-                        <i class="fas fa-piggy-bank"></i>
+                <div class="budget-card info">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Verbleibendes Budget</div>
+                        <div class="budget-card-icon" style="background: var(--info-color);">
+                            <i class="fas fa-piggy-bank"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value">-</div>
+                    <div class="budget-card-subtitle">
+                        <form method="post" asp-page-handler="RecalculateProjectBudget">
+                            <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                            <button type="submit" class="modern-btn small info">
+                                <i class="fas fa-calculator me-1"></i>
+                                Nachkalkulation anstoßen
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <div class="budget-card-value">-</div>
-                <div class="budget-card-subtitle">
-                    <form method="post" asp-page-handler="RecalculateProjectBudget">
-                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                        <button type="submit" class="modern-btn small info">
-                            <i class="fas fa-calculator me-1"></i>
-                            Nachkalkulation anstoßen
-                        </button>
-                    </form>
-                </div>
-            </div>
-            <div class="budget-card" style="border-top: 4px solid #9b59b6;">
-                <div class="budget-card-header">
-                    <div class="budget-card-title">Task-Kosten</div>
-                    <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
-                        <i class="fas fa-tasks"></i>
+                <div class="budget-card" style="border-top: 4px solid #9b59b6;">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Task-Kosten (abgeschlossen)</div>
+                        <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value" id="taskCostsValue">-</div>
+                    <div class="budget-card-subtitle" id="taskCostsSubtitle">Personalkosten</div>
+                    <div class="budget-progress" style="margin-top: 0.5rem;">
+                        <div class="budget-progress-bar" id="taskCostsProgressBar" style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
                     </div>
                 </div>
-                <div class="budget-card-value" id="taskCostsValue">-</div>
-                <div class="budget-card-subtitle" id="taskCostsSubtitle">Personalkosten</div>
-                <div class="budget-progress" style="margin-top: 0.5rem;">
-                    <div class="budget-progress-bar" id="taskCostsProgressBar" style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
+                <div class="budget-card" style="border-top: 4px solid #9b59b6;">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Task-Kosten (geplant & abgeschlossen)</div>
+                        <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value" id="taskCostsValueTotal">-</div>
+                    <div class="budget-card-subtitle" id="taskCostsSubtitleTotal">Personalkosten</div>
+                    <div class="budget-progress" style="margin-top: 0.5rem;">
+                        <div class="budget-progress-bar" id="taskCostsProgressBarTotal" style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
+                    </div>
+                </div>
+                <div class="budget-card" style="border-top: 4px solid var(--info-color);">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Zusätzliche Kosten</div>
+                        <div class="budget-card-icon" style="background: var(--info-color);">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value" id="additionalCostsValue">-</div>
+                    <div class="budget-card-subtitle" id="additionalCostsSubtitle">Material & Sonstiges</div>
+                    <div class="budget-progress" style="margin-top: 0.5rem;">
+                        <div class="budget-progress-bar" id="additionalCostsProgressBar" style="width: 0%; background: var(--info-color);"></div>
+                    </div>
+                </div>
+
+
+
+                <div class="budget-card warning">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Budget Status</div>
+                        <div class="budget-card-icon" style="background: var(--warning-color);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value">
+                        <span class="status-badge on-track" id="project_budget_state">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <div class="budget-card" style="border-top: 4px solid var(--info-color);">
-                <div class="budget-card-header">
-                    <div class="budget-card-title">Zusätzliche Kosten</div>
-                    <div class="budget-card-icon" style="background: var(--info-color);">
-                        <i class="fas fa-receipt"></i>
-                    </div>
-                </div>
-                <div class="budget-card-value" id="additionalCostsValue">-</div>
-                <div class="budget-card-subtitle" id="additionalCostsSubtitle">Material & Sonstiges</div>
-                <div class="budget-progress" style="margin-top: 0.5rem;">
-                    <div class="budget-progress-bar" id="additionalCostsProgressBar" style="width: 0%; background: var(--info-color);"></div>
+            <!-- Top Cost Sections -->
+            <div class="top-sections">
+                <h3 class="chart-title">
+                    <i class="fas fa-trophy"></i>
+                    Kostenintensivste Bereiche
+                </h3>
+                <div id="topSectionsList">
+                    <div class="section-item">Daten werden geladen...</div>
                 </div>
             </div>
 
-            
-
-            <div class="budget-card warning">
-                <div class="budget-card-header">
-                    <div class="budget-card-title">Budget Status</div>
-                    <div class="budget-card-icon" style="background: var(--warning-color);">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
+            <!-- Task Statistics -->
+            <div class="task-statistics">
+                <div class="task-stat">
+                    <div class="task-stat-value">-</div>
+                    <div class="task-stat-label">Gesamt Tasks</div>
                 </div>
-                <div class="budget-card-value">
-                    <span class="status-badge on-track" id="project_budget_state">
-                        <i class="fas fa-check-circle"></i>
-                    </span>
+                <div class="task-stat">
+                    <div class="task-stat-value">-</div>
+                    <div class="task-stat-label">Mit Budget</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Top Cost Sections -->
-        <div class="top-sections">
-            <h3 class="chart-title">
-                <i class="fas fa-trophy"></i>
-                Kostenintensivste Bereiche
-            </h3>
-            <div id="topSectionsList">
-                <div class="section-item">Daten werden geladen...</div>
-            </div>
-        </div>
-
-        <!-- Task Statistics -->
-        <div class="task-statistics">
-            <div class="task-stat">
-                <div class="task-stat-value">-</div>
-                <div class="task-stat-label">Gesamt Tasks</div>
-            </div>
-            <div class="task-stat">
-                <div class="task-stat-value">-</div>
-                <div class="task-stat-label">Mit Budget</div>
-            </div>
-            <div class="task-stat">
-                <div class="task-stat-value">-</div>
-                <div class="task-stat-label">Ohne Budget</div>
-            </div>
-            <div class="task-stat">
-                <div class="task-stat-value">-</div>
-                <div class="task-stat-label">Ø Kosten/Task</div>
+                <div class="task-stat">
+                    <div class="task-stat-value">-</div>
+                    <div class="task-stat-label">Ohne Budget</div>
+                </div>
+                <div class="task-stat">
+                    <div class="task-stat-value">-</div>
+                    <div class="task-stat-label">Ø Kosten/Task</div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}
+else
+{
+    //Es wird das Auftragsvolumen geplant
+}
 
 @functions {
     private void RenderSections(IEnumerable<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection> sections, int level)
@@ -669,362 +904,878 @@
 }
 
 <script>
-        let selectedHRGs = new Map();
-        document.addEventListener('DOMContentLoaded', function() {
+            let selectedHRGs = new Map();
+            document.addEventListener('DOMContentLoaded', function() {
 
 
-            // Enhanced toggle function
-            window.toggleRow = function(rowId, iconElem) {
-                const row = document.getElementById(rowId);
-                if (!row) return;
+                // Enhanced toggle function
+                window.toggleRow = function(rowId, iconElem) {
+                    const row = document.getElementById(rowId);
+                    if (!row) return;
 
-                const icon = iconElem.querySelector('i');
+                    const icon = iconElem.querySelector('i');
 
-                if (row.style.display === "none" || row.style.display === "") {
-                    row.style.display = "table-row";
-                    icon.className = "fas fa-minus";
-                    iconElem.style.background = "var(--accent-color)";
-                } else {
-                    row.style.display = "none";
-                    icon.className = "fas fa-plus";
-                    iconElem.style.background = "var(--primary-color)";
-                }
-            };
-            //Add button functionality
-           document.addEventListener('click', function(e) {
-            if (e.target.closest('.add-hrg-btn')) {
-                const btn = e.target.closest('.add-hrg-btn');
-                const hrgId = btn.dataset.hrgId;
-                const hrgName = btn.dataset.hrgName;
-                const hourlyRate = parseFloat(btn.dataset.hourlyRate);
-
-                const row = btn.closest('tr'); // nur Input in dieser Zeile greifen
-                const amountInput = row.querySelector(`input[data-hrg-id="${hrgId}"]`);
-                const amount = parseInt(amountInput.value) || 0;
-
-                if (amount <= 0) {
-                    showNotification('Bitte geben Sie eine gültige Anzahl von Arbeitern ein.', 'warning');
-                    amountInput.focus();
-                    return;
-                }
-
-                // Wenn die HRG bereits existiert, addiere die Anzahl
-                if (selectedHRGs.has(hrgId)) {
-                    const existing = selectedHRGs.get(hrgId);
-                    existing.amount += amount;
-                    selectedHRGs.set(hrgId, existing);
-                } else {
-                    selectedHRGs.set(hrgId, {
-                        id: hrgId,
-                        name: hrgName,
-                        hourlyRate: hourlyRate,
-                        amount: amount
-                    });
-                }
-
-                amountInput.value = 0;
-                updateSelectedHRGsTable();
-                showNotification(`${hrgName} wurde erfolgreich hinzugefügt!`, 'success');
-            }
-        });
-
-
-            // Remove button functionality
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-hrg-btn')) {
-                    const btn = e.target.closest('.remove-hrg-btn');
+                    if (row.style.display === "none" || row.style.display === "") {
+                        row.style.display = "table-row";
+                        icon.className = "fas fa-minus";
+                        iconElem.style.background = "var(--accent-color)";
+                    } else {
+                        row.style.display = "none";
+                        icon.className = "fas fa-plus";
+                        iconElem.style.background = "var(--primary-color)";
+                    }
+                };
+                //Add button functionality
+               document.addEventListener('click', function(e) {
+                if (e.target.closest('.add-hrg-btn')) {
+                    const btn = e.target.closest('.add-hrg-btn');
                     const hrgId = btn.dataset.hrgId;
-                    const hrgName = selectedHRGs.get(hrgId)?.name;
+                    const hrgName = btn.dataset.hrgName;
+                    const hourlyRate = parseFloat(btn.dataset.hourlyRate);
 
-                    selectedHRGs.delete(hrgId);
-                    updateSelectedHRGsTable();
-                    showNotification(`${hrgName} wurde entfernt.`, 'info');
-                }
-            });
+                    const row = btn.closest('tr'); // nur Input in dieser Zeile greifen
+                    const amountInput = row.querySelector(`input[data-hrg-id="${hrgId}"]`);
+                    const amount = parseInt(amountInput.value) || 0;
 
-            // Amount change functionality
-            document.addEventListener('input', function(e) {
-                if (e.target.classList.contains('selected-hrg-amount')) {
-                    const hrgId = e.target.dataset.hrgId;
-                    const newAmount = parseInt(e.target.value) || 0;
+                    if (amount <= 0) {
+                        showNotification('Bitte geben Sie eine gültige Anzahl von Arbeitern ein.', 'warning');
+                        amountInput.focus();
+                        return;
+                    }
 
+                    // Wenn die HRG bereits existiert, addiere die Anzahl
                     if (selectedHRGs.has(hrgId)) {
-                        const hrg = selectedHRGs.get(hrgId);
-                        hrg.amount = newAmount;
-                        selectedHRGs.set(hrgId, hrg);
-                        updateSelectedHRGsTable();
-                    }
-                }
-            });
-
-            // Update Selected HRGs Table
-            function updateSelectedHRGsTable() {
-                const tableBody = document.getElementById('selectedHRGsTable');
-                const noHRGsMessage = document.getElementById('noHRGsMessage');
-                const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
-
-                tableBody.innerHTML = '';
-                hiddenInputsContainer.innerHTML = '';
-
-                let totalCostPerHour = 0;
-                let index = 0;
-
-                if (selectedHRGs.size === 0) {
-                    noHRGsMessage.style.display = 'block';
-                } else {
-                    noHRGsMessage.style.display = 'none';
-
-                    selectedHRGs.forEach((hrg) => {
-                        const totalCost = hrg.hourlyRate * hrg.amount;
-                        totalCostPerHour += totalCost;
-
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td><strong>${hrg.name}</strong></td>
-                            <td><span class="text-success fw-bold">${hrg.hourlyRate.toFixed(2)} €</span></td>
-                            <td>
-                                <input type="number"
-                                       class="form-control selected-hrg-amount"
-                                       min="1"
-                                       value="${hrg.amount}"
-                                       style="width: 100px;"
-                                       data-hrg-id="${hrg.id}" />
-                            </td>
-                            <td><span class="fw-bold text-primary">${totalCost.toFixed(2)} €</span></td>
-                            <td>
-                                <button type="button"
-                                        class="btn btn-outline-danger btn-sm remove-hrg-btn"
-                                        data-hrg-id="${hrg.id}"
-                                        title="Entfernen">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        `;
-                        tableBody.appendChild(row);
-
-                        // Hidden Inputs für das neue Datenmodell
-                        const hrgIdInput = document.createElement('input');
-                        hrgIdInput.type = 'hidden';
-                        hrgIdInput.name = `HRGAmounts[${index}].HourlyRateGroupId`;
-                        hrgIdInput.value = hrg.id;
-                        hiddenInputsContainer.appendChild(hrgIdInput);
-
-                        const hrgNameInput = document.createElement('input');
-                        hrgNameInput.type = 'hidden';
-                        hrgNameInput.name = `HRGAmounts[${index}].HourlyRateGroupName`;
-                        hrgNameInput.value = hrg.name;
-                        hiddenInputsContainer.appendChild(hrgNameInput);
-
-                        const hourlyRateInput = document.createElement('input');
-                        hourlyRateInput.type = 'hidden';
-                        hourlyRateInput.name = `HRGAmounts[${index}].HourlyRate`;
-                        hourlyRateInput.value = hrg.hourlyRate;
-                        hiddenInputsContainer.appendChild(hourlyRateInput);
-
-                        const amountInput = document.createElement('input');
-                        amountInput.type = 'hidden';
-                        amountInput.name = `HRGAmounts[${index}].Amount`;
-                        amountInput.value = hrg.amount;
-                        hiddenInputsContainer.appendChild(amountInput);
-
-                        index++;
-                    });
-                }
-
-                document.getElementById('totalCostPerHour').textContent = totalCostPerHour.toFixed(2) + ' €';
-            }
-
-            // Modal event handlers
-            document.querySelectorAll(".open-resource-modal").forEach(btn => {
-                btn.addEventListener("click", function (e) {
-                    const taskId = this.getAttribute("data-task-id");
-                    const projectId = '@Model.Project?.ProjectId';
-
-                    document.getElementById("hrgProjectTaskId").value = taskId;
-                    document.getElementById("hrgProjectId").value = projectId;
-                });
-            });
-
-            // Modal reset when opened
-            document.getElementById('addHRGsModal').addEventListener('shown.bs.modal', function() {
-
-                initializeSelectedHRGsTable(document.getElementById("hrgProjectTaskId").value);
-                document.querySelectorAll('.hrg-amount').forEach(input => {
-                    input.value = 0;
-                });
-            });
-
-            async function initializeSelectedHRGsTable(taskId) {
-                selectedHRGs.clear();
-
-                try {
-                    const response = await fetch(`/Projects/BudgetPlanning?handler=ReadTaskHRGs&taskId=${taskId}`);
-                    if (!response.ok) throw new Error("Fehler beim Laden der HRGs");
-
-                    const data = await response.json();
-                    // Erwartetes JSON: [{ hourlyRateGroupId, hourlyRateGroupName, hourlyRate, amount }, ...]
-
-                    data.forEach(hrg => {
-                        selectedHRGs.set(hrg.hourlyRateGroupId, {
-                            id: hrg.hourlyRateGroupId,
-                            name: hrg.hourlyRateGroupName,
-                            hourlyRate: parseFloat(hrg.hourlyRate),
-                            amount: hrg.amount
+                        const existing = selectedHRGs.get(hrgId);
+                        existing.amount += amount;
+                        selectedHRGs.set(hrgId, existing);
+                    } else {
+                        selectedHRGs.set(hrgId, {
+                            id: hrgId,
+                            name: hrgName,
+                            hourlyRate: hourlyRate,
+                            amount: amount
                         });
-                    });
-
-                    updateSelectedHRGsTable();
-                } catch (err) {
-                    console.error(err);
-                    showNotification("Fehler beim Laden der geplanten Stundensatzgruppen", "error");
-                }
-            }
-
-            // Notification system
-            function showNotification(message, type = 'info') {
-                const existingNotifications = document.querySelectorAll('.custom-notification');
-                existingNotifications.forEach(n => n.remove());
-
-                const notification = document.createElement('div');
-                notification.className = `custom-notification alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'error' ? 'danger' : 'info'}`;
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    z-index: 9999;
-                    max-width: 300px;
-                    box-shadow: var(--shadow-lg);
-                    border-radius: var(--border-radius);
-                `;
-
-                const icon = type === 'success' ? 'check-circle' :
-                            type === 'warning' ? 'exclamation-triangle' :
-                            type === 'error' ? 'times-circle' : 'info-circle';
-
-                notification.innerHTML = `
-                    <i class="fas fa-${icon} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-                `;
-
-                document.body.appendChild(notification);
-
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.remove();
                     }
-                }, 4000);
-            }
+
+                    amountInput.value = 0;
+                    updateSelectedHRGsTable();
+                    showNotification(`${hrgName} wurde erfolgreich hinzugefügt!`, 'success');
+                }
+            });
+
+
+                // Remove button functionality
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.remove-hrg-btn')) {
+                        const btn = e.target.closest('.remove-hrg-btn');
+                        const hrgId = btn.dataset.hrgId;
+                        const hrgName = selectedHRGs.get(hrgId)?.name;
+
+                        selectedHRGs.delete(hrgId);
+                        updateSelectedHRGsTable();
+                        showNotification(`${hrgName} wurde entfernt.`, 'info');
+                    }
+                });
+
+                // Amount change functionality
+                document.addEventListener('input', function(e) {
+                    if (e.target.classList.contains('selected-hrg-amount')) {
+                        const hrgId = e.target.dataset.hrgId;
+                        const newAmount = parseInt(e.target.value) || 0;
+
+                        if (selectedHRGs.has(hrgId)) {
+                            const hrg = selectedHRGs.get(hrgId);
+                            hrg.amount = newAmount;
+                            selectedHRGs.set(hrgId, hrg);
+                            updateSelectedHRGsTable();
+                        }
+                    }
+                });
+
+                // Update Selected HRGs Table
+                function updateSelectedHRGsTable() {
+                    const tableBody = document.getElementById('selectedHRGsTable');
+                    const noHRGsMessage = document.getElementById('noHRGsMessage');
+                    const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
+
+                    tableBody.innerHTML = '';
+                    hiddenInputsContainer.innerHTML = '';
+
+                    let totalCostPerHour = 0;
+                    let index = 0;
+
+                    if (selectedHRGs.size === 0) {
+                        noHRGsMessage.style.display = 'block';
+                    } else {
+                        noHRGsMessage.style.display = 'none';
+
+                        selectedHRGs.forEach((hrg) => {
+                            const totalCost = hrg.hourlyRate * hrg.amount;
+                            totalCostPerHour += totalCost;
+
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td><strong>${hrg.name}</strong></td>
+                                <td><span class="text-success fw-bold">${hrg.hourlyRate.toFixed(2)} €</span></td>
+                                <td>
+                                    <input type="number"
+                                           class="form-control selected-hrg-amount"
+                                           min="1"
+                                           value="${hrg.amount}"
+                                           style="width: 100px;"
+                                           data-hrg-id="${hrg.id}" />
+                                </td>
+                                <td><span class="fw-bold text-primary">${totalCost.toFixed(2)} €</span></td>
+                                <td>
+                                    <button type="button"
+                                            class="btn btn-outline-danger btn-sm remove-hrg-btn"
+                                            data-hrg-id="${hrg.id}"
+                                            title="Entfernen">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+
+                            // Hidden Inputs für das neue Datenmodell
+                            const hrgIdInput = document.createElement('input');
+                            hrgIdInput.type = 'hidden';
+                            hrgIdInput.name = `HRGAmounts[${index}].HourlyRateGroupId`;
+                            hrgIdInput.value = hrg.id;
+                            hiddenInputsContainer.appendChild(hrgIdInput);
+
+                            const hrgNameInput = document.createElement('input');
+                            hrgNameInput.type = 'hidden';
+                            hrgNameInput.name = `HRGAmounts[${index}].HourlyRateGroupName`;
+                            hrgNameInput.value = hrg.name;
+                            hiddenInputsContainer.appendChild(hrgNameInput);
+
+                            const hourlyRateInput = document.createElement('input');
+                            hourlyRateInput.type = 'hidden';
+                            hourlyRateInput.name = `HRGAmounts[${index}].HourlyRate`;
+                            hourlyRateInput.value = hrg.hourlyRate;
+                            hiddenInputsContainer.appendChild(hourlyRateInput);
+
+                            const amountInput = document.createElement('input');
+                            amountInput.type = 'hidden';
+                            amountInput.name = `HRGAmounts[${index}].Amount`;
+                            amountInput.value = hrg.amount;
+                            hiddenInputsContainer.appendChild(amountInput);
+
+                            index++;
+                        });
+                    }
+
+                    document.getElementById('totalCostPerHour').textContent = totalCostPerHour.toFixed(2) + ' €';
+                }
+
+                // Modal event handlers
+                document.querySelectorAll(".open-resource-modal").forEach(btn => {
+                    btn.addEventListener("click", function (e) {
+                        const taskId = this.getAttribute("data-task-id");
+                        const projectId = '@Model.Project?.ProjectId';
+
+                        document.getElementById("hrgProjectTaskId").value = taskId;
+                        document.getElementById("hrgProjectId").value = projectId;
+                    });
+                });
+
+                // Modal reset when opened
+                document.getElementById('addHRGsModal').addEventListener('shown.bs.modal', function() {
+
+                    initializeSelectedHRGsTable(document.getElementById("hrgProjectTaskId").value);
+                    document.querySelectorAll('.hrg-amount').forEach(input => {
+                        input.value = 0;
+                    });
+                });
+
+                async function initializeSelectedHRGsTable(taskId) {
+                    selectedHRGs.clear();
+
+                    try {
+                        const response = await fetch(`/Projects/BudgetPlanning?handler=ReadTaskHRGs&taskId=${taskId}`);
+                        if (!response.ok) throw new Error("Fehler beim Laden der HRGs");
+
+                        const data = await response.json();
+                        // Erwartetes JSON: [{ hourlyRateGroupId, hourlyRateGroupName, hourlyRate, amount }, ...]
+
+                        data.forEach(hrg => {
+                            selectedHRGs.set(hrg.hourlyRateGroupId, {
+                                id: hrg.hourlyRateGroupId,
+                                name: hrg.hourlyRateGroupName,
+                                hourlyRate: parseFloat(hrg.hourlyRate),
+                                amount: hrg.amount
+                            });
+                        });
+
+                        updateSelectedHRGsTable();
+                    } catch (err) {
+                        console.error(err);
+                        showNotification("Fehler beim Laden der geplanten Stundensatzgruppen", "error");
+                    }
+                }
+
+                // Notification system
+                function showNotification(message, type = 'info') {
+                    const existingNotifications = document.querySelectorAll('.custom-notification');
+                    existingNotifications.forEach(n => n.remove());
+
+                    const notification = document.createElement('div');
+                    notification.className = `custom-notification alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'error' ? 'danger' : 'info'}`;
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        z-index: 9999;
+                        max-width: 300px;
+                        box-shadow: var(--shadow-lg);
+                        border-radius: var(--border-radius);
+                    `;
+
+                    const icon = type === 'success' ? 'check-circle' :
+                                type === 'warning' ? 'exclamation-triangle' :
+                                type === 'error' ? 'times-circle' : 'info-circle';
+
+                    notification.innerHTML = `
+                        <i class="fas fa-${icon} me-2"></i>
+                        ${message}
+                        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                    `;
+
+                    document.body.appendChild(notification);
+
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 4000);
+                }
+            });
+
+
+        //Zusätzliche Aufwendungen JS
+            // ====== PROJECT COSTS MANAGEMENT ======
+        let projectCosts = [];
+
+        // Load project costs on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjectCosts();
         });
 
+        async function loadProjectCosts() {
+            const projectId = '@Model.Project.ProjectId';
+            try {
+                const response = await fetch(`/Projects/BudgetPlanning?handler=ReadProjectCosts&projectId=${projectId}`);
+                if (!response.ok) throw new Error("Fehler beim Laden der Kosten");
 
-    //Zusätzliche Aufwendungen JS
-        // ====== PROJECT COSTS MANAGEMENT ======
-    let projectCosts = [];
-
-    // Load project costs on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        loadProjectCosts();
-    });
-
-    async function loadProjectCosts() {
-        const projectId = '@Model.Project.ProjectId';
-        try {
-            const response = await fetch(`/Projects/BudgetPlanning?handler=ReadProjectCosts&projectId=${projectId}`);
-            if (!response.ok) throw new Error("Fehler beim Laden der Kosten");
-
-            const data = await response.json();
-            displayProjectCosts(data);
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    function displayProjectCosts(costs) {
-        const container = document.getElementById('projectCostsDisplay');
-
-        if (!costs || costs.length === 0) {
-            container.innerHTML = `
-                <div class="no-expenses">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <em>Keine zusätzlichen Projektkosten erfasst</em>
-                </div>
-            `;
-            return;
+                const data = await response.json();
+                displayProjectCosts(data);
+            } catch (err) {
+                console.error(err);
+            }
         }
 
-        let totalCost = 0;
-        let html = '';
+        function displayProjectCosts(costs) {
+            const container = document.getElementById('projectCostsDisplay');
 
-        costs.forEach(cost => {
-            totalCost += cost.additionalCostAmount;
-            const createdDate = cost.createdTimestamp ? new Date(cost.createdTimestamp).toLocaleDateString('de-DE') : 'Unbekannt';
-            const modifiedBy = cost.latestModifier || 'System';
+            if (!costs || costs.length === 0) {
+                container.innerHTML = `
+                    <div class="no-expenses">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <em>Keine zusätzlichen Projektkosten erfasst</em>
+                    </div>
+                `;
+                return;
+            }
 
-            html += `
-                <div class="expense-item">
-                    <div class="expense-item-content">
-                        <span class="expense-name">
-                            <i class="fas fa-tag me-2"></i>
-                            ${cost.additionalCostName}
-                        </span>
-                        <span class="expense-meta">
-                            <i class="fas fa-calendar me-1"></i>${createdDate}
-                            ${cost.latestModificationTimestamp ? `<i class="fas fa-edit ms-2 me-1"></i>Zuletzt geändert: ${new Date(cost.latestModificationTimestamp).toLocaleDateString('de-DE')}` : ''}
+            let totalCost = 0;
+            let html = '';
+
+            costs.forEach(cost => {
+                totalCost += cost.additionalCostAmount;
+                const createdDate = cost.createdTimestamp ? new Date(cost.createdTimestamp).toLocaleDateString('de-DE') : 'Unbekannt';
+                const modifiedBy = cost.latestModifier || 'System';
+
+                html += `
+                    <div class="expense-item">
+                        <div class="expense-item-content">
+                            <span class="expense-name">
+                                <i class="fas fa-tag me-2"></i>
+                                ${cost.additionalCostName}
+                            </span>
+                            <span class="expense-meta">
+                                <i class="fas fa-calendar me-1"></i>${createdDate}
+                                ${cost.latestModificationTimestamp ? `<i class="fas fa-edit ms-2 me-1"></i>Zuletzt geändert: ${new Date(cost.latestModificationTimestamp).toLocaleDateString('de-DE')}` : ''}
+                            </span>
+                        </div>
+                        <span class="expense-cost">
+                            ${cost.additionalCostAmount.toFixed(2)} €
                         </span>
                     </div>
-                    <span class="expense-cost">
-                        ${cost.additionalCostAmount.toFixed(2)} €
+                `;
+            });
+
+            html += `
+                <div class="expense-total-card">
+                    <span class="expense-total-label">
+                        <i class="fas fa-calculator me-2"></i>
+                        Gesamte zusätzliche Kosten:
+                    </span>
+                    <span class="expense-total-value">
+                        ${totalCost.toFixed(2)} €
                     </span>
                 </div>
             `;
-        });
 
-        html += `
-            <div class="expense-total-card">
-                <span class="expense-total-label">
-                    <i class="fas fa-calculator me-2"></i>
-                    Gesamte zusätzliche Kosten:
-                </span>
-                <span class="expense-total-value">
-                    ${totalCost.toFixed(2)} €
-                </span>
-            </div>
-        `;
-
-        container.innerHTML = html;
-    }
-
-    // Initialize costs modal
-    document.getElementById('addProjectCostsModal').addEventListener('shown.bs.modal', async function() {
-        projectCosts = [];
-        const projectId = '@Model.Project.ProjectId';
-
-        try {
-            const response = await fetch(`/Projects/BudgetPlanning?handler=ReadProjectCosts&projectId=${projectId}`);
-            if (response.ok) {
-                const data = await response.json();
-                projectCosts = data.map(c => ({
-                    id: c.projectAdditionalCostsId,
-                    name: c.additionalCostName,
-                    amount: c.additionalCostAmount,
-                    createdTimestamp: c.createdTimestamp,
-                    isExisting: true
-                }));
-            }
-        } catch (err) {
-            console.error(err);
+            container.innerHTML = html;
         }
 
-        updateProjectCostsTable();
-        document.getElementById('newCostName').value = '';
-        document.getElementById('newCostAmount').value = '';
+        // Initialize costs modal
+        document.getElementById('addProjectCostsModal').addEventListener('shown.bs.modal', async function() {
+            projectCosts = [];
+            const projectId = '@Model.Project.ProjectId';
+
+            try {
+                const response = await fetch(`/Projects/BudgetPlanning?handler=ReadProjectCosts&projectId=${projectId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    projectCosts = data.map(c => ({
+                        id: c.projectAdditionalCostsId,
+                        name: c.additionalCostName,
+                        amount: c.additionalCostAmount,
+                        createdTimestamp: c.createdTimestamp,
+                        isExisting: true
+                    }));
+                }
+            } catch (err) {
+                console.error(err);
+            }
+
+            updateProjectCostsTable();
+            document.getElementById('newCostName').value = '';
+            document.getElementById('newCostAmount').value = '';
+        });
+
+        // Add cost button
+        document.getElementById('addCostBtn').addEventListener('click', function() {
+            const nameInput = document.getElementById('newCostName');
+            const amountInput = document.getElementById('newCostAmount');
+
+            const name = nameInput.value.trim();
+            const amount = parseFloat(amountInput.value) || 0;
+
+            if (!name) {
+                showNotification('Bitte geben Sie eine Bezeichnung ein.', 'warning');
+                nameInput.focus();
+                return;
+            }
+
+            if (amount <= 0) {
+                showNotification('Bitte geben Sie einen gültigen Betrag ein.', 'warning');
+                amountInput.focus();
+                return;
+            }
+
+            projectCosts.push({
+                id: null,
+                name,
+                amount,
+                createdTimestamp: new Date().toISOString(),
+                isExisting: false
+            });
+            updateProjectCostsTable();
+
+            nameInput.value = '';
+            amountInput.value = '';
+            nameInput.focus();
+
+            showNotification(`${name} wurde hinzugefügt!`, 'success');
+        });
+
+        // Allow Enter key in cost inputs
+        document.getElementById('newCostName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('newCostAmount').focus();
+            }
+        });
+
+        document.getElementById('newCostAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('addCostBtn').click();
+            }
+        });
+
+        // Edit cost inline
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('edit-cost-name')) {
+                const index = parseInt(e.target.dataset.index);
+                projectCosts[index].name = e.target.value.trim();
+            } else if (e.target.classList.contains('edit-cost-amount')) {
+                const index = parseInt(e.target.dataset.index);
+                projectCosts[index].amount = parseFloat(e.target.value) || 0;
+                updateProjectCostsTable();
+            }
+        });
+
+        // Remove cost
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-cost-btn')) {
+                const btn = e.target.closest('.remove-cost-btn');
+                const index = parseInt(btn.dataset.index);
+                const costName = projectCosts[index].name;
+
+                projectCosts.splice(index, 1);
+                updateProjectCostsTable();
+                showNotification(`${costName} wurde entfernt.`, 'info');
+            }
+        });
+
+        // Update costs table in modal
+        function updateProjectCostsTable() {
+            const tableBody = document.getElementById('projectCostsTableBody');
+            const hiddenContainer = document.getElementById('hiddenCostsContainer');
+
+            tableBody.innerHTML = '';
+            hiddenContainer.innerHTML = '';
+
+            let totalCost = 0;
+
+            if (projectCosts.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Keine Kosten vorhanden
+                        </td>
+                    </tr>
+                `;
+            } else {
+                projectCosts.forEach((cost, index) => {
+                    totalCost += cost.amount;
+                    const createdDate = cost.createdTimestamp ? new Date(cost.createdTimestamp).toLocaleDateString('de-DE') : 'Neu';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <input type="text"
+                                   class="form-control edit-cost-name"
+                                   value="${cost.name}"
+                                   data-index="${index}"
+                                   placeholder="Bezeichnung" />
+                        </td>
+                        <td>
+                            <input type="number"
+                                   class="form-control edit-cost-amount"
+                                   value="${cost.amount}"
+                                   step="0.01"
+                                   min="0"
+                                   data-index="${index}"
+                                   placeholder="0.00" />
+                        </td>
+                        <td><small class="text-muted">${createdDate}</small></td>
+                        <td>
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm remove-cost-btn"
+                                    data-index="${index}"
+                                    title="Entfernen">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+
+                    // Hidden inputs for form submission
+                    if (cost.id) {
+                        const idInput = document.createElement('input');
+                        idInput.type = 'hidden';
+                        idInput.name = `ProjectCosts[${index}].ProjectAdditionalCostsId`;
+                        idInput.value = cost.id;
+                        hiddenContainer.appendChild(idInput);
+                    }
+
+                    const nameInput = document.createElement('input');
+                    nameInput.type = 'hidden';
+                    nameInput.name = `ProjectCosts[${index}].AdditionalCostName`;
+                    nameInput.value = cost.name;
+                    hiddenContainer.appendChild(nameInput);
+
+                    const amountInput = document.createElement('input');
+                    amountInput.type = 'hidden';
+                    amountInput.name = `ProjectCosts[${index}].AdditionalCostAmount`;
+                    amountInput.value = cost.amount;
+                    hiddenContainer.appendChild(amountInput);
+                });
+            }
+
+            document.getElementById('totalProjectCost').textContent = totalCost.toFixed(2) + ' €';
+        }
+
+        // Reload costs after modal closes
+        document.getElementById('addProjectCostsModal').addEventListener('hidden.bs.modal', function() {
+            loadProjectCosts();
+        });
+
+        //Budgetstats
+
+
+        // Globale Chart-Instanzen
+        let budgetDistributionChart;
+        let topCostSectionsChart;
+
+        // Seite laden
+        document.addEventListener('DOMContentLoaded', loadBudgetStatistics);
+
+        async function loadBudgetStatistics() {
+            try {
+                const response = await fetch('/Projects/BudgetPlanning?handler=BudgetStatistics&projectId=@Model.Project.ProjectId');
+                const statistics = await response.json();
+                updateDashboard(statistics);
+            } catch (error) {
+                console.error('Fehler beim Laden der Budget-Statistiken:', error);
+            }
+        }
+            function updateDashboard(stats) {
+            if (!stats) return;
+
+            // Projektname
+            document.getElementById('projectName').textContent = stats.projectName;
+
+            updateBudgetCards(stats);
+            updateAdditionalCostsCard(stats);
+            updateTaskStatistics(stats);
+            updateTopSections(stats.topCostSections);
+            // updateCharts(stats);
+        }
+
+        // Neue Funktion für zusätzliche Kosten Card
+        function updateAdditionalCostsCard(stats) {
+            const additionalCostsValue = document.getElementById('additionalCostsValue');
+            const additionalCostsSubtitle = document.getElementById('additionalCostsSubtitle');
+
+            if (additionalCostsValue) {
+                additionalCostsValue.textContent = '€' + stats.additionalCosts.toLocaleString();
+            }
+
+            if (additionalCostsSubtitle && stats.additionalCostBreakdown) {
+                const itemCount = stats.additionalCostBreakdown.itemCount;
+                additionalCostsSubtitle.textContent = itemCount > 0
+                    ? `${itemCount} Position${itemCount !== 1 ? 'en' : ''} erfasst`
+                    : 'Material & Sonstiges';
+            }
+        }
+            // Budget-Karten
+        function updateBudgetCards(stats) {
+            const cards = document.querySelectorAll('.budget-card-value');
+            if (cards.length >= 3) {
+                // cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
+                // cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
+                // cards[2].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
+                // cards[3].textContent = '€' + stats.additionalCosts.toLocaleString();
+                // cards[4].textContent = '€' + stats.remainingBudget.toLocaleString();
+                cards[0].textContent = '€' + stats.initialBudget.toLocaleString();  
+                cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
+                cards[2].textContent = '€' + stats.remainingBudget.toLocaleString();
+                // cards[3].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
+              
+                // cards[4].textContent = '€' + stats.additionalCosts.toLocaleString();
+
+            }
+
+            // Status Badge
+            const statusBadge = document.getElementById('project_budget_state');
+            const statusMap = {
+                0: { text: "Unbekannt", class: "on-track", icon: "fa-check-circle" },
+                1: { text: "Ausreichend", class: "on-track", icon: "fa-check-circle" },
+                2: { text: "Warnung", class: "warning", icon: "fa-exclamation-triangle" },
+                3: { text: "Kritisch", class: "critical", icon: "fa-times-circle" },
+                4: { text: "Überschritten", class: "exceeded", icon: "fa-ban" }
+            };
+            const status = statusMap[stats.budgetStatus] || statusMap[0];
+            statusBadge.className = `status-badge ${status.class}`;
+            statusBadge.innerHTML = `<i class="fas ${status.icon}"></i> ${status.text}`;
+
+            // Fortschrittsbalken
+            const progressBar = document.querySelector('.budget-progress-bar.success');
+            const progressText = document.querySelector('.budget-progress-text');
+            if (progressBar && progressText) {
+                progressBar.style.width = stats.utilizationPercentage + '%';
+                progressText.textContent = stats.utilizationPercentage.toFixed(2) + '%';
+            }
+
+            // Task-Kosten Card
+            updateTaskCostsCard(stats);
+
+            // Zusatzkosten Card
+            updateAdditionalCostsCard(stats);
+        }
+
+        function updateTaskCostsCard(stats) {
+            //..Total beschreibt die Werte für alle Tasks
+            // die anderen const sind die Werte für abgeschlossene Tasks
+            const taskCostsValue = document.getElementById('taskCostsValue');
+            const taskCostsValueTotal = document.getElementById('taskCostsValueTotal');
+            const taskCostsSubtitle = document.getElementById('taskCostsSubtitle');
+            const taskCostsSubtitleTotal = document.getElementById('taskCostsSubtitleTotal');
+            const taskCostsProgressBar = document.getElementById('taskCostsProgressBar');
+            const taskCostsProgressBarTotal = document.getElementById('taskCostsProgressBarTotal');
+            //Only completed Taks values
+            if (taskCostsValue) {
+                taskCostsValue.textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
+            }
+
+            if (taskCostsSubtitle) {
+                const tasksWithCosts = stats.tasksWithCosts || 0;
+                const totalTasks = stats.totalTasks || 0;
+                taskCostsSubtitle.textContent = `${tasksWithCosts} von ${totalTasks} Tasks`;
+            }
+
+            if (taskCostsProgressBar && stats.initialBudget > 0) {
+                const taskPercentage = (stats.usedBudgetFromTasks / stats.initialBudget) * 100;
+                taskCostsProgressBar.style.width = taskPercentage.toFixed(2) + '%';
+            }
+
+            //All Tasks Values
+            if(taskCostsValueTotal){
+                taskCostsValueTotal.textContent = '€' + (stats.usedBudgetFromAllTasks || 0).toLocaleString();
+            }
+            if(taskCostsSubtitleTotal){
+                const totalTasks = stats.totalTasks || 0;
+                const totalTasksTotal = stats.totalTasks || 0;
+                taskCostsSubtitleTotal.textContent = `${totalTasks} von ${totalTasksTotal} Tasks`;
+            }
+            if (taskCostsProgressBarTotal && stats.initialBudget > 0) {
+                const taskPercentageTotal = ((stats.usedBudgetFromAllTasks || 0) / stats.initialBudget) * 100;
+                taskCostsProgressBarTotal.style.width = taskPercentageTotal.toFixed(2) + '%';
+            }
+        }
+            // Funktion für zusätzliche Kosten Card
+        function updateAdditionalCostsCard(stats) {
+            const additionalCostsValue = document.getElementById('additionalCostsValue');
+            const additionalCostsSubtitle = document.getElementById('additionalCostsSubtitle');
+            const additionalCostsProgressBar = document.getElementById('additionalCostsProgressBar');
+
+            if (additionalCostsValue) {
+                additionalCostsValue.textContent = '€' + stats.additionalCosts.toLocaleString();
+            }
+
+            if (additionalCostsSubtitle && stats.additionalCostBreakdown) {
+                const itemCount = stats.additionalCostBreakdown.itemCount;
+                additionalCostsSubtitle.textContent = itemCount > 0
+                    ? `${itemCount} Position${itemCount !== 1 ? 'en' : ''} erfasst`
+                    : 'Material & Sonstiges';
+            }
+
+            if (additionalCostsProgressBar && stats.initialBudget > 0) {
+                const additionalPercentage = (stats.additionalCosts / stats.initialBudget) * 100;
+                additionalCostsProgressBar.style.width = additionalPercentage.toFixed(2) + '%';
+            }
+        }
+        // Task-Statistiken
+        function updateTaskStatistics(stats) {
+            const taskStats = document.querySelectorAll('.task-stat-value');
+            if (taskStats.length >= 4) {
+                taskStats[0].textContent = stats.totalTasks;
+                taskStats[1].textContent = stats.tasksWithCosts;
+                taskStats[2].textContent = stats.tasksWithoutCosts;
+                taskStats[3].textContent = '€' + (stats.tasksWithCosts > 0
+                    ? (stats.usedBudget / stats.tasksWithCosts).toLocaleString()
+                    : "0");
+            }
+        }
+
+        // Top-Cost-Sections
+        function updateTopSections(topSections) {
+            const container = document.getElementById('topSectionsList');
+            container.innerHTML = '';
+
+            if (!topSections || topSections.length === 0) {
+                container.innerHTML = '<div class="section-item">Keine Daten vorhanden</div>';
+                return;
+            }
+
+            topSections.forEach(section => {
+                const sectionHtml = `
+                    <div class="section-item">
+                        <div class="section-name">${section.sectionName}</div>
+                        <div class="section-stats">
+                            <span class="section-cost">€${section.totalCosts.toLocaleString()}</span>
+                            <span class="section-percentage">${section.percentageOfTotal.toFixed(1)}%</span>
+                            <span class="section-tasks">${section.taskCount} Tasks</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += sectionHtml;
+            });
+        }
+
+    //Neues Javascript
+    //Verwendung: Bei Projektanlage wird eine initiale Budgetplanung zur Ermittlung des initialen Auftragsvolumens durchgeführt (Ohne Terminplanung)
+        // ====== INITIALE BUDGETPLANUNG (ohne Terminplan) ======
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeInitialBudgetPlanning();
+            loadInitialAdditionalCosts();
+        });
+
+        function initializeInitialBudgetPlanning() {
+            const table = document.getElementById('initialHRGTable');
+            if (!table) return;
+
+            // Event Listener für Änderungen
+            table.addEventListener('input', function(e) {
+                if (e.target.classList.contains('initial-amount-input') ||
+                    e.target.classList.contains('initial-hours-input')) {
+                    calculateInitialBudget();
+                }
+            });
+
+            calculateInitialBudget();
+        }
+
+            function calculateInitialBudget() {
+        const rows = document.querySelectorAll('#initialHRGTableBody tr[data-hrg-id]');
+        let totalHRGCost = 0;
+
+        rows.forEach(row => {
+            const hourlyRateText = row.querySelector('.hourly-rate').dataset.rate;
+            const hourlyRate = parseFloat(hourlyRateText) || 0;
+            const amount = parseInt(row.querySelector('.initial-amount-input').value) || 0;
+            const hours = parseFloat(row.querySelector('.initial-hours-input').value) || 0;
+
+            const costPerHour = hourlyRate * amount;
+            const totalCost = costPerHour * hours;
+
+            row.querySelector('.row-total').textContent = totalCost.toFixed(2) + ' €';
+            totalHRGCost += totalCost;
+        });
+
+        // Update HRG Gesamtkosten
+        const totalHRGElement = document.getElementById('totalInitialHRGCost');
+        if (totalHRGElement) {
+            totalHRGElement.textContent = totalHRGCost.toFixed(2) + ' €';
+        }
+
+        // Zusätzliche Kosten aus dem lokalen Array berechnen (nicht aus Display-Element)
+        const additionalCosts = initialAdditionalCosts.reduce((sum, cost) => sum + cost.amount, 0);
+
+        // Gesamtbudget
+        const totalBudget = totalHRGCost + additionalCosts;
+        const totalBudgetElement = document.getElementById('totalInitialBudget');
+        if (totalBudgetElement) {
+            totalBudgetElement.textContent = totalBudget.toFixed(2) + ' €';
+        }
+    }
+
+        async function loadInitialAdditionalCosts() {
+            const projectId = '@Model.Project?.ProjectId';
+            if (!projectId) return;
+
+            try {
+                const response = await fetch(`/Projects/BudgetPlanning?handler=ReadProjectCosts&projectId=${projectId}`);
+                if (!response.ok) return;
+
+                const costs = await response.json();
+                const totalCost = costs.reduce((sum, cost) => sum + (cost.additionalCostAmount || 0), 0);
+
+                const totalElement = document.getElementById('initialAdditionalCostsTotal');
+                if (totalElement) {
+                    totalElement.textContent = totalCost.toFixed(2) + ' €';
+                    calculateInitialBudget();
+                }
+            } catch (err) {
+                console.error('Fehler beim Laden der zusätzlichen Kosten:', err);
+            }
+        }
+
+        // Aktualisiere auch nach dem Speichern von Projektkosten
+        const addProjectCostsModal = document.getElementById('addProjectCostsModal');
+        if (addProjectCostsModal) {
+            addProjectCostsModal.addEventListener('hidden.bs.modal', function() {
+                loadInitialAdditionalCosts();
+            });
+        }
+            // ====== INITIALE ZUSÄTZLICHE KOSTEN MANAGEMENT ======
+    let initialAdditionalCosts = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeInitialAdditionalCosts();
+        loadSavedInitialAdditionalCosts(); // NEU: Lade gespeicherte Kosten
     });
 
-    // Add cost button
-    document.getElementById('addCostBtn').addEventListener('click', function() {
-        const nameInput = document.getElementById('newCostName');
-        const amountInput = document.getElementById('newCostAmount');
+    // NEU: Funktion zum Laden gespeicherter Kosten aus dem Backend
+    function loadSavedInitialAdditionalCosts() {
+        // Prüfe ob gespeicherte Kosten existieren (aus Model)
+        const savedCostsJson = document.getElementById('savedInitialCostsData')?.value;
+
+        if (savedCostsJson) {
+            try {
+                const savedCosts = JSON.parse(savedCostsJson);
+                initialAdditionalCosts = savedCosts.map(cost => ({
+                    name: cost.AdditionalCostName,
+                    amount: cost.AdditionalCostAmount
+                }));
+                updateInitialAdditionalCostsTable();
+            } catch (e) {
+                console.error('Fehler beim Laden gespeicherter Kosten:', e);
+            }
+        }
+    }
+    function initializeInitialAdditionalCosts() {
+        const addBtn = document.getElementById('addInitialCostBtn');
+        if (!addBtn) return;
+
+        // Add Button
+        addBtn.addEventListener('click', addInitialAdditionalCost);
+
+        // Enter-Taste Support
+        const nameInput = document.getElementById('newInitialCostName');
+        const amountInput = document.getElementById('newInitialCostAmount');
+
+        if (nameInput) {
+            nameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    amountInput?.focus();
+                }
+            });
+        }
+
+        if (amountInput) {
+            amountInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addInitialAdditionalCost();
+                }
+            });
+        }
+
+        // Event Delegation für Remove und Edit
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-initial-cost-btn')) {
+                const btn = e.target.closest('.remove-initial-cost-btn');
+                const index = parseInt(btn.dataset.index);
+                removeInitialAdditionalCost(index);
+            }
+        });
+
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('edit-initial-cost-name')) {
+                const index = parseInt(e.target.dataset.index);
+                initialAdditionalCosts[index].name = e.target.value.trim();
+            } else if (e.target.classList.contains('edit-initial-cost-amount')) {
+                const index = parseInt(e.target.dataset.index);
+                initialAdditionalCosts[index].amount = parseFloat(e.target.value) || 0;
+                updateInitialAdditionalCostsTable();
+            }
+        });
+    }
+
+    function addInitialAdditionalCost() {
+        const nameInput = document.getElementById('newInitialCostName');
+        const amountInput = document.getElementById('newInitialCostAmount');
+
+        if (!nameInput || !amountInput) return;
 
         const name = nameInput.value.trim();
         const amount = parseFloat(amountInput.value) || 0;
@@ -1041,108 +1792,69 @@
             return;
         }
 
-        projectCosts.push({
-            id: null,
-            name,
-            amount,
-            createdTimestamp: new Date().toISOString(),
-            isExisting: false
-        });
-        updateProjectCostsTable();
+        initialAdditionalCosts.push({ name, amount });
+        updateInitialAdditionalCostsTable();
 
         nameInput.value = '';
         amountInput.value = '';
         nameInput.focus();
 
         showNotification(`${name} wurde hinzugefügt!`, 'success');
-    });
+    }
 
-    // Allow Enter key in cost inputs
-    document.getElementById('newCostName').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('newCostAmount').focus();
-        }
-    });
+    function removeInitialAdditionalCost(index) {
+        const costName = initialAdditionalCosts[index].name;
+        initialAdditionalCosts.splice(index, 1);
+        updateInitialAdditionalCostsTable();
+        showNotification(`${costName} wurde entfernt.`, 'info');
+    }
 
-    document.getElementById('newCostAmount').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('addCostBtn').click();
-        }
-    });
+    function updateInitialAdditionalCostsTable() {
+        const tableBody = document.getElementById('initialAdditionalCostsTableBody');
+        const hiddenContainer = document.getElementById('hiddenInitialCostsContainer');
+        const totalElement = document.getElementById('totalInitialAdditionalCost');
 
-    // Edit cost inline
-    document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('edit-cost-name')) {
-            const index = parseInt(e.target.dataset.index);
-            projectCosts[index].name = e.target.value.trim();
-        } else if (e.target.classList.contains('edit-cost-amount')) {
-            const index = parseInt(e.target.dataset.index);
-            projectCosts[index].amount = parseFloat(e.target.value) || 0;
-            updateProjectCostsTable();
-        }
-    });
-
-    // Remove cost
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-cost-btn')) {
-            const btn = e.target.closest('.remove-cost-btn');
-            const index = parseInt(btn.dataset.index);
-            const costName = projectCosts[index].name;
-
-            projectCosts.splice(index, 1);
-            updateProjectCostsTable();
-            showNotification(`${costName} wurde entfernt.`, 'info');
-        }
-    });
-
-    // Update costs table in modal
-    function updateProjectCostsTable() {
-        const tableBody = document.getElementById('projectCostsTableBody');
-        const hiddenContainer = document.getElementById('hiddenCostsContainer');
+        if (!tableBody || !hiddenContainer) return;
 
         tableBody.innerHTML = '';
         hiddenContainer.innerHTML = '';
 
         let totalCost = 0;
 
-        if (projectCosts.length === 0) {
+        if (initialAdditionalCosts.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="4" class="text-center text-muted">
+                    <td colspan="3" class="text-center text-muted">
                         <i class="fas fa-info-circle me-2"></i>
-                        Keine Kosten vorhanden
+                        Noch keine zusätzlichen Kosten erfasst
                     </td>
                 </tr>
             `;
         } else {
-            projectCosts.forEach((cost, index) => {
+            initialAdditionalCosts.forEach((cost, index) => {
                 totalCost += cost.amount;
-                const createdDate = cost.createdTimestamp ? new Date(cost.createdTimestamp).toLocaleDateString('de-DE') : 'Neu';
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
                         <input type="text"
-                               class="form-control edit-cost-name"
+                               class="form-control edit-initial-cost-name"
                                value="${cost.name}"
                                data-index="${index}"
                                placeholder="Bezeichnung" />
                     </td>
                     <td>
                         <input type="number"
-                               class="form-control edit-cost-amount"
+                               class="form-control edit-initial-cost-amount"
                                value="${cost.amount}"
                                step="0.01"
                                min="0"
                                data-index="${index}"
                                placeholder="0.00" />
                     </td>
-                    <td><small class="text-muted">${createdDate}</small></td>
                     <td>
                         <button type="button"
-                                class="btn btn-outline-danger btn-sm remove-cost-btn"
+                                class="btn btn-outline-danger btn-sm remove-initial-cost-btn"
                                 data-index="${index}"
                                 title="Entfernen">
                             <i class="fas fa-trash"></i>
@@ -1151,207 +1863,26 @@
                 `;
                 tableBody.appendChild(row);
 
-                // Hidden inputs for form submission
-                if (cost.id) {
-                    const idInput = document.createElement('input');
-                    idInput.type = 'hidden';
-                    idInput.name = `ProjectCosts[${index}].ProjectAdditionalCostsId`;
-                    idInput.value = cost.id;
-                    hiddenContainer.appendChild(idInput);
-                }
-
+                // Hidden inputs für Form Submission
                 const nameInput = document.createElement('input');
                 nameInput.type = 'hidden';
-                nameInput.name = `ProjectCosts[${index}].AdditionalCostName`;
+                nameInput.name = `InitialAdditionalCosts[${index}].AdditionalCostName`;
                 nameInput.value = cost.name;
                 hiddenContainer.appendChild(nameInput);
 
                 const amountInput = document.createElement('input');
                 amountInput.type = 'hidden';
-                amountInput.name = `ProjectCosts[${index}].AdditionalCostAmount`;
+                amountInput.name = `InitialAdditionalCosts[${index}].AdditionalCostAmount`;
                 amountInput.value = cost.amount;
                 hiddenContainer.appendChild(amountInput);
             });
         }
 
-        document.getElementById('totalProjectCost').textContent = totalCost.toFixed(2) + ' €';
-    }
-
-    // Reload costs after modal closes
-    document.getElementById('addProjectCostsModal').addEventListener('hidden.bs.modal', function() {
-        loadProjectCosts();
-    });
-
-    //Budgetstats
-
-
-    // Globale Chart-Instanzen
-    let budgetDistributionChart;
-    let topCostSectionsChart;
-
-    // Seite laden
-    document.addEventListener('DOMContentLoaded', loadBudgetStatistics);
-
-    async function loadBudgetStatistics() {
-        try {
-            const response = await fetch('/Projects/BudgetPlanning?handler=BudgetStatistics&projectId=@Model.Project.ProjectId');
-            const statistics = await response.json();
-            updateDashboard(statistics);
-        } catch (error) {
-            console.error('Fehler beim Laden der Budget-Statistiken:', error);
-        }
-    }
-        function updateDashboard(stats) {
-        if (!stats) return;
-
-        // Projektname
-        document.getElementById('projectName').textContent = stats.projectName;
-
-        updateBudgetCards(stats);
-        updateAdditionalCostsCard(stats);
-        updateTaskStatistics(stats);
-        updateTopSections(stats.topCostSections);
-        // updateCharts(stats);
-    }
-
-    // Neue Funktion für zusätzliche Kosten Card
-    function updateAdditionalCostsCard(stats) {
-        const additionalCostsValue = document.getElementById('additionalCostsValue');
-        const additionalCostsSubtitle = document.getElementById('additionalCostsSubtitle');
-
-        if (additionalCostsValue) {
-            additionalCostsValue.textContent = '€' + stats.additionalCosts.toLocaleString();
+        if (totalElement) {
+            totalElement.textContent = totalCost.toFixed(2) + ' €';
         }
 
-        if (additionalCostsSubtitle && stats.additionalCostBreakdown) {
-            const itemCount = stats.additionalCostBreakdown.itemCount;
-            additionalCostsSubtitle.textContent = itemCount > 0
-                ? `${itemCount} Position${itemCount !== 1 ? 'en' : ''} erfasst`
-                : 'Material & Sonstiges';
-        }
-    }
-        // Budget-Karten
-    function updateBudgetCards(stats) {
-        const cards = document.querySelectorAll('.budget-card-value');
-        if (cards.length >= 4) {
-            // cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
-            // cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
-            // cards[2].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
-            // cards[3].textContent = '€' + stats.additionalCosts.toLocaleString();
-            // cards[4].textContent = '€' + stats.remainingBudget.toLocaleString();
-            cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
-            cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
-            cards[2].textContent = '€' + stats.remainingBudget.toLocaleString();
-            cards[3].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
-            cards[4].textContent = '€' + stats.additionalCosts.toLocaleString();
-            
-        }
-
-        // Status Badge
-        const statusBadge = document.getElementById('project_budget_state');
-        const statusMap = {
-            0: { text: "Unbekannt", class: "on-track", icon: "fa-check-circle" },
-            1: { text: "Ausreichend", class: "on-track", icon: "fa-check-circle" },
-            2: { text: "Warnung", class: "warning", icon: "fa-exclamation-triangle" },
-            3: { text: "Kritisch", class: "critical", icon: "fa-times-circle" },
-            4: { text: "Überschritten", class: "exceeded", icon: "fa-ban" }
-        };
-        const status = statusMap[stats.budgetStatus] || statusMap[0];
-        statusBadge.className = `status-badge ${status.class}`;
-        statusBadge.innerHTML = `<i class="fas ${status.icon}"></i> ${status.text}`;
-
-        // Fortschrittsbalken
-        const progressBar = document.querySelector('.budget-progress-bar.success');
-        const progressText = document.querySelector('.budget-progress-text');
-        if (progressBar && progressText) {
-            progressBar.style.width = stats.utilizationPercentage + '%';
-            progressText.textContent = stats.utilizationPercentage.toFixed(2) + '%';
-        }
-
-        // Task-Kosten Card
-        updateTaskCostsCard(stats);
-
-        // Zusatzkosten Card
-        updateAdditionalCostsCard(stats);
-    }
-
-    function updateTaskCostsCard(stats) {
-        const taskCostsValue = document.getElementById('taskCostsValue');
-        const taskCostsSubtitle = document.getElementById('taskCostsSubtitle');
-        const taskCostsProgressBar = document.getElementById('taskCostsProgressBar');
-
-        if (taskCostsValue) {
-            taskCostsValue.textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
-        }
-
-        if (taskCostsSubtitle) {
-            const tasksWithCosts = stats.tasksWithCosts || 0;
-            const totalTasks = stats.totalTasks || 0;
-            taskCostsSubtitle.textContent = `${tasksWithCosts} von ${totalTasks} Tasks`;
-        }
-
-        if (taskCostsProgressBar && stats.initialBudget > 0) {
-            const taskPercentage = (stats.usedBudgetFromTasks / stats.initialBudget) * 100;
-            taskCostsProgressBar.style.width = taskPercentage.toFixed(2) + '%';
-        }
-    }
-        // Funktion für zusätzliche Kosten Card
-    function updateAdditionalCostsCard(stats) {
-        const additionalCostsValue = document.getElementById('additionalCostsValue');
-        const additionalCostsSubtitle = document.getElementById('additionalCostsSubtitle');
-        const additionalCostsProgressBar = document.getElementById('additionalCostsProgressBar');
-
-        if (additionalCostsValue) {
-            additionalCostsValue.textContent = '€' + stats.additionalCosts.toLocaleString();
-        }
-
-        if (additionalCostsSubtitle && stats.additionalCostBreakdown) {
-            const itemCount = stats.additionalCostBreakdown.itemCount;
-            additionalCostsSubtitle.textContent = itemCount > 0
-                ? `${itemCount} Position${itemCount !== 1 ? 'en' : ''} erfasst`
-                : 'Material & Sonstiges';
-        }
-
-        if (additionalCostsProgressBar && stats.initialBudget > 0) {
-            const additionalPercentage = (stats.additionalCosts / stats.initialBudget) * 100;
-            additionalCostsProgressBar.style.width = additionalPercentage.toFixed(2) + '%';
-        }
-    }
-    // Task-Statistiken
-    function updateTaskStatistics(stats) {
-        const taskStats = document.querySelectorAll('.task-stat-value');
-        if (taskStats.length >= 4) {
-            taskStats[0].textContent = stats.totalTasks;
-            taskStats[1].textContent = stats.tasksWithCosts;
-            taskStats[2].textContent = stats.tasksWithoutCosts;
-            taskStats[3].textContent = '€' + (stats.tasksWithCosts > 0
-                ? (stats.usedBudget / stats.tasksWithCosts).toLocaleString()
-                : "0");
-        }
-    }
-
-    // Top-Cost-Sections
-    function updateTopSections(topSections) {
-        const container = document.getElementById('topSectionsList');
-        container.innerHTML = '';
-
-        if (!topSections || topSections.length === 0) {
-            container.innerHTML = '<div class="section-item">Keine Daten vorhanden</div>';
-            return;
-        }
-
-        topSections.forEach(section => {
-            const sectionHtml = `
-                <div class="section-item">
-                    <div class="section-name">${section.sectionName}</div>
-                    <div class="section-stats">
-                        <span class="section-cost">€${section.totalCosts.toLocaleString()}</span>
-                        <span class="section-percentage">${section.percentageOfTotal.toFixed(1)}%</span>
-                        <span class="section-tasks">${section.taskCount} Tasks</span>
-                    </div>
-                </div>
-            `;
-            container.innerHTML += sectionHtml;
-        });
+        // Gesamtbudget neu berechnen
+        calculateInitialBudget();
     }
 </script>

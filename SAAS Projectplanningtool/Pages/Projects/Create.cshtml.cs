@@ -27,8 +27,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         [BindProperty]
         public Project Project { get; set; } = default!;
 
-        [BindProperty]
-        public float InitialBudget { get; set; } = 0.0f;
+        //[BindProperty]
+        //public float InitialBudget { get; set; } = 0.0f;
 
         [BindProperty]
         public DefaultWorkingTimeHandler WorkingTime { get; set; } = new();
@@ -85,7 +85,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 await _context.SaveChangesAsync();
 
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnPostAsync>End");
-                return RedirectToPage("/Projects/Scheduling", new { id = Project.ProjectId });
+                return RedirectToPage("/Projects/BudgetPlanning", new { id = Project.ProjectId });
             }
             catch (Exception ex)
             {
@@ -120,7 +120,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             var projectBudget = new ProjectBudget
             {
-                InitialBudget = InitialBudget,
+                //InitialBudget = InitialBudget,
                 CompanyId = companyId,
             };
 

@@ -351,11 +351,14 @@
                 <div class="card-header">
                     <h2><i class="fas fa-sitemap me-2"></i>Projektstruktur</h2>
                     <div class="card-actions">
-                        <button type="button" class="btn btn-outline-secondary btn-sm">
-                            <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
-                                <i class="fas fa-calendar me-1"></i>Terminplanung
-                            </a>
-                        </button>
+                        @if (Model.ScheduleAlreadyExists)
+                        {
+                            <button type="button" class="btn btn-outline-secondary btn-sm">
+                                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                    <i class="fas fa-calendar me-1"></i>Terminplanung
+                                </a>
+                            </button>
+                        }
                         <button type="button" class="btn btn-outline-secondary btn-sm">
                             <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
                                 <i class="fas fa-users me-1"></i>Budgetplanung
