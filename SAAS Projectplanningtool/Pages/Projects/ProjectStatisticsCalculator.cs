@@ -88,6 +88,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 ProjectId = projectId,
                 ProjectName = project.ProjectName,
                 HasBudget = true,
+                recalculationNeeded = budgetStatus == BudgetStatus.Exceeded,
                 InitialBudget = project.ProjectBudget.InitialBudget,
                 UsedBudget = totalUsedBudget,
                 UsedBudgetFromTasks = usedBudgetFromTasks,
@@ -571,6 +572,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public string ProjectId { get; set; } = string.Empty;
         public string ProjectName { get; set; } = string.Empty;
         public bool HasBudget { get; set; }
+        public bool recalculationNeeded { get; set; }
         public string? ErrorMessage { get; set; }
 
         // Budget-Übersicht

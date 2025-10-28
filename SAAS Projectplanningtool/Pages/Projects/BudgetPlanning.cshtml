@@ -15,13 +15,22 @@
     <!-- Modern Page Header -->
     <div class="page-header">
         <h1>
+            <a asp-page="/Projects/Details"
+               asp-route-id="@Model.Project?.ProjectId"
+               class="edit-btn">
+                <i class="fas fa-chart-line"></i>
+            </a>
             <span>
-                <i class="fas fa-chart-line me-2"></i>
                 Budgetplanung - @Model.Project?.ProjectName
             </span>
-            <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="edit-btn">
-                <i class="fas fa-edit"></i>
-            </a>
+        
+            @if (Model.ScheduleAlreadyExists)
+            {
+                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project?.ProjectId" class="edit-btn">
+                    <i class="fas fa-calendar-days"></i>
+                </a>
+            }
+
         </h1>
     </div>
 
@@ -563,8 +572,8 @@
                     <div class="budget-card-value">-</div>
                     <div class="budget-card-subtitle">
                         <form method="post" asp-page-handler="RecalculateProjectBudget">
-                            <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                            <button type="submit" class="modern-btn small info">
+                            <input type="hidden" name="projectId" value="@Model.Project?.ProjectId" />
+                            <button type="submit" class="modern-btn small info" id="recalculationBtn">
                                 <i class="fas fa-calculator me-1"></i>
                                 Nachkalkulation anstoßen
                             </button>
@@ -584,19 +593,6 @@
                         <div class="budget-progress-bar" id="taskCostsProgressBar" style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
                     </div>
                 </div>
-                <div class="budget-card" style="border-top: 4px solid #9b59b6;">
-                    <div class="budget-card-header">
-                        <div class="budget-card-title">Task-Kosten (geplant & abgeschlossen)</div>
-                        <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                    </div>
-                    <div class="budget-card-value" id="taskCostsValueTotal">-</div>
-                    <div class="budget-card-subtitle" id="taskCostsSubtitleTotal">Personalkosten</div>
-                    <div class="budget-progress" style="margin-top: 0.5rem;">
-                        <div class="budget-progress-bar" id="taskCostsProgressBarTotal" style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
-                    </div>
-                </div>
                 <div class="budget-card" style="border-top: 4px solid var(--info-color);">
                     <div class="budget-card-header">
                         <div class="budget-card-title">Zusätzliche Kosten</div>
@@ -610,6 +606,20 @@
                         <div class="budget-progress-bar" id="additionalCostsProgressBar" style="width: 0%; background: var(--info-color);"></div>
                     </div>
                 </div>
+                <div class="budget-card" style="border-top: 4px solid #9b59b6;">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Task-Kosten (geplant & abgeschlossen)</div>
+                        <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value" id="taskCostsValueTotal">-</div>
+                    <div class="budget-card-subtitle" id="taskCostsSubtitleTotal">Personalkosten</div>
+                    <div class="budget-progress" style="margin-top: 0.5rem;">
+                        <div class="budget-progress-bar" id="taskCostsProgressBarTotal" style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
+                    </div>
+                </div>
+
 
 
 
@@ -902,8 +912,11 @@ else
         return tasks;
     }
 }
-
+<!-- Budgetplanning script -->
 <script>
+
+
+
             let selectedHRGs = new Map();
             document.addEventListener('DOMContentLoaded', function() {
 
@@ -1447,6 +1460,14 @@ else
             updateTaskStatistics(stats);
             updateTopSections(stats.topCostSections);
             // updateCharts(stats);
+
+            //Recalculation
+            const recalculationBtn = document.getElementById('recalculationBtn');
+            if (!stats.recalculationNeeded) {
+                recalculationBtn.style.display = 'none';
+            }else{
+                recalculationBtn.style.display = 'block';
+            }
         }
 
         // Neue Funktion für zusätzliche Kosten Card
@@ -1469,18 +1490,9 @@ else
         function updateBudgetCards(stats) {
             const cards = document.querySelectorAll('.budget-card-value');
             if (cards.length >= 3) {
-                // cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
-                // cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
-                // cards[2].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
-                // cards[3].textContent = '€' + stats.additionalCosts.toLocaleString();
-                // cards[4].textContent = '€' + stats.remainingBudget.toLocaleString();
-                cards[0].textContent = '€' + stats.initialBudget.toLocaleString();  
+                cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
                 cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
                 cards[2].textContent = '€' + stats.remainingBudget.toLocaleString();
-                // cards[3].textContent = '€' + stats.usedBudgetFromTasks.toLocaleString();
-              
-                // cards[4].textContent = '€' + stats.additionalCosts.toLocaleString();
-
             }
 
             // Status Badge
@@ -1580,7 +1592,7 @@ else
                 taskStats[1].textContent = stats.tasksWithCosts;
                 taskStats[2].textContent = stats.tasksWithoutCosts;
                 taskStats[3].textContent = '€' + (stats.tasksWithCosts > 0
-                    ? (stats.usedBudget / stats.tasksWithCosts).toLocaleString()
+                    ? (stats.usedBudgetFromTasks / stats.tasksWithCosts).toLocaleString()
                     : "0");
             }
         }

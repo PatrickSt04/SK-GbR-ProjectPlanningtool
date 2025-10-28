@@ -166,6 +166,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     totalAdditionalCosts += (decimal)cost.AdditionalCostAmount;
 
                     // Kosten in Datenbank speichern
+                    //Funktion deaktiviert 
+
+
                     //var newCost = new ProjectAdditionalCosts
                     //{
                     //    AdditionalCostName = cost.AdditionalCostName.Trim(),
