@@ -40,6 +40,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         [BindProperty(SupportsGet = true)]
         public bool showCompleted { get; set; } = default!;
+
+        public bool ScheduleAlreadyExists { get; set; } = false;
         public async Task<IActionResult> OnGetAsync(string id)
         {
             try
@@ -89,6 +91,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 if (Project.ProjectSections != null)
                 {
+                    //Es existiert ein Terminplan
+                    ScheduleAlreadyExists = true;
                     foreach (var section in Project.ProjectSections)
                     {
                         section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);

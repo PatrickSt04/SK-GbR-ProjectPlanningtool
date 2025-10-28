@@ -40,6 +40,21 @@ namespace SAAS_Projectplanningtool.Data
 
             }
 
+            //NOTWENDIG:
+            modelBuilder.Entity<ProjectBudget>(entity =>
+            {
+                entity.OwnsMany(pb => pb.InitialHRGPlannings, hrg =>
+                {
+                    hrg.ToJson(); // Speichert als JSON in einer Spalte
+                });
+
+                entity.OwnsMany(pb => pb.InitialAdditionalCosts, cost =>
+                {
+                    cost.ToJson(); // Speichert als JSON in einer Spalte
+                });
+            });
+
+
             // Configure the self-referencing relationship for ProjectSection:
             modelBuilder.Entity<ProjectSection>()
                 .HasOne(ps => ps.ParentSection)

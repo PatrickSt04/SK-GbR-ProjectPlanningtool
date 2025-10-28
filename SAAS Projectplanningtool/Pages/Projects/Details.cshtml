@@ -3,7 +3,7 @@
 @model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] =  Model.Project?.ProjectName;
 }
 
 <div class="project-details-container">
@@ -351,11 +351,32 @@
                 <div class="card-header">
                     <h2><i class="fas fa-sitemap me-2"></i>Projektstruktur</h2>
                     <div class="card-actions">
-                        <button type="button" class="btn btn-outline-secondary btn-sm">
-                            <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
-                                <i class="fas fa-calendar me-1"></i>Terminplanung
-                            </a>
-                        </button>
+                        <!-- Wenn bereits das initiale Budget geplant wurde-->
+                        @* @if (Model.Project?.ProjectBudget?.InitialBudget != null)
+                        {
+                            <button type="button" class="btn btn-outline-secondary btn-sm">
+                                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                    <i class="fas fa-calendar me-1"></i>Terminplanung
+                                </a>
+                            </button>
+                        } *@
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")"
+                                    @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")
+                                    style="@(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "pointer-events: none;" : "")">
+                                @if (Model.Project?.ProjectBudget?.InitialBudget != null && Model.Project?.ProjectBudget?.InitialBudget > 0)
+                                {
+                                    <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                        <i class="fas fa-calendar me-1"></i>Terminplanung
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>
+                                        <i class="fas fa-calendar me-1"></i>Terminplanung
+                                    </span>
+                                }
+                            </button>
                         <button type="button" class="btn btn-outline-secondary btn-sm">
                             <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
                                 <i class="fas fa-users me-1"></i>Budgetplanung
@@ -897,4 +918,9 @@
             icon.className = 'fas fa-chevron-down me-1';
         }
     }
+            // enabling tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
 </script>
