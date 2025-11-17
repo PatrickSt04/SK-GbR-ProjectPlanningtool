@@ -51,14 +51,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     return NotFound();
                 }
-                var project = await GetProjectAsync(id);
-                if (project == null)
+               await SetProjectBindingAsync(id);
+                if (Project == null)
                 {
                     return NotFound();
-                }
-                else
-                {
-                    Project = project;
                 }
                 Employee employee = default!;
 

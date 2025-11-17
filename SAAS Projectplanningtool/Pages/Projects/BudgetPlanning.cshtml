@@ -81,7 +81,6 @@
                     <thead>
                         <tr>
                             <th style="width: 30%;"><i class="fas fa-clipboard-list me-2"></i>Aufgabe</th>
-                            @* <th style="width: 15%;"><i class="fas fa-info-circle me-2"></i>Beschreibung</th> *@
                             <th style="width: 35%;"><i class="fas fa-euro-sign me-2"></i>Geplante Fixkosten</th>
                             <th style="width: 15%;"><i class="fas fa-chart-line me-2"></i>Status</th>
                             <th style="width: 20%;"><i class="fas fa-cog me-2"></i>Aktionen</th>
@@ -90,10 +89,9 @@
                     <tbody>
                         @foreach (var task in Model.TaskCatalogTasks.OrderBy(t => t.ProjectTaskName))
                         {
-                            var hasFixCosts = task.ProjectTaskFixCosts?.Any() == true;
+                            var hasFixCosts = task.ProjectTaskFixCosts != null;
                             var totalFixCosts = hasFixCosts
-                            ? task.ProjectTaskFixCosts
-                            .SelectMany(fc => fc.FixCosts)   // alle Listen zu einer Sequenz flatten
+                            ? task.ProjectTaskFixCosts?.FixCosts
                             .Sum(f => f.Cost)               // Kosten summieren
                             : 0;
 
@@ -102,31 +100,16 @@
                                 <td>
                                     <strong>@task.ProjectTaskName</strong>
                                 </td>
-                                @* <td>
-                                @if (!string.IsNullOrWhiteSpace(task.ProjectTaskDescription))
-                                {
-                                    <small class="text-muted">
-                                        @(task.ProjectTaskDescription.Length > 100 
-                                            ? task.ProjectTaskDescription.Substring(0, 100) + "..." 
-                                            : task.ProjectTaskDescription)
-                                    </small>
-                                }
-                                else
-                                {
-                                    <span class="text-muted"><em>Keine Beschreibung</em></span>
-                                }
-                            </td> *@
                                 <td>
                                     @{
                                         // Alle FixCosts aus allen ProjectTaskFixCosts holen
-                                        var allFixCosts = task.ProjectTaskFixCosts
-                                        .SelectMany(fc => fc.FixCosts)
+                                        var allFixCosts = task.ProjectTaskFixCosts?.FixCosts?
                                         .ToList();
 
-                                        var fixCostCount = allFixCosts.Count;
+                                        var fixCostCount = allFixCosts?.Count;
                                     }
 
-                                    @if (hasFixCosts)
+                                    @if (hasFixCosts && totalFixCosts > 0)
                                     {
                                         <!-- Fixkosten Display Container -->
                                         <div class="fixcosts-display-container">
@@ -151,7 +134,7 @@
                                                         </div>
                                                         <div class="fixcost-card-body">
                                                             <div class="fixcost-amount">
-                                                                @fixCost.Cost.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                                                                @fixCost?.Cost.Value.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
                                                             </div>
                                                         </div>
                                                     </div>
@@ -165,7 +148,7 @@
                                                         <i class="fas fa-calculator me-1"></i>Gesamte Fixkosten:
                                                     </span>
                                                     <span class="summary-value total-value">
-                                                        @totalFixCosts.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                                                        @totalFixCosts.Value.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
                                                     </span>
                                                 </div>
                                             </div>
@@ -177,9 +160,9 @@
                                             <span class="status-badge" style="background: var(--warning-color);">
                                                 <i class="fas fa-exclamation-triangle me-1"></i>Nicht geplant
                                             </span>
-                                            <small class="text-muted d-block mt-1">
+                                            @* <small class="text-muted d-block mt-1">
                                                 Keine Fixkosten erfasst
-                                            </small>
+                                            </small> *@
                                         </div>
                                     }
 
@@ -197,13 +180,13 @@
                                     }
                                 </td>
                                 <td>
-                                    <button class="modern-btn @(hasFixCosts ? "warning" : "success") small open-fixcosts-modal"
+                                    <button class="modern-btn @(hasFixCosts && totalFixCosts > 0 ? "warning" : "success") small open-fixcosts-modal"
                                             data-bs-toggle="modal"
                                             data-bs-target="#addFixCostsModal"
                                             data-task-id="@task.ProjectTaskId"
                                             data-task-name="@task.ProjectTaskName">
-                                        <i class="fas @(hasFixCosts ? "fa-edit" : "fa-plus-circle")"></i>
-                                        @(hasFixCosts ? "Ändern" : "Hinzufügen")
+                                        <i class="fas @(hasFixCosts && totalFixCosts > 0 ? "fa-edit" : "fa-plus-circle")"></i>
+                                        @(hasFixCosts && totalFixCosts > 0 ? "Ändern" : "Hinzufügen")
                                     </button>
                                 </td>
                             </tr>
@@ -559,6 +542,123 @@
     </div>
 
 </div>
+
+<!--Popup zum Planen der Fixkosten für Aufgabenkatalog Tasks-->
+<!-- Modal für Fixkosten -->
+<div class="modal fade" id="addFixCostsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="SaveFixCosts">
+                <input type="hidden" name="ProjectTaskId" id="fixCostsProjectTaskId" />
+                <input type="hidden" name="ProjectId" value="@Model.Project?.ProjectId" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-euro-sign me-2"></i>
+                        Fixkosten planen – <span id="fixCostsTaskName"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Erfassen Sie hier einmalige oder wiederkehrende Fixkosten für diese Aufgabe (z.B. Materialkosten, Lizenzgebühren, externe Dienstleister).
+                        </p>
+                    </div>
+
+                    <!-- Bestehende Fixkosten -->
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-list me-2"></i>
+                            Geplante Fixkosten
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                    <tr>
+                                        <th style="width: 60%;">Beschreibung</th>
+                                        <th style="width: 30%;">Kosten (€)</th>
+                                        <th style="width: 10%;">Aktion</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fixCostsTableBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Keine Fixkosten vorhanden
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot style="background: var(--light-bg);">
+                                    <tr>
+                                        <th class="text-end">Gesamtsumme:</th>
+                                        <th colspan="2" id="totalFixCosts">0.00 €</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr style="border-color: var(--border-color); margin: 1.5rem 0;" />
+
+                    <!-- Neue Fixkosten hinzufügen -->
+                    <div class="card" style="border: 2px dashed var(--border-color);">
+                        <div class="card-body">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Neue Fixkosten hinzufügen
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="newFixCostDescription" class="form-label">
+                                        <i class="fas fa-tag me-1"></i>Beschreibung
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="newFixCostDescription"
+                                           placeholder="z.B. Materialkosten, Softwarelizenzen">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="newFixCostAmount" class="form-label">
+                                        <i class="fas fa-euro-sign me-1"></i>Kosten (€)
+                                    </label>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="newFixCostAmount"
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="0.00">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button"
+                                            class="modern-btn success w-100"
+                                            id="addFixCostBtn">
+                                        <i class="fas fa-plus"></i> Hinzufügen
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="hiddenFixCostsContainer"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Abbrechen
+                    </button>
+                    <button type="submit" class="modern-btn">
+                        <i class="fas fa-save me-1"></i>Fixkosten speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Zusätzliche Projektkosten Section -->
 @if (Model.ScheduleAlreadyExists)
@@ -1142,7 +1242,7 @@ else
     {
         var tasks = new List<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask>();
         if (section.ProjectTasks != null)
-            tasks.AddRange(section.ProjectTasks);
+            tasks.AddRange(section.ProjectTasks.Where(pt => pt.IsScheduleEntry == true));
 
         if (section.SubSections != null)
         {
@@ -2138,5 +2238,222 @@ else
 
         // Gesamtbudget neu berechnen
         calculateInitialBudget();
+    }
+
+
+
+        // ====== FIXKOSTEN MANAGEMENT ======
+    let taskFixCosts = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeFixCostsModal();
+    });
+
+    function initializeFixCostsModal() {
+        // Modal öffnen Event
+        document.querySelectorAll('.open-fixcosts-modal').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const taskId = this.dataset.taskId;
+                const taskName = this.dataset.taskName;
+
+                document.getElementById('fixCostsProjectTaskId').value = taskId;
+                document.getElementById('fixCostsTaskName').textContent = taskName;
+
+                loadTaskFixCosts(taskId);
+            });
+        });
+
+        // Add Button
+        const addBtn = document.getElementById('addFixCostBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', addFixCost);
+        }
+
+        // Enter-Taste Support
+        const descInput = document.getElementById('newFixCostDescription');
+        const amountInput = document.getElementById('newFixCostAmount');
+
+        if (descInput) {
+            descInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    amountInput?.focus();
+                }
+            });
+        }
+
+        if (amountInput) {
+            amountInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addFixCost();
+                }
+            });
+        }
+
+        // Event Delegation für Remove und Edit
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-fixcost-btn')) {
+                const btn = e.target.closest('.remove-fixcost-btn');
+                const index = parseInt(btn.dataset.index);
+                removeFixCost(index);
+            }
+        });
+
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('edit-fixcost-description')) {
+                const index = parseInt(e.target.dataset.index);
+                taskFixCosts[index].description = e.target.value.trim();
+            } else if (e.target.classList.contains('edit-fixcost-amount')) {
+                const index = parseInt(e.target.dataset.index);
+                taskFixCosts[index].cost = parseFloat(e.target.value) || 0;
+                updateFixCostsTable();
+            }
+        });
+
+        // Modal reset
+        const modal = document.getElementById('addFixCostsModal');
+        if (modal) {
+            modal.addEventListener('hidden.bs.modal', function() {
+                taskFixCosts = [];
+                document.getElementById('newFixCostDescription').value = '';
+                document.getElementById('newFixCostAmount').value = '';
+            });
+        }
+    }
+
+    async function loadTaskFixCosts(taskId) {
+        taskFixCosts = [];
+
+        try {
+            const response = await fetch(`/Projects/BudgetPlanning?handler=ReadTaskFixCosts&taskId=${taskId}`);
+            if (!response.ok) {
+                updateFixCostsTable();
+                return;
+            }
+
+            const data = await response.json();
+            taskFixCosts = data.map(fc => ({
+                description: fc.description,
+                cost: fc.cost
+            }));
+
+            updateFixCostsTable();
+        } catch (err) {
+            console.error('Fehler beim Laden der Fixkosten:', err);
+            updateFixCostsTable();
+        }
+    }
+
+    function addFixCost() {
+        const descInput = document.getElementById('newFixCostDescription');
+        const amountInput = document.getElementById('newFixCostAmount');
+
+        if (!descInput || !amountInput) return;
+
+        const description = descInput.value.trim();
+        const cost = parseFloat(amountInput.value) || 0;
+
+        if (!description) {
+            showNotification('Bitte geben Sie eine Beschreibung ein.', 'warning');
+            descInput.focus();
+            return;
+        }
+
+        if (cost <= 0) {
+            showNotification('Bitte geben Sie einen gültigen Betrag ein.', 'warning');
+            amountInput.focus();
+            return;
+        }
+
+        taskFixCosts.push({ description, cost });
+        updateFixCostsTable();
+
+        descInput.value = '';
+        amountInput.value = '';
+        descInput.focus();
+
+        showNotification(`${description} wurde hinzugefügt!`, 'success');
+    }
+
+    function removeFixCost(index) {
+        const costDescription = taskFixCosts[index].description;
+        taskFixCosts.splice(index, 1);
+        updateFixCostsTable();
+        showNotification(`${costDescription} wurde entfernt.`, 'info');
+    }
+
+    function updateFixCostsTable() {
+        const tableBody = document.getElementById('fixCostsTableBody');
+        const hiddenContainer = document.getElementById('hiddenFixCostsContainer');
+        const totalElement = document.getElementById('totalFixCosts');
+
+        if (!tableBody || !hiddenContainer) return;
+
+        tableBody.innerHTML = '';
+        hiddenContainer.innerHTML = '';
+
+        let totalCost = 0;
+
+        if (taskFixCosts.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-muted">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Keine Fixkosten vorhanden
+                    </td>
+                </tr>
+            `;
+        } else {
+            taskFixCosts.forEach((cost, index) => {
+                totalCost += cost.cost;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="text"
+                               class="form-control edit-fixcost-description"
+                               value="${cost.description}"
+                               data-index="${index}"
+                               placeholder="Beschreibung" />
+                    </td>
+                    <td>
+                        <input type="number"
+                               class="form-control edit-fixcost-amount"
+                               value="${cost.cost}"
+                               step="0.01"
+                               min="0"
+                               data-index="${index}"
+                               placeholder="0.00" />
+                    </td>
+                    <td>
+                        <button type="button"
+                                class="btn btn-outline-danger btn-sm remove-fixcost-btn"
+                                data-index="${index}"
+                                title="Entfernen">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+
+                // Hidden inputs für Form Submission
+                const descInput = document.createElement('input');
+                descInput.type = 'hidden';
+                descInput.name = `FixCosts[${index}].Description`;
+                descInput.value = cost.description;
+                hiddenContainer.appendChild(descInput);
+
+                const costInput = document.createElement('input');
+                costInput.type = 'hidden';
+                costInput.name = `FixCosts[${index}].Cost`;
+                costInput.value = cost.cost;
+                hiddenContainer.appendChild(costInput);
+            });
+        }
+
+        if (totalElement) {
+            totalElement.textContent = totalCost.toFixed(2) + ' €';
+        }
     }
 </script>

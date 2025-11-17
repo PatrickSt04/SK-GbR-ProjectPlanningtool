@@ -34,6 +34,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             try
             {
                 var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+
+
                 var pt = new ProjectTask
                 {
                     CompanyId = excecutingUser.CompanyId,
@@ -46,8 +48,32 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 };
                 pt.State = await new StateManager(_context).getOpenState();
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
+
+                var ptFixCosts = new ProjectTaskFixCosts
+                {
+                    ProjectTask = pt,
+                    FixCosts = new List<ProjectTaskFixCosts.FixCost>(),
+                    ProjectTaskId = pt.ProjectTaskId
+                };
+                //Erst task zur DB hinzufügen
                 _context.ProjectTask.Add(pt);
                 await _context.SaveChangesAsync();
+
+
+                //Dann fixcosts zur DB hinzufügen
+                _context.ProjectTaskFixCosts.Add(ptFixCosts);
+                await _context.SaveChangesAsync();
+
+                //Dann fixcosts zum Task hinzuladen und updaten
+                pt.ProjectTaskFixCosts = ptFixCosts;
+                _context.ProjectTask.Update(pt);
+                await _context.SaveChangesAsync();
+
+
+
+
+
+
                 TempData.SetMessage("Success", "Aufgabe erfolgreich angelegt.");
             }
             catch (Exception ex)

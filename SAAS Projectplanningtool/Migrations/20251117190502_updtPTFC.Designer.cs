@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251117190502_updtPTFC")]
+    partial class updtPTFC
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -561,7 +564,7 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProjectTaskFixCostsId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProjectTaskName")
                         .HasColumnType("nvarchar(max)");
@@ -581,8 +584,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("LatestModifierId");
 
                     b.HasIndex("ProjectSectionId");
-
-                    b.HasIndex("ProjectTaskFixCostsId");
 
                     b.HasIndex("StateId");
 
@@ -1254,11 +1255,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("ProjectSectionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskFixCosts", "ProjectTaskFixCosts")
-                        .WithMany()
-                        .HasForeignKey("ProjectTaskFixCostsId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.State", "State")
                         .WithMany()
                         .HasForeignKey("StateId")
@@ -1271,8 +1267,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("LatestModifier");
 
                     b.Navigation("ProjectSection");
-
-                    b.Navigation("ProjectTaskFixCosts");
 
                     b.Navigation("State");
                 });
@@ -1294,10 +1288,11 @@ namespace SAAS_Projectplanningtool.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("int");
 
-                            b1.Property<double?>("Cost")
+                            b1.Property<double>("Cost")
                                 .HasColumnType("float");
 
                             b1.Property<string>("Description")
+                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.HasKey("ProjectTaskFixCostsId", "Id");

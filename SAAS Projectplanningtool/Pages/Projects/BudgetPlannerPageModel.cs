@@ -36,10 +36,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
 
 
-        protected async Task<ProjectTask> GetProjectTaskAsync(string projectTaskId)
+        protected async Task<ProjectTask?> GetProjectTaskAsync(string projectTaskId)
         {
             var existing = await _context.ProjectTask
                 .Include(pt => pt.ProjectTaskHourlyRateGroups)
+                .Include(pt => pt.ProjectTaskFixCosts)
                 .FirstOrDefaultAsync(x => x.ProjectTaskId == projectTaskId);
             return existing;
         }

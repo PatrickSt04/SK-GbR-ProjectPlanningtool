@@ -55,7 +55,9 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // Amount of Workers per hourly rate group
         public ICollection<ProjectTaskHourlyRateGroup> ProjectTaskHourlyRateGroups { get; set; } = new List<ProjectTaskHourlyRateGroup>();
 
-        public ICollection<ProjectTaskFixCosts> ProjectTaskFixCosts { get; set; } = new List<ProjectTaskFixCosts>();
+        public string? ProjectTaskFixCostsId { get; set; }
+        [ForeignKey(nameof(ProjectTaskFixCostsId))]
+        public ProjectTaskFixCosts? ProjectTaskFixCosts { get; set; }
         // ---------- Berechnete Eigenschaften ----------
 
         /// <summary>

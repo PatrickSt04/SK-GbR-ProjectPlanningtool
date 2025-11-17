@@ -184,9 +184,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return null;
             }
         }
-        public async Task<Project?> GetProjectAsync(string projectId)
+
+        public async Task SetProjectBindingAsync(string projectId)
+        {
+            Project = await GetProjectAsync(projectId);
+        }
+        private async Task<Project?> GetProjectAsync(string projectId)
         {
             var Project = await _context.Project
+                .AsNoTracking()
                 .Include(p => p.LatestModifier)
                 .Include(p => p.Company)
                 .Include(p => p.CreatedByEmployee)
@@ -201,6 +207,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 //deren Tasks
                 .ThenInclude(ps => ps.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
                 .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+                .ThenInclude(t => t.HourlyRateGroup)
                 //.ThenInclude(pt => pt.State)
                 // Projectsections lesen
                 .Include(p => p.ProjectSections)
@@ -209,6 +216,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 //deren Tasks (die für den Terminplan relevant sind)
                 .ThenInclude(ss => ss.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
+                .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+                .ThenInclude(t => t.HourlyRateGroup)
                 .FirstOrDefaultAsync(m => m.ProjectId == projectId);
             if (Project.ProjectSections != null)
             {
