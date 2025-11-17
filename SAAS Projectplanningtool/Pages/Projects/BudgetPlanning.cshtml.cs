@@ -134,6 +134,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                             AdditionalCostAmount = cost.AdditionalCostAmount
                         })
                         .ToList();
+
                 }
                 else
                 {
