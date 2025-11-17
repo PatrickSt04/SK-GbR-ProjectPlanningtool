@@ -17,6 +17,8 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // The Initial Budget
         public double InitialBudget { get; set; } = 0.0d;
 
+        public List<BudgetRecalculation> BudgetRecalculations { get; set; } = new();
+
         public List<InitialHRGPlanning> InitialHRGPlannings { get; set; } = new();
 
         public List<InitialAdditionalCost> InitialAdditionalCosts { get; set; } = new();
@@ -33,7 +35,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         [ForeignKey(nameof(CreatedById))]
         public Employee? CreatedByEmployee { get; set; }
         public DateTime? CreatedTimestamp { get; set; }
-        
+
         public class InitialAdditionalCost
         {
             public string AdditionalCostName { get; set; } = "";

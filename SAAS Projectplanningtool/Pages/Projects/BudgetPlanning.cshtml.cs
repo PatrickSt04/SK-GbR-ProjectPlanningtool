@@ -14,12 +14,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
         private readonly ProjectStatisticsCalculator _statisticsCalculator;
+        private readonly CustomUserManager _customUserManager;
         public BudgetPlanningModel(ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(context, userManager);
             _statisticsCalculator = new ProjectStatisticsCalculator(context, userManager);
+            _customUserManager = new CustomUserManager(context, userManager);
         }
         [BindProperty]
         public Project Project { get; set; } = default!;
@@ -165,21 +167,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     totalAdditionalCosts += (decimal)cost.AdditionalCostAmount;
 
-                    // Kosten in Datenbank speichern
-                    //Funktion deaktiviert 
-
-
-                    //var newCost = new ProjectAdditionalCosts
-                    //{
-                    //    AdditionalCostName = cost.AdditionalCostName.Trim(),
-                    //    AdditionalCostAmount = cost.AdditionalCostAmount,
-                    //    CompanyId = project.CompanyId
-                    //};
-
-                    //newCost = await new CustomObjectModifier(_context, _userManager)
-                        //.AddLatestModificationAsync(User, "Initiale Projektkosten erstellt", newCost, true);
-
-                    //project.ProjectAdditionalCosts.Add(newCost);
                 }
 
                 decimal totalBudget = totalHRGCosts + totalAdditionalCosts;
@@ -354,7 +341,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return NotFound();
             }
-            // Übernimm used budget to project initial budget
+            // Übernimm used budget to project recalculations
             var stats = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
             var usedBudget = stats.UsedBudget;
             var project = await GetProjectAsync(projectId);
@@ -367,8 +354,25 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return NotFound();
             }
-            projectBudget.InitialBudget = usedBudget;
 
+            if (projectBudget.BudgetRecalculations == null)
+            {
+                projectBudget.BudgetRecalculations = new List<BudgetRecalculation>();
+            }
+            var currentEmployee = await GetEmployeeAsync();
+
+            // Neue Budgetrecalculation hinzufügen
+            var newBudgetRecalculation = new BudgetRecalculation
+            {
+                NewBudget = usedBudget,
+                CompanyId = currentEmployee.CompanyId,
+                RecalculationDateTime = DateTime.UtcNow,
+                RecalculatedBy = currentEmployee
+            };
+            // Recalculatiion dem Budget anfügen
+            projectBudget.BudgetRecalculations.Add(newBudgetRecalculation);
+            // DB Updates
+            _context.BudgetRecalculation.Add(newBudgetRecalculation);
             _context.ProjectBudget.Update(projectBudget);
 
             await _context.SaveChangesAsync();

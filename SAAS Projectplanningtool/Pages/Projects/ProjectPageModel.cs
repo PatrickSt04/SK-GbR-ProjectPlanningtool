@@ -171,7 +171,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 ProjectLeads = new SelectList(Enumerable.Empty<SelectListItem>(), "Id", "Name");
             }
         }
-        private async Task<Employee?> GetEmployeeAsync()
+        protected async Task<Employee?> GetEmployeeAsync()
         {
             try
             {
@@ -192,6 +192,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .Include(p => p.CreatedByEmployee)
                 .Include(p => p.Customer)
                 .Include(p => p.ProjectBudget)
+                    .ThenInclude(pb => pb.BudgetRecalculations)
+                    .ThenInclude(br => br.RecalculatedBy)
                 .Include(p => p.ResponsiblePerson)
                 .Include(p => p.State)
                 // Projectsections lesen

@@ -69,10 +69,34 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             // Gesamtverbrauch = Task-Kosten + Zusätzliche Kosten
             var totalUsedBudget = usedBudgetFromTasks + additionalCosts.TotalAmount;
 
-            var remainingBudget = project.ProjectBudget.InitialBudget - totalUsedBudget;
-            var utilizationPercentage = project.ProjectBudget.InitialBudget > 0
+
+            // Wenn Nachkalkulation angestoßen wurde, berücksichtige diese im verwendeten Budget
+            // sonst verwende das Initialbudget
+            var remainingBudget = 0.0;
+            var utilizationPercentage = 0.0;
+
+            if (project?.ProjectBudget?.BudgetRecalculations.Count > 0)
+            {
+                var latestRecalculation = project.ProjectBudget.BudgetRecalculations
+                    .OrderByDescending(br => br.RecalculationDateTime)
+                    .FirstOrDefault();
+                if (latestRecalculation != null)
+                {
+                    remainingBudget = latestRecalculation.NewBudget - totalUsedBudget;
+                    utilizationPercentage = latestRecalculation.NewBudget > 0
+                        ? (totalUsedBudget / latestRecalculation.NewBudget) * 100
+                        : 0;
+                }
+            }
+            else
+            {
+                remainingBudget = project.ProjectBudget.InitialBudget - totalUsedBudget;
+                utilizationPercentage = project.ProjectBudget.InitialBudget > 0
                 ? (totalUsedBudget / project.ProjectBudget.InitialBudget) * 100
                 : 0;
+            }
+
+
 
             // Budget-Status bestimmen
             var budgetStatus = DetermineBudgetStatus(utilizationPercentage);
@@ -377,6 +401,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             return await _context.Project
                 .Include(p => p.ProjectBudget)
+                 .ThenInclude(pb => pb.BudgetRecalculations)
                 .Include(p => p.ProjectAdditionalCosts)
                 .Include(p => p.ProjectSections.Where(ps => ps.CompanyId == companyId))
                     .ThenInclude(ps => ps.ProjectTasks)

@@ -23,7 +23,7 @@
             <span>
                 Budgetplanung - @Model.Project?.ProjectName
             </span>
-        
+
             @if (Model.ScheduleAlreadyExists)
             {
                 <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project?.ProjectId" class="edit-btn">
@@ -539,13 +539,36 @@
             <div class="budget-overview">
                 <div class="budget-card primary">
                     <div class="budget-card-header">
-                        <div class="budget-card-title">Gesamtbudget</div>
+                        <div class="budget-card-title">Auftragsvolumen</div>
                         <div class="budget-card-icon" style="background: var(--primary-gradient);">
                             <i class="fas fa-wallet"></i>
                         </div>
                     </div>
-                    <div class="budget-card-value">-</div>
-                    <div class="budget-card-subtitle">Auftragsvolumen</div>
+                    <div class="budget-card-value">
+                        @if (Model.Project?.ProjectBudget?.BudgetRecalculations.Count > 0)
+                        {
+                            <div class="budget-card-subtitle">Nachkalkuliertes Auftragsvolumen</div>
+                            @Model.Project.ProjectBudget.BudgetRecalculations.OrderByDescending(pb => pb.RecalculationDateTime).First().NewBudget.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+
+                            <div class="budget-card-subtitle">
+                                Initiales Auftragsvolumen
+                                <br/>
+                                @Model.Project.ProjectBudget.InitialBudget.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                            </div> 
+                        }
+                        else
+                        {
+                            @if (Model.Project?.ProjectBudget != null)
+                            {
+                                @Model.Project.ProjectBudget.InitialBudget.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                            }
+                            else
+                            {
+                                @("-")
+                            }
+                        }
+                    </div>
+                    
                 </div>
 
                 <div class="budget-card success">
@@ -620,6 +643,63 @@
                     </div>
                 </div>
 
+                <!--Recalculations-->
+                <div class="budget-card" style="border-top: 4px solid var(--info-color);">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Nachkalkulationen</div>
+                        <div class="budget-card-icon" style="background: var(--info-color);">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value" id="recalculationsValue">
+                        @if (Model.Project?.ProjectBudget?.BudgetRecalculations?.Any() == true)
+                        {
+                            var latestRecalc = Model.Project?.ProjectBudget?.BudgetRecalculations?
+                            .OrderByDescending(r => r.RecalculationDateTime)
+                            .FirstOrDefault();
+                            @latestRecalc?.NewBudget.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                        }
+                        else
+                        {
+                            <span style="font-size: 1rem; color: var(--text-secondary);">Keine Nachkalkulationen</span>
+                        }
+                    </div>
+                    @if (Model.Project?.ProjectBudget?.BudgetRecalculations?.Any() == true)
+                    {
+                        var count = Model.Project?.ProjectBudget?.BudgetRecalculations?.Count;
+                        <div class="budget-card-subtitle">
+                            @count @(count == 1 ? "Nachkalkulation" : "Nachkalkulationen") erfasst
+                        </div>
+
+                        <!-- Compact Timeline innerhalb der Card -->
+                        <div class="compact-timeline">
+                            <div class="compact-timeline-header">
+                                <i class="fas fa-history"></i> Verlauf
+                            </div>
+                            @foreach (var recalc in Model.Project?.ProjectBudget?.BudgetRecalculations?.OrderByDescending(r => r.RecalculationDateTime))
+                            {
+                                var isLatest = recalc == Model.Project?.ProjectBudget?.BudgetRecalculations?.OrderByDescending(r => r.RecalculationDateTime).First();
+
+                                <div class="compact-timeline-item @(isLatest ? "latest" : "")">
+                                    <div class="compact-timeline-dot"></div>
+                                    <div class="compact-timeline-content">
+                                        <div class="compact-timeline-row">
+                                            <div class="compact-date">
+                                                @recalc.RecalculationDateTime.ToString("dd.MM.yy HH:mm")
+                                            </div>
+                                            <div class="compact-budget">
+                                                @recalc.NewBudget.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                                            </div>
+                                        </div>
+                                        <div class="compact-user">
+                                            <i class="fas fa-user"></i> @(recalc.RecalculatedBy?.EmployeeDisplayName ?? "Unbekannt")
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
 
 
 
@@ -1486,11 +1566,12 @@ else
                     : 'Material & Sonstiges';
             }
         }
-            // Budget-Karten
+
+        // Budget-Karten
         function updateBudgetCards(stats) {
             const cards = document.querySelectorAll('.budget-card-value');
             if (cards.length >= 3) {
-                cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
+                // cards[0].textContent = '€' + stats.initialBudget.toLocaleString();
                 cards[1].textContent = '€' + stats.usedBudget.toLocaleString();
                 cards[2].textContent = '€' + stats.remainingBudget.toLocaleString();
             }
@@ -1521,6 +1602,7 @@ else
 
             // Zusatzkosten Card
             updateAdditionalCostsCard(stats);
+
         }
 
         function updateTaskCostsCard(stats) {
