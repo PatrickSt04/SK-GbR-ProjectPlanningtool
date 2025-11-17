@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
+using Project = SAAS_Projectplanningtool.Models.Budgetplanning.Project;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
@@ -29,6 +31,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         [BindProperty]
         public List<HRGAssignment> HRGAmounts { get; set; } = new();
 
+        [BindProperty]
+        public List<ProjectTask> TaskCatalogTasks { get; set; } = new();
 
         public class HRGAssignment
         {
@@ -71,6 +75,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         [BindProperty]
         public List<InitialAdditionalCost> InitialAdditionalCosts { get; set; } = new();
+
+        public class FixCostAssignment
+        {
+            public string Description { get; set; } = "";
+            public double Cost { get; set; }
+        }
+
+        [BindProperty]
+        public List<FixCostAssignment> FixCosts { get; set; } = new();
         public async Task<IActionResult> OnGetAsync(string id)
         {
             try
@@ -127,6 +140,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     // Leere Liste initialisieren, falls keine Planung vorhanden ist
                     InitialAdditionalCosts = new List<InitialAdditionalCost>();
                 }
+
+                TaskCatalogTasks = await _context.ProjectTask
+                 .Where(pt =>
+                     pt.ProjectSection!.ProjectId == id &&
+                     pt.IsTaskCatalogEntry &&
+                     !pt.IsScheduleEntry
+                 )
+                 .Include(pt => pt.ProjectTaskFixCosts)
+                 .ThenInclude(fc => fc.FixCosts)
+                 .ToListAsync();
+
             }
             catch (Exception ex)
             {

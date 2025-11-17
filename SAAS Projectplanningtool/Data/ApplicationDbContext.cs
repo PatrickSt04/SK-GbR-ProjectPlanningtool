@@ -28,6 +28,7 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectAdditionalCosts> ProjectAdditionalCosts { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskHourlyRateGroup> ProjectTaskHourlyRateGroup { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.BudgetRecalculation> BudgetRecalculation { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskFixCosts> ProjectTaskFixCosts { get; set; } = default!;
 
 
         public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;
@@ -52,6 +53,15 @@ namespace SAAS_Projectplanningtool.Data
                 entity.OwnsMany(pb => pb.InitialAdditionalCosts, cost =>
                 {
                     cost.ToJson(); // Speichert als JSON in einer Spalte
+                });
+            });
+
+            //NOTWENDIG:
+            modelBuilder.Entity<ProjectTaskFixCosts>(entity =>
+            {
+                entity.OwnsMany(ptfc => ptfc.FixCosts, fc =>
+                {
+                    fc.ToJson(); // Speichert als JSON in einer Spalte
                 });
             });
 

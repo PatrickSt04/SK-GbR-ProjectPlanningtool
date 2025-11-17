@@ -38,8 +38,13 @@
     @if (Model.ScheduleAlreadyExists)
     {
         //Planung auf Basis eines bestehenden Zeitplans
-
+        <h2 class="expenses-title">
+            <i class="fas fa-tasks"></i>
+            Terminplan
+        </h2>
+        <br />
         <div class="modern-table">
+
             <table class="table">
                 <thead>
                     <tr>
@@ -61,6 +66,161 @@
                 </tbody>
             </table>
         </div>
+
+
+        // Aufgaben die nur im Aufgabenkatalog vorhanden sind und nicht im Terminplan
+        <h2 class="expenses-title">
+            <i class="fas fa-tasks"></i>
+            Aufgabenkatalog
+        </h2>
+        <br />
+        @if (Model.TaskCatalogTasks?.Any() == true)
+        {
+            <div class="modern-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;"><i class="fas fa-clipboard-list me-2"></i>Aufgabe</th>
+                            @* <th style="width: 15%;"><i class="fas fa-info-circle me-2"></i>Beschreibung</th> *@
+                            <th style="width: 35%;"><i class="fas fa-euro-sign me-2"></i>Geplante Fixkosten</th>
+                            <th style="width: 15%;"><i class="fas fa-chart-line me-2"></i>Status</th>
+                            <th style="width: 20%;"><i class="fas fa-cog me-2"></i>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in Model.TaskCatalogTasks.OrderBy(t => t.ProjectTaskName))
+                        {
+                            var hasFixCosts = task.ProjectTaskFixCosts?.Any() == true;
+                            var totalFixCosts = hasFixCosts
+                            ? task.ProjectTaskFixCosts
+                            .SelectMany(fc => fc.FixCosts)   // alle Listen zu einer Sequenz flatten
+                            .Sum(f => f.Cost)               // Kosten summieren
+                            : 0;
+
+
+                            <tr>
+                                <td>
+                                    <strong>@task.ProjectTaskName</strong>
+                                </td>
+                                @* <td>
+                                @if (!string.IsNullOrWhiteSpace(task.ProjectTaskDescription))
+                                {
+                                    <small class="text-muted">
+                                        @(task.ProjectTaskDescription.Length > 100 
+                                            ? task.ProjectTaskDescription.Substring(0, 100) + "..." 
+                                            : task.ProjectTaskDescription)
+                                    </small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted"><em>Keine Beschreibung</em></span>
+                                }
+                            </td> *@
+                                <td>
+                                    @{
+                                        // Alle FixCosts aus allen ProjectTaskFixCosts holen
+                                        var allFixCosts = task.ProjectTaskFixCosts
+                                        .SelectMany(fc => fc.FixCosts)
+                                        .ToList();
+
+                                        var fixCostCount = allFixCosts.Count;
+                                    }
+
+                                    @if (hasFixCosts)
+                                    {
+                                        <!-- Fixkosten Display Container -->
+                                        <div class="fixcosts-display-container">
+                                            <!-- Status Badge -->
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="status-badge" style="background: var(--success-color);">
+                                                    <i class="fas fa-check me-1"></i>
+                                                    Geplant (@fixCostCount Position@(fixCostCount > 1 ? "en" : ""))
+                                                </span>
+                                            </div>
+
+                                            <!-- Fixkosten Cards -->
+                                            <div class="fixcosts-cards-grid">
+                                                @foreach (var fixCost in allFixCosts)
+                                                {
+                                                    <div class="fixcost-card">
+                                                        <div class="fixcost-card-header">
+                                                            <div class="fixcost-name">
+                                                                <i class="fas fa-tag me-1"></i>
+                                                                @fixCost.Description
+                                                            </div>
+                                                        </div>
+                                                        <div class="fixcost-card-body">
+                                                            <div class="fixcost-amount">
+                                                                @fixCost.Cost.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <!-- Gesamtsumme -->
+                                            <div class="fixcosts-summary-card">
+                                                <div class="summary-row total-row">
+                                                    <span class="summary-label">
+                                                        <i class="fas fa-calculator me-1"></i>Gesamte Fixkosten:
+                                                    </span>
+                                                    <span class="summary-value total-value">
+                                                        @totalFixCosts.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-fixcosts-container">
+                                            <span class="status-badge" style="background: var(--warning-color);">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Nicht geplant
+                                            </span>
+                                            <small class="text-muted d-block mt-1">
+                                                Keine Fixkosten erfasst
+                                            </small>
+                                        </div>
+                                    }
+
+                                </td>
+                                <td>
+                                    @if (task.State != null)
+                                    {
+                                        <div class="status-badge" style="background-color: @task.State.Color;">
+                                            @task.State.StateName
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted"><em>Kein Status</em></span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="modern-btn @(hasFixCosts ? "warning" : "success") small open-fixcosts-modal"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#addFixCostsModal"
+                                            data-task-id="@task.ProjectTaskId"
+                                            data-task-name="@task.ProjectTaskName">
+                                        <i class="fas @(hasFixCosts ? "fa-edit" : "fa-plus-circle")"></i>
+                                        @(hasFixCosts ? "Ändern" : "Hinzufügen")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5" style="background: var(--light-bg); border-radius: var(--border-radius);">
+                <i class="fas fa-inbox text-muted" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p class="text-muted mb-0">
+                    <em>Keine Aufgaben im Katalog vorhanden</em>
+                </p>
+            </div>
+        }
     }
     else
     {
@@ -552,9 +712,9 @@
 
                             <div class="budget-card-subtitle">
                                 Initiales Auftragsvolumen
-                                <br/>
+                                <br />
                                 @Model.Project.ProjectBudget.InitialBudget.ToString("C2", new System.Globalization.CultureInfo("de-DE"))
-                            </div> 
+                            </div>
                         }
                         else
                         {
@@ -568,7 +728,7 @@
                             }
                         }
                     </div>
-                    
+
                 </div>
 
                 <div class="budget-card success">
