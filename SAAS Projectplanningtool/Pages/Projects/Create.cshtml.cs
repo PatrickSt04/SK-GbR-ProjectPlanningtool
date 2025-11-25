@@ -17,6 +17,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
+        public readonly DefaultWorkingTimeHandler _defaultWorkingTimeHandler;
+
+        public Customer? customer;
 
         public CreateModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
             : base(context, userManager)
@@ -41,6 +44,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             try
             {
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
+                if (customerid != null)
+                {
+                    customer = await getCustomer(customerid);
+
+                }
+                else
+                {
+                    await PublishCustomersAsync();
+                }
 
 
                 await PublishCustomersAsync();
@@ -96,6 +108,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Project, null) });
             }
+        }
+        public async Task<Customer>? getCustomer(string customerId)
+        {
+            var employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+            return await _context.Customer.FirstOrDefaultAsync(c => c.CustomerId == customerId && c.CompanyId == employee.CompanyId);
         }
 
         #region Private Helper Methods
