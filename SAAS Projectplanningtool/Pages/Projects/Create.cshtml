@@ -8,11 +8,12 @@
 
 <h1>Projektanlage</h1>
 <hr />
+<form method="post">
 <div class="row">
 
 
     <div class="col-md-4">
-        <form method="post">
+        
             <div class="form-group">
                 <label asp-for="Project.ProjectName" class="control-label">Name</label>
                 <input required asp-for="Project.ProjectName" class="form-control" />
@@ -49,18 +50,12 @@
                 </select>
                 <span asp-validation-for="Project.ResponsiblePersonId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="InitialBudget" class="control-label">Verfügbares Budget</label>
-                <input required asp-for="InitialBudget" class="form-control" />
-                <span asp-validation-for="InitialBudget" class="text-danger"></span>
-            </div>
-
             <!-- Weitere Felder wie Name, StartDate, etc. -->
 
             <div class="form-group">
-                <input type="submit" value="Speichern & Weiter zur Terminplanung" class="btn btn-primary" />
+                <input type="submit" value="Speichern & Weiter zur Budgetplanung" class="btn btn-primary" />
             </div>
-        </form>
+        
     </div>
 
     <div class="col-md-4">
@@ -86,85 +81,85 @@
 
             <div class="working-time-row" id="monday-row">
                 <div class="form-check day-checkbox">
-                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Monday" id="monday" onchange="toggleDay('monday')">
+                    <input class="form-check-input"  asp-for="WorkingTime.Monday.IsActive" id="monday" onchange="toggleDay('monday')">
                     <label class="form-check-label" for="monday">Montag</label>
                 </div>
                 <div class="d-flex align-items-center mt-2" id="monday-times">
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.MondayStart" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Monday.StartTime" class="form-control time-input" />
                     <span class="mx-2">bis</span>
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.MondayEnd" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Monday.EndTime" class="form-control time-input" />
                 </div>
             </div>
 
             <div class="working-time-row" id="tuesday-row">
                 <div class="form-check day-checkbox">
-                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Tuesday" id="tuesday" onchange="toggleDay('tuesday')">
+                    <input class="form-check-input"  asp-for="WorkingTime.Tuesday.IsActive" id="tuesday" onchange="toggleDay('tuesday')">
                     <label class="form-check-label" for="tuesday">Dienstag</label>
                 </div>
                 <div class="d-flex align-items-center mt-2" id="tuesday-times">
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.TuesdayStart" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Tuesday.StartTime" class="form-control time-input" />
                     <span class="mx-2">bis</span>
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.TuesdayEnd" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Tuesday.EndTime" class="form-control time-input" />
                 </div>
             </div>
 
             <div class="working-time-row" id="wednesday-row">
                 <div class="form-check day-checkbox">
-                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Wednesday" id="wednesday" onchange="toggleDay('wednesday')">
+                    <input class="form-check-input" asp-for="WorkingTime.Wednesday.IsActive" id="wednesday" onchange="toggleDay('wednesday')">
                     <label class="form-check-label" for="wednesday">Mittwoch</label>
                 </div>
                 <div class="d-flex align-items-center mt-2" id="wednesday-times">
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.WednesdayStart" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Wednesday.StartTime" class="form-control time-input" />
                     <span class="mx-2">bis</span>
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.WednesdayEnd" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Wednesday.EndTime" class="form-control time-input" />
                 </div>
             </div>
 
             <div class="working-time-row" id="thursday-row">
                 <div class="form-check day-checkbox">
-                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Thursday" id="thursday" onchange="toggleDay('thursday')">
+                    <input class="form-check-input"  asp-for="WorkingTime.Thursday.IsActive" id="thursday" onchange="toggleDay('thursday')">
                     <label class="form-check-label" for="thursday">Donnerstag</label>
                 </div>
                 <div class="d-flex align-items-center mt-2" id="thursday-times">
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.ThursdayStart" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Thursday.StartTime" class="form-control time-input" />
                     <span class="mx-2">bis</span>
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.ThursdayEnd" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Thursday.EndTime" class="form-control time-input" />
                 </div>
             </div>
 
             <div class="working-time-row" id="friday-row">
                 <div class="form-check day-checkbox">
-                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Friday" id="friday" onchange="toggleDay('friday')">
+                    <input class="form-check-input"  asp-for="WorkingTime.Friday.IsActive" id="friday" onchange="toggleDay('friday')">
                     <label class="form-check-label" for="friday">Freitag</label>
                 </div>
                 <div class="d-flex align-items-center mt-2" id="friday-times">
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.FridayStart" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Friday.StartTime" class="form-control time-input" />
                     <span class="mx-2">bis</span>
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.FridayEnd" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Friday.EndTime" class="form-control time-input" />
                 </div>
             </div>
 
             <div class="working-time-row" id="saturday-row">
                 <div class="form-check day-checkbox">
-                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Saturday" id="saturday" onchange="toggleDay('saturday')">
+                    <input class="form-check-input"  asp-for="WorkingTime.Saturday.IsActive" id="saturday" onchange="toggleDay('saturday')">
                     <label class="form-check-label" for="saturday">Samstag</label>
                 </div>
                 <div class="d-flex align-items-center mt-2" id="saturday-times">
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.SaturdayStart" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Saturday.StartTime" class="form-control time-input" />
                     <span class="mx-2">bis</span>
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.SaturdayEnd" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Saturday.EndTime" class="form-control time-input" />
                 </div>
             </div>
 
             <div class="working-time-row" id="sunday-row">
                 <div class="form-check day-checkbox">
-                    <input class="form-check-input" type="checkbox" asp-for="_defaultWorkingTimeHandler.Sunday" id="sunday" onchange="toggleDay('sunday')">
+                    <input class="form-check-input"  asp-for="WorkingTime.Sunday.IsActive" id="sunday" onchange="toggleDay('sunday')">
                     <label class="form-check-label" for="sunday">Sonntag</label>
                 </div>
                 <div class="d-flex align-items-center mt-2" id="sunday-times">
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.SundayStart" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Sunday.StartTime" class="form-control time-input" />
                     <span class="mx-2">bis</span>
-                    <input type="time" asp-for="_defaultWorkingTimeHandler.SundayEnd" class="form-control time-input" />
+                    <input type="time" asp-for="WorkingTime.Sunday.EndTime" class="form-control time-input" />
                 </div>
             </div>
         </div>
@@ -172,7 +167,7 @@
 
 
 </div>
-
+</form>
 <div>
     <a asp-page="/Index">Zurück zum Dashboard</a>
 </div>
@@ -182,3 +177,21 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+<script>
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        days.forEach(day => toggleDay(day));
+    });
+
+    function toggleDay(day) {
+        const checkbox = document.getElementById(day);
+        const timesDiv = document.getElementById(day + '-times');
+
+        if (checkbox.checked) {
+            timesDiv.classList.remove('day-disabled');
+        } else {
+            timesDiv.classList.add('day-disabled');
+        }
+    }
+</script>

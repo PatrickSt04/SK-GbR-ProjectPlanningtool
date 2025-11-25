@@ -60,7 +60,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
 
             // Berechne verwendetes Budget aus allen Tasks
-            var usedBudgetFromTasks = CalculateUsedBudget(project.ProjectSections);
+            var usedBudgetFromTasks = CalculateUsedBudget(project.ProjectSections, true);
+            var usedBudgetFromAllTasks = CalculateUsedBudget(project.ProjectSections, false);
 
             // Berechne zusätzliche Projektkosten
             var additionalCosts = await CalculateAdditionalProjectCostsAsync(projectId);
@@ -68,10 +69,34 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             // Gesamtverbrauch = Task-Kosten + Zusätzliche Kosten
             var totalUsedBudget = usedBudgetFromTasks + additionalCosts.TotalAmount;
 
-            var remainingBudget = project.ProjectBudget.InitialBudget - totalUsedBudget;
-            var utilizationPercentage = project.ProjectBudget.InitialBudget > 0
+
+            // Wenn Nachkalkulation angestoßen wurde, berücksichtige diese im verwendeten Budget
+            // sonst verwende das Initialbudget
+            var remainingBudget = 0.0;
+            var utilizationPercentage = 0.0;
+
+            if (project?.ProjectBudget?.BudgetRecalculations.Count > 0)
+            {
+                var latestRecalculation = project.ProjectBudget.BudgetRecalculations
+                    .OrderByDescending(br => br.RecalculationDateTime)
+                    .FirstOrDefault();
+                if (latestRecalculation != null)
+                {
+                    remainingBudget = latestRecalculation.NewBudget - totalUsedBudget;
+                    utilizationPercentage = latestRecalculation.NewBudget > 0
+                        ? (totalUsedBudget / latestRecalculation.NewBudget) * 100
+                        : 0;
+                }
+            }
+            else
+            {
+                remainingBudget = project.ProjectBudget.InitialBudget - totalUsedBudget;
+                utilizationPercentage = project.ProjectBudget.InitialBudget > 0
                 ? (totalUsedBudget / project.ProjectBudget.InitialBudget) * 100
                 : 0;
+            }
+
+
 
             // Budget-Status bestimmen
             var budgetStatus = DetermineBudgetStatus(utilizationPercentage);
@@ -87,9 +112,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 ProjectId = projectId,
                 ProjectName = project.ProjectName,
                 HasBudget = true,
+                recalculationNeeded = budgetStatus == BudgetStatus.Exceeded,
                 InitialBudget = project.ProjectBudget.InitialBudget,
                 UsedBudget = totalUsedBudget,
                 UsedBudgetFromTasks = usedBudgetFromTasks,
+                UsedBudgetFromAllTasks = usedBudgetFromAllTasks,
                 AdditionalCosts = additionalCosts.TotalAmount,
                 RemainingBudget = remainingBudget,
                 UtilizationPercentage = utilizationPercentage,
@@ -131,7 +158,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         /// <summary>
         /// Berechnet das verwendete Budget aus allen Project Tasks rekursiv
         /// </summary>
-        private double CalculateUsedBudget(ICollection<ProjectSection>? sections)
+        private double CalculateUsedBudget(ICollection<ProjectSection>? sections, bool onlyCompletedTasks)
         {
             if (sections == null) return 0.0;
 
@@ -139,7 +166,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
             foreach (var section in sections.Where(ps => ps.ParentSectionId == null))
             {
-                totalUsedBudget += CalculateSectionCosts(section);
+                totalUsedBudget += CalculateSectionCosts(section, onlyCompletedTasks);
             }
 
             return totalUsedBudget;
@@ -148,10 +175,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         /// <summary>
         /// Berechnet Kosten für eine Section und alle ihre Sub-Sections rekursiv
         /// </summary>
-        private double CalculateSectionCosts(ProjectSection section)
+        private double CalculateSectionCosts(ProjectSection section, bool onlyCompletedTasks)
         {
             double sectionCosts = 0;
-
+            var completedStateId = _context.State
+                .FirstOrDefault(s => s.StateName == "Abgeschlossen")?.StateId;
             // Kosten aus direkten Tasks
             if (section.ProjectTasks != null)
             {
@@ -159,7 +187,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     if (task.TotalCosts.HasValue)
                     {
-                        sectionCosts += task.TotalCosts.Value;
+                        if (onlyCompletedTasks)
+                        {
+                            if (task.StateId == completedStateId)
+                            {
+                                sectionCosts += task.TotalCosts.Value;
+                            }
+                        }
+                        else
+                        {
+                            sectionCosts += task.TotalCosts.Value;
+                        }
                     }
                 }
             }
@@ -169,7 +207,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 foreach (var subSection in section.SubSections)
                 {
-                    sectionCosts += CalculateSectionCosts(subSection);
+                    sectionCosts += CalculateSectionCosts(subSection, onlyCompletedTasks);
                 }
             }
 
@@ -363,6 +401,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             return await _context.Project
                 .Include(p => p.ProjectBudget)
+                 .ThenInclude(pb => pb.BudgetRecalculations)
                 .Include(p => p.ProjectAdditionalCosts)
                 .Include(p => p.ProjectSections.Where(ps => ps.CompanyId == companyId))
                     .ThenInclude(ps => ps.ProjectTasks)
@@ -382,9 +421,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private TaskBudgetStatistics CalculateTaskBudgetStatistics(Project project)
         {
             var allTasks = GetAllProjectTasks(project.ProjectSections ?? new List<ProjectSection>());
-
+            var completedStateId = _context.State
+                .FirstOrDefault(s => s.StateName == "Abgeschlossen")?.StateId;
             var tasksWithValidBudget = allTasks
-                .Where(t => t.IsCalculationDataComplete && t.TotalCosts.HasValue && t.TotalCosts > 0)
+                .Where(t => t.StateId == completedStateId && t.TotalCosts.HasValue && t.TotalCosts > 0)
                 .ToList();
 
             return new TaskBudgetStatistics
@@ -557,12 +597,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public string ProjectId { get; set; } = string.Empty;
         public string ProjectName { get; set; } = string.Empty;
         public bool HasBudget { get; set; }
+        public bool recalculationNeeded { get; set; }
         public string? ErrorMessage { get; set; }
 
         // Budget-Übersicht
         public double InitialBudget { get; set; }
         public double UsedBudget { get; set; }
         public double UsedBudgetFromTasks { get; set; }
+        public double UsedBudgetFromAllTasks { get; set; }
         public double AdditionalCosts { get; set; }
         public double RemainingBudget { get; set; }
         public double UtilizationPercentage { get; set; }

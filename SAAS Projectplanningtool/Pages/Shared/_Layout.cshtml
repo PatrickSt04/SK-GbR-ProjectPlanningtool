@@ -8,7 +8,6 @@
     <!-- CSS Libraries -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
-
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
@@ -291,8 +290,9 @@
                         <i class="fas fa-chevron-down ms-auto"></i>
                     </a>
                     <ul class="nav-submenu">
-                        <li><a href="/EmployeeManagement/Index" class="nav-link">Mitarbeiter</a></li>
-                        <li><a href="/EmployeeManagement/HourlyRateGroups/Index" class="nav-link">Stundensatz-Gruppen</a></li>
+                        <li><a href="/EmployeeManagement/Index" class="nav-link">Ressourcen - Übersicht</a></li>
+                        @* <li><a href="/EmployeeManagement/HourlyRateGroups/Index" class="nav-link">Stundensatz-Gruppen</a></li> *@
+                        @* <li><a href="/Resources/Planning" class="nav-link">Ressourcenplanung</a></li> *@
                     </ul>
                 </li>
 
@@ -504,7 +504,6 @@
     <!-- JavaScript Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     <!-- Navigation JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -620,5 +619,11 @@
 
     @await RenderSectionAsync("Scripts", required: false)
     @await RenderSectionAsync("Styles", required: false)
+
+    <!-- Tooltip Initialisierung -->
+
+
 </body>
+
 </html>
+

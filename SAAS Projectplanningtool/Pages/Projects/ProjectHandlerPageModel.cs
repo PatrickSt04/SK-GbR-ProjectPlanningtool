@@ -65,7 +65,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
-        public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name, bool isTaskCatalogEntry)
+        public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name, bool isTaskCatalogEntry, bool isScheduleEntry)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>Begin");
             try
@@ -84,6 +84,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     pt.ProjectTaskName = name;
                 }
                 pt.IsTaskCatalogEntry = isTaskCatalogEntry;
+                pt.IsScheduleEntry = isScheduleEntry;
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe bearbeitet", pt, false);
 
                 _context.ProjectTask.Update(pt);

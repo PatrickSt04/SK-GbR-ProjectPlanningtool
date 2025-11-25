@@ -877,3 +877,158 @@ body {
 .modern-btn.info {
     background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Compact Timeline within Budget Card */
+.compact-timeline {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.compact-timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.compact-timeline-item {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: var(--light-bg);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+    .compact-timeline-item:hover {
+        background: #e2e8f0;
+        transform: translateX(2px);
+    }
+
+    .compact-timeline-item.latest {
+        background: linear-gradient(135deg, #fffef7 0%, #fff9e6 100%);
+        border: 1px solid #ffd700;
+    }
+
+        .compact-timeline-item.latest::after {
+            content: "Aktuell";
+            position: absolute;
+            top: -8px;
+            right: 10px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+            color: #333;
+            padding: 0.2rem 0.6rem;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        }
+
+.compact-timeline-dot {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    border-radius: 50%;
+    background: var(--info-color);
+    margin-top: 6px;
+    position: relative;
+}
+
+.compact-timeline-item.latest .compact-timeline-dot {
+    background: #ffd700;
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    box-shadow: 0 0 0 2px #fff9e6, 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.compact-timeline-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-timeline-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.compact-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.compact-budget {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--info-color);
+}
+
+.compact-timeline-item.latest .compact-budget {
+    color: #ffa500;
+}
+
+.compact-user {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+    .compact-user i {
+        font-size: 0.7rem;
+    }
+
+/* Scrollbar Styling */
+.compact-timeline::-webkit-scrollbar {
+    width: 6px;
+}
+
+.compact-timeline::-webkit-scrollbar-track {
+    background: var(--light-bg);
+    border-radius: 3px;
+}
+
+.compact-timeline::-webkit-scrollbar-thumb {
+    background: var(--info-color);
+    border-radius: 3px;
+}
+
+    .compact-timeline::-webkit-scrollbar-thumb:hover {
+        background: #2980b9;
+    }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .compact-timeline-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+}

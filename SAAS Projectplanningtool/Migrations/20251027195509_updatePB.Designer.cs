@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251027195509_updatePB")]
+    partial class updatePB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -274,37 +277,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("LatestModifierId");
 
                     b.ToTable("Address");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetRecalculation", b =>
-                {
-                    b.Property<string>("RecalculationId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CompanyId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<double>("NewBudget")
-                        .HasColumnType("float");
-
-                    b.Property<string>("ProjectBudgetId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("RecalculatedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("RecalculationDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("RecalculationId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("ProjectBudgetId");
-
-                    b.HasIndex("RecalculatedById");
-
-                    b.ToTable("BudgetRecalculation");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.Project", b =>
@@ -582,22 +554,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("StateId");
 
                     b.ToTable("ProjectTask");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskFixCosts", b =>
-                {
-                    b.Property<string>("ProjectTaskFixCostsId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ProjectTaskId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ProjectTaskFixCostsId");
-
-                    b.HasIndex("ProjectTaskId");
-
-                    b.ToTable("ProjectTaskFixCosts");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskHourlyRateGroup", b =>
@@ -980,28 +936,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("LatestModifier");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetRecalculation", b =>
-                {
-                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectBudget", null)
-                        .WithMany("BudgetRecalculations")
-                        .HasForeignKey("ProjectBudgetId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "RecalculatedBy")
-                        .WithMany()
-                        .HasForeignKey("RecalculatedById")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Company");
-
-                    b.Navigation("RecalculatedBy");
-                });
-
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.Project", b =>
                 {
                     b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
@@ -1265,45 +1199,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("State");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskFixCosts", b =>
-                {
-                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask", "ProjectTask")
-                        .WithMany("ProjectTaskFixCosts")
-                        .HasForeignKey("ProjectTaskId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.OwnsMany("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskFixCosts+FixCost", "FixCosts", b1 =>
-                        {
-                            b1.Property<string>("ProjectTaskFixCostsId")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            b1.Property<double>("Cost")
-                                .HasColumnType("float");
-
-                            b1.Property<string>("Description")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("ProjectTaskFixCostsId", "Id");
-
-                            b1.ToTable("ProjectTaskFixCosts");
-
-                            b1.ToJson("FixCosts");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ProjectTaskFixCostsId");
-                        });
-
-                    b.Navigation("FixCosts");
-
-                    b.Navigation("ProjectTask");
-                });
-
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskHourlyRateGroup", b =>
                 {
                     b.HasOne("SAAS_Projectplanningtool.Models.HourlyRateGroup", "HourlyRateGroup")
@@ -1477,11 +1372,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("ProjectSections");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectBudget", b =>
-                {
-                    b.Navigation("BudgetRecalculations");
-                });
-
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection", b =>
                 {
                     b.Navigation("ProjectTasks");
@@ -1491,8 +1381,6 @@ namespace SAAS_Projectplanningtool.Migrations
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask", b =>
                 {
-                    b.Navigation("ProjectTaskFixCosts");
-
                     b.Navigation("ProjectTaskHourlyRateGroups");
                 });
 #pragma warning restore 612, 618
