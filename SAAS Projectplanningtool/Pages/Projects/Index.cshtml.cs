@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+ï»¿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -37,9 +37,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         // Statistics
         public int ActiveProjectsCount { get; set; }
+        public int ArchivedProjectsCount { get; set; }
+        public int UpcomingProjectsCount { get; set; }
+        public int OverdueProjectsCount { get; set; }
+
+
         public int PlanningProjectsCount { get; set; }
         public int CompletedProjectsCount { get; set; }
-        public int OverdueProjectsCount { get; set; }
         public int TotalProjectsCount { get; set; }
 
         // Filter Data
@@ -130,7 +134,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             catch (Exception ex)
             {
                 Console.WriteLine($"Projects Index Error: {ex.Message}");
-                ViewData["ErrorMessage"] = "Fehler beim Laden der Projekte. Bitte versuchen Sie es später erneut.";
+                ViewData["ErrorMessage"] = "Fehler beim Laden der Projekte. Bitte versuchen Sie es spÃ¤ter erneut.";
                 return Page();
             }
         }
@@ -174,38 +178,32 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             var companyId = CurrentCompany!.CompanyId;
             var today = DateOnly.FromDateTime(DateTime.Now);
+            var thirtyDaysFromNow = today.AddDays(30);
 
-            // Total projects count
-            TotalProjectsCount = await _context.Project
-                .CountAsync(p => p.CompanyId == companyId);
-
-            // Active projects (not archived and not completed)
+            // Active projects
             ActiveProjectsCount = await _context.Project
-                .CountAsync(p => p.CompanyId == companyId &&
-                           p.IsArchived != true &&
-                           p.State != null &&
-                           p.State.StateName != "Completed");
+                .CountAsync(p => p.CompanyId == companyId && p.IsArchived != true);
 
-            // Planning projects
-            PlanningProjectsCount = await _context.Project
-                .CountAsync(p => p.CompanyId == companyId &&
-                           p.IsArchived != true &&
-                           p.State != null &&
-                           p.State.StateName == "Planning");
+            // Archived projects
+            ArchivedProjectsCount = await _context.Project
+                .CountAsync(p => p.CompanyId == companyId && p.IsArchived == true);
 
-            // Completed projects
-            CompletedProjectsCount = await _context.Project
+            // Upcoming projects (starting in next 30 days)
+            UpcomingProjectsCount = await _context.Project
                 .CountAsync(p => p.CompanyId == companyId &&
-                           p.State != null &&
-                           p.State.StateName == "Completed");
+                           p.StartDate >= today &&
+                           p.StartDate <= thirtyDaysFromNow &&
+                           p.IsArchived != true);
 
             // Overdue projects
             OverdueProjectsCount = await _context.Project
                 .CountAsync(p => p.CompanyId == companyId &&
-                           p.IsArchived != true &&
                            p.EndDate < today &&
-                           p.State != null &&
-                           p.State.StateName != "Completed");
+                           p.IsArchived != true);
+
+            // Total projects
+            TotalProjectsCount = await _context.Project
+                .CountAsync(p => p.CompanyId == companyId);
         }
 
         private async Task LoadProjects()
@@ -443,7 +441,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     "excel" => await ExportToExcel(projects),
                     "pdf" => await ExportToPdf(projects),
                     "csv" => await ExportToCsv(projects),
-                    _ => BadRequest("Ungültiges Export-Format")
+                    _ => BadRequest("UngÃ¼ltiges Export-Format")
                 };
             }
             catch (Exception ex)
@@ -455,22 +453,22 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         private async Task<IActionResult> ExportToExcel(List<Project> projects)
         {
-            // Implementierung für Excel-Export
-            // Hier würden Sie eine Excel-Bibliothek wie EPPlus verwenden
+            // Implementierung fÃ¼r Excel-Export
+            // Hier wÃ¼rden Sie eine Excel-Bibliothek wie EPPlus verwenden
             return BadRequest("Excel-Export noch nicht implementiert");
         }
 
         private async Task<IActionResult> ExportToPdf(List<Project> projects)
         {
-            // Implementierung für PDF-Export
-            // Hier würden Sie eine PDF-Bibliothek wie iTextSharp verwenden
+            // Implementierung fÃ¼r PDF-Export
+            // Hier wÃ¼rden Sie eine PDF-Bibliothek wie iTextSharp verwenden
             return BadRequest("PDF-Export noch nicht implementiert");
         }
 
         private async Task<IActionResult> ExportToCsv(List<Project> projects)
         {
-            // Implementierung für PDF-Export
-            // Hier würden Sie eine PDF-Bibliothek wie iTextSharp verwenden
+            // Implementierung fÃ¼r PDF-Export
+            // Hier wÃ¼rden Sie eine PDF-Bibliothek wie iTextSharp verwenden
             return BadRequest("CSV-Export noch nicht implementiert");
 
         }

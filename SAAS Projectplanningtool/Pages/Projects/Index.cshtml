@@ -60,24 +60,24 @@
                 </div>
             </div>
             <div class="col-md-3">
+                <div class="stat-card stat-archived">
+                    <div class="stat-icon">
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.ArchivedProjectsCount</h3>
+                        <p>Archiviert</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="stat-card stat-planning">
                     <div class="stat-icon">
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>@Model.PlanningProjectsCount</h3>
+                        <h3>@Model.UpcomingProjectsCount</</h3>
                         <p>In Planung</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card stat-completed">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>@Model.CompletedProjectsCount</h3>
-                        <p>Abgeschlossen</p>
                     </div>
                 </div>
             </div>
@@ -684,7 +684,7 @@
 
 .stat-active .stat-icon { background: #28a745; }
 .stat-planning .stat-icon { background: #ffc107; }
-.stat-completed .stat-icon { background: #17a2b8; }
+.stat-archived .stat-icon { background: #17a2b8; }
 .stat-overdue .stat-icon { background: #dc3545; }
 
 .stat-content h3 {

@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
@@ -18,6 +20,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         public CreateModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
             : base(context, userManager)
+
         {
             _context = context;
             _userManager = userManager;
@@ -33,13 +36,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         [BindProperty]
         public DefaultWorkingTimeHandler WorkingTime { get; set; } = new();
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(string? customerid)
         {
             try
             {
                 await _logger.Log(null, User, null, "Projects/CreateModel<OnGetAsync>Beginn");
 
+
                 await PublishCustomersAsync();
+
                 await PublishProjectLeadsAsync();
                 await LoadCompanyDefaultWorkingTimesAsync();
 

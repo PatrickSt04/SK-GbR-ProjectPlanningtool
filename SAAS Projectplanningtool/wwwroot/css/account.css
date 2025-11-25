@@ -1,0 +1,20 @@
+﻿.login_form_container{
+    display:flex;
+    justify-content:left;
+}
+.login_form_content{
+   margin-top:10px;
+   margin-bottom:10px;
+   padding-top:12px;
+   padding-bottom:12px
+}
+.login_contact_us {
+    display: flex;
+    justify-content: left;
+}
+.login_contact_us_content {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}

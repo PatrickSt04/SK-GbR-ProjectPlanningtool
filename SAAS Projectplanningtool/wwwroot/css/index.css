@@ -63,13 +63,16 @@
 }
 
 .dashboard-grid {
-    display: grid;
+    /*display: grid;
     gap: 30px;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));*/
 }
 
 .overview-cards {
     grid-column: 1 / -1;
+}
+.overview-card{
+    margin-top:32px;
 }
 
 .card-grid {
@@ -156,12 +159,21 @@
         font-size: 1.5rem;
     }
 
+.budget-item-link {
+    color: black;
+    text-decoration: none !important;
+}
 .budget-item {
     margin-bottom: 20px;
     padding: 15px;
     border-radius: 8px;
     background: #f8f9fa;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
 }
+    .budget-item:hover {
+        transform: translateY(-5px);
+    }
 
     .budget-item.budget-warning {
         background: #fff5f5;
@@ -358,9 +370,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
+    padding: 6px;
     background: #f8f9fa;
     border-bottom: 1px solid #dee2e6;
+}
+.calendar-range{
+    font-size:18px;
+    font-weight:bold;
 }
 
 .calendar-nav {
@@ -372,7 +388,7 @@
 }
 
 .activity-feed {
-    max-height: 400px;
+    /*max-height: 400px;*/
     overflow-y: auto;
 }
 
