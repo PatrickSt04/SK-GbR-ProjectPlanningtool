@@ -1086,6 +1086,7 @@ else
                                                 <th><i class="fas fa-clock me-1"></i>AS</th>
                                                 <th><i class="fas fa-users me-1"></i>Stundensatzgruppen</th>
                                                 <th><i class="fas fa-cog me-1"></i>Aktionen</th>
+                                                <th><i class="fas fa-tasks me-1"></i>Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1202,6 +1203,18 @@ else
                                                             <i class="fas @(hasHRG ? "fa-edit" : "fa-plus-circle")"></i>
                                                             @(hasHRG ? "Ändern" : "Hinzufügen")
                                                         </button>
+                                                    </td>
+                                                    <td>
+                                                        @if (task.State != null)
+                                                        {
+                                                            <div class="status-badge" style="background-color: @task.State.Color;">
+                                                                @task.State.StateName
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted"><em>Kein Status</em></span>
+                                                        }
                                                     </td>
                                                 </tr>
                                             }

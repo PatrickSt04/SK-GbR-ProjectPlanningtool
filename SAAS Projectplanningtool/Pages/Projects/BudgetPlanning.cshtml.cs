@@ -150,6 +150,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                                 pt.IsTaskCatalogEntry &&
                                 !pt.IsScheduleEntry
                             )
+                            .Include(pt => pt.State)
                             .Include(pt => pt.ProjectTaskFixCosts)
                                 .ThenInclude(fc => fc.FixCosts)
                             .ToListAsync();
@@ -496,9 +497,46 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToPage(new {id = ProjectId});
+            return RedirectToPage(new { id = ProjectId });
 
 
         }
+        public async Task<JsonResult> OnGetReadTaskFixCosts(string taskId)
+        {
+            try
+            {
+                var taskFixCosts = await _context.ProjectTaskFixCosts
+                    .Where(fc => fc.ProjectTaskId == taskId)
+                    .FirstOrDefaultAsync();
+
+                if (taskFixCosts == null || taskFixCosts.FixCosts == null || !taskFixCosts.FixCosts.Any())
+                {
+                    return new JsonResult(new List<object>());
+                }
+
+                // Direkt die FixCosts-Liste zurückgeben
+                var fixCostsList = taskFixCosts.FixCosts.Select(f => new
+                {
+                    description = f.Description,
+                    cost = f.Cost
+                }).ToList();
+
+                return new JsonResult(fixCostsList);
+            }
+            catch (Exception ex)
+            {
+                await _logger.Log(ex, User, null, "OnGetReadTaskFixCosts");
+                return new JsonResult(new List<object>());
+            }
+        }
+
+        //private async Task<ProjectTask?> GetProjectTaskWithFixCostsAsync(string taskId)
+        //{
+        //    return await _context.ProjectTask
+        //        .Include(t => t.ProjectTaskFixCosts)
+        //        .Include(t => t.State)
+        //        .FirstOrDefaultAsync(t => t.ProjectTaskId == taskId);
+        //}
     }
+
 }
