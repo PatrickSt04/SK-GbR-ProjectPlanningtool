@@ -123,6 +123,17 @@ public static class DbInitializer
                     CreatedTimestamp = DateTime.Now,
                     Company = company,
                     LatestModifier = employee,
+                    InitialAdditionalCosts = new List<ProjectBudget.InitialAdditionalCost>
+                    {
+                        new ProjectBudget.InitialAdditionalCost { AdditionalCostName = "Genehmigungen", AdditionalCostAmount = 2000 },
+                        new ProjectBudget.InitialAdditionalCost { AdditionalCostName = "Versicherungen", AdditionalCostAmount = 1500 }
+                    },
+                    InitialBudget = 50000,
+                    InitialHRGPlannings = new List<ProjectBudget.InitialHRGPlanning>
+                    {
+                        new ProjectBudget.InitialHRGPlanning { HourlyRateGroupId = hourlyRateGroup.HourlyRateGroupId, HourlyRateGroupName = hourlyRateGroup.HourlyRateGroupName, HourlyRate = (decimal) hourlyRateGroup.HourlyRate, Amount = 2, EstimatedHours = 120 },
+                        new ProjectBudget.InitialHRGPlanning { HourlyRateGroupId = hourlyRateGroup.HourlyRateGroupId, HourlyRateGroupName = hourlyRateGroup.HourlyRateGroupName, HourlyRate = (decimal) hourlyRateGroup.HourlyRate, Amount = 1, EstimatedHours = 80 }
+                    },
                     LatestModificationTimestamp = DateTime.Now,
                     LatestModificationText = "Projektbudget erstellt",
                 };
@@ -191,10 +202,73 @@ public static class DbInitializer
                             StartDate = taskStartDate,
                             EndDate = taskDueDate,
                             CreatedByEmployee = employee,
+                            //IsScheduleEntry = true,
+                            //IsTaskCatalogEntry = true,
                             CreatedTimestamp = DateTime.Now
 
                         };
                         context.Set<ProjectTask>().Add(projectTask);
+                        context.SaveChanges();
+                        var ptFixcost = new ProjectTaskFixCosts
+                        {
+                            ProjectTask = projectTask,
+                            //FixCosts = new List<ProjectTaskFixCosts.FixCost> ()
+
+                        };
+
+                        context.Set<ProjectTaskFixCosts>().Add(ptFixcost);
+                        context.SaveChanges();
+                        projectTask.ProjectTaskFixCosts = ptFixcost;
+                        context.Update(projectTask);
+
+                        context.SaveChanges();
+                    }
+                    //TASK CATALOG TASKS
+                    // Erstelle Aufgaben (z.B. Bauaufgaben)
+                    if (j > 1)
+                    { // Nur für die 1. Section
+                        continue;
+                    }
+                    var tasksTC = new List<string> { "Verwaltungsbesuch", "Planungsaufgabe", "Abnahme" };
+
+                    foreach (var task in tasksTC)
+                    {
+                        // Start- und Enddaten für Aufgaben festlegen
+                        var taskStartDate = sectionStartDate.AddDays(new Random().Next(1, 5)); // Tasks starten innerhalb weniger Tage nach dem Beginn des Abschnitts
+                        var taskDueDate = taskStartDate.AddDays(new Random().Next(5, 15)); // Jede Aufgabe dauert 5-15 Tage
+
+                        var projectTask = new ProjectTask
+                        {
+                            ProjectTaskName = task,
+                            ProjectSection = section,
+                            Company = company,
+                            State = GetRandomState(),
+                            StartDate = taskStartDate,
+                            EndDate = taskDueDate,
+                            CreatedByEmployee = employee,
+                            IsScheduleEntry = false,
+                            IsTaskCatalogEntry = true,
+                            CreatedTimestamp = DateTime.Now
+
+                        };
+                        context.Set<ProjectTask>().Add(projectTask);
+                        context.SaveChanges();
+                        var ptFixcost = new ProjectTaskFixCosts
+                        {
+                            ProjectTask = projectTask,
+                            FixCosts = new List<ProjectTaskFixCosts.FixCost>
+                            {
+                                new ProjectTaskFixCosts.FixCost { Description = "Materialkosten", Cost = 3000 },
+                                new ProjectTaskFixCosts.FixCost { Description = "Gerätemiete", Cost = 1200 }
+                            },
+
+                        };
+
+                        context.Set<ProjectTaskFixCosts>().Add(ptFixcost);
+                        context.SaveChanges();
+                        projectTask.ProjectTaskFixCosts = ptFixcost;
+                        context.Update(projectTask);
+
                         context.SaveChanges();
                     }
                 }
@@ -224,7 +298,8 @@ public static class DbInitializer
 
     private static State GetRandomState()
     {
-        var states = new List<State> { openState, progressState, doneState, waitingState };
+        var states = new List<State> { openState, doneState };
+        //var states = new List<State> { openState, progressState, doneState, waitingState };
         return states[new Random().Next(0, states.Count)];
     }
 }

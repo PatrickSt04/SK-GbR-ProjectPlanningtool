@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SAAS_Projectplanningtool.Models.Budgetplanning
@@ -11,12 +12,12 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         [ForeignKey(nameof(ProjectTaskId))]
         public ProjectTask ProjectTask { get; set; } = default!;
 
-        public List<FixCost> FixCosts = new();
-
+        public List<FixCost>? FixCosts { get; set; } = new();
+        //[Owned]
         public class FixCost
         {
-            public string Description { get; set; } = string.Empty;
-            public double Cost { get; set; }
+            public string? Description { get; set; }
+            public double? Cost { get; set; }
         }
 
     }

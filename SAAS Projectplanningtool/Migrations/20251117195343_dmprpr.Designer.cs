@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251117195343_dmprpr")]
+    partial class dmprpr
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1298,6 +1301,7 @@ namespace SAAS_Projectplanningtool.Migrations
                                 .HasColumnType("float");
 
                             b1.Property<string>("Description")
+                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.HasKey("ProjectTaskFixCostsId", "Id");

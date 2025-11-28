@@ -1032,3 +1032,115 @@ body {
         gap: 0.3rem;
     }
 }
+
+/* Fixkosten Display Container */
+.fixcosts-display-container {
+    max-width: 500px;
+    font-size: 0.9rem;
+}
+
+.no-fixcosts-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Fixkosten Cards Grid */
+.fixcosts-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+    /* Scrollbar für Fixkosten Cards */
+    .fixcosts-cards-grid::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .fixcosts-cards-grid::-webkit-scrollbar-track {
+        background: var(--light-bg);
+        border-radius: 3px;
+    }
+
+    .fixcosts-cards-grid::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+
+/* Individual Fixcost Card */
+.fixcost-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+    .fixcost-card:hover {
+        transform: translateX(3px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left-color: var(--accent-color);
+    }
+
+.fixcost-card-header {
+    margin-bottom: 6px;
+}
+
+.fixcost-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.fixcost-card-body {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.fixcost-amount {
+    color: var(--success-color);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Fixkosten Summary Card */
+.fixcosts-summary-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+    .fixcosts-summary-card .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .fixcosts-summary-card .summary-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .fixcosts-summary-card .summary-value {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .fixcosts-summary-card .total-row {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+    }
+
+    .fixcosts-summary-card .total-value {
+        color: var(--success-color);
+        font-size: 1.1rem;
+        font-weight: 700;
+    }

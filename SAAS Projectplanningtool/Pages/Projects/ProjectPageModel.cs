@@ -184,38 +184,93 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return null;
             }
         }
-        public async Task<Project?> GetProjectAsync(string projectId)
+
+        public async Task SetProjectBindingAsync(string projectId)
         {
+            Project = await GetProjectAsync(projectId);
+        }
+        private async Task<Project?> GetProjectAsync(string projectId)
+        {
+            //var Project = await _context.Project
+            //    .AsNoTracking()
+            //    .Include(p => p.LatestModifier)
+            //    .Include(p => p.Company)
+            //    .Include(p => p.CreatedByEmployee)
+            //    .Include(p => p.Customer)
+            //    .Include(p => p.ProjectBudget)
+            //        .ThenInclude(pb => pb.BudgetRecalculations)
+            //        .ThenInclude(br => br.RecalculatedBy)
+            //    .Include(p => p.ResponsiblePerson)
+            //    .Include(p => p.State)
+            //    // Projectsections lesen
+            //    .Include(p => p.ProjectSections)
+            //    //deren Tasks
+            //    .ThenInclude(ps => ps.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
+            //    .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+            //    .ThenInclude(t => t.HourlyRateGroup)
+            //    //.ThenInclude(pt => pt.State)
+            //    // Projectsections lesen
+            //    .Include(p => p.ProjectSections)
+            //    // deren Subsections    
+            //    .ThenInclude(ps => ps.SubSections)
+
+            //    //deren Tasks (die für den Terminplan relevant sind)
+            //    .ThenInclude(ss => ss.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
+            //    .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+            //    .ThenInclude(t => t.HourlyRateGroup)
+            //    .FirstOrDefaultAsync(m => m.ProjectId == projectId);
+
             var Project = await _context.Project
+                .AsNoTracking()
+
+                // --- Simple Includes ---
                 .Include(p => p.LatestModifier)
                 .Include(p => p.Company)
                 .Include(p => p.CreatedByEmployee)
                 .Include(p => p.Customer)
-                .Include(p => p.ProjectBudget)
-                    .ThenInclude(pb => pb.BudgetRecalculations)
-                    .ThenInclude(br => br.RecalculatedBy)
                 .Include(p => p.ResponsiblePerson)
                 .Include(p => p.State)
-                // Projectsections lesen
-                .Include(p => p.ProjectSections)
-                //deren Tasks
-                .ThenInclude(ps => ps.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
-                .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-                //.ThenInclude(pt => pt.State)
-                // Projectsections lesen
-                .Include(p => p.ProjectSections)
-                // deren Subsections    
-                .ThenInclude(ps => ps.SubSections)
 
-                //deren Tasks (die für den Terminplan relevant sind)
-                .ThenInclude(ss => ss.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
-                .FirstOrDefaultAsync(m => m.ProjectId == projectId);
+                // --- Budget & Recalculations ---
+                .Include(p => p.ProjectBudget)
+                    .ThenInclude(pb => pb.BudgetRecalculations)
+                        .ThenInclude(br => br.RecalculatedBy)
+
+                // --- ProjectSections ---
+                .Include(p => p.ProjectSections)
+                    // Tasks der Sections (nur Schedule-Tasks)
+                    .ThenInclude(ps => ps.ProjectTasks
+                        .Where(pt => pt.IsScheduleEntry))
+                        .ThenInclude(pt => pt.State)
+
+                .Include(p => p.ProjectSections)
+                    .ThenInclude(ps => ps.ProjectTasks
+                        .Where(pt => pt.IsScheduleEntry))
+                        .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+                            .ThenInclude(h => h.HourlyRateGroup)
+
+                // --- SubSections ---
+                .Include(p => p.ProjectSections)
+                    .ThenInclude(ps => ps.SubSections)
+                        // Tasks der Subsections
+                        .ThenInclude(ss => ss.ProjectTasks
+                            .Where(pt => pt.IsScheduleEntry))
+                            .ThenInclude(pt => pt.State)
+
+                .Include(p => p.ProjectSections)
+                    .ThenInclude(ps => ps.SubSections)
+                        .ThenInclude(ss => ss.ProjectTasks
+                            .Where(pt => pt.IsScheduleEntry))
+                            .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+                                .ThenInclude(h => h.HourlyRateGroup)
+
+                .FirstOrDefaultAsync(p => p.ProjectId == projectId);
+
             if (Project.ProjectSections != null)
             {
                 foreach (var section in Project.ProjectSections)
                 {
                     section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
-
                     if (section.SubSections != null)
                     {
                         foreach (var subsection in section.SubSections)
