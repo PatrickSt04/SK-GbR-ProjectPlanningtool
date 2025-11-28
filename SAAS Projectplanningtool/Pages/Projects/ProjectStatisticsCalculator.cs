@@ -412,7 +412,18 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         .ThenInclude(ss => ss.ProjectTasks)
                             .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
                                 .ThenInclude(hrg => hrg.HourlyRateGroup)
+                //pt fixCosts laden
+                .Include(p => p.ProjectSections)
+                    .ThenInclude(ps => ps.SubSections)
+                        .ThenInclude(ss => ss.ProjectTasks)
+                            .ThenInclude(pt => pt.ProjectTaskFixCosts)
+                                .ThenInclude(hrg => hrg.FixCosts)
+                .Include(p => p.ProjectSections)
+                        .ThenInclude(ss => ss.ProjectTasks)
+                            .ThenInclude(pt => pt.ProjectTaskFixCosts)
+                                .ThenInclude(hrg => hrg.FixCosts)
                 .FirstOrDefaultAsync(p => p.ProjectId == projectId && p.CompanyId == companyId);
+
         }
 
         /// <summary>

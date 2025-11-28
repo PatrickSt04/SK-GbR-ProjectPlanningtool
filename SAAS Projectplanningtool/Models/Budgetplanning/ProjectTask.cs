@@ -108,28 +108,43 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         {
             get
             {
-                var totalHours = DurationInHours;
-                if (!totalHours.HasValue || totalHours <= 0)
-                    return null;
-
-                if (ProjectTaskHourlyRateGroups == null || !ProjectTaskHourlyRateGroups.Any())
-                    return null;
-
                 double totalCosts = 0;
-                var totalWorkers = ProjectTaskHourlyRateGroups.Sum(g => g.Amount);
-
-                if (totalWorkers == 0)
-                    return null;
-
-                foreach (var group in ProjectTaskHourlyRateGroups)
+                //Wenn task nur TaskCatalogeintrag ist, dann werden Kosten über ProjectTaskFixCosts abgebildet
+                if (IsTaskCatalogEntry && !IsScheduleEntry)
                 {
-                    if (group.HourlyRateGroup?.HourlyRate != null && group.Amount > 0)
+                    if (ProjectTaskFixCosts == null)
+                        return null;
+
+                    if (ProjectTaskFixCosts.FixCosts == null)
+                        return null;
+
+                    totalCosts = (double)ProjectTaskFixCosts?.FixCosts?.Where(p => p.Cost != null).Sum(p => p?.Cost);
+                }
+                else
+                {
+                    var totalHours = DurationInHours;
+                    if (!totalHours.HasValue || totalHours <= 0)
+                        return null;
+
+                    if (ProjectTaskHourlyRateGroups == null || !ProjectTaskHourlyRateGroups.Any())
+                        return null;
+
+
+                    var totalWorkers = ProjectTaskHourlyRateGroups.Sum(g => g.Amount);
+
+                    if (totalWorkers == 0)
+                        return null;
+
+                    foreach (var group in ProjectTaskHourlyRateGroups)
                     {
-                        // Berechne die Stunden pro Arbeiter in dieser Gruppe
-                        var hoursPerWorker = totalHours.Value;
-                        var groupHours = hoursPerWorker * group.Amount;
-                        var groupCosts = (double)groupHours * (double)group.HourlyRateGroup.HourlyRate;
-                        totalCosts += groupCosts;
+                        if (group.HourlyRateGroup?.HourlyRate != null && group.Amount > 0)
+                        {
+                            // Berechne die Stunden pro Arbeiter in dieser Gruppe
+                            var hoursPerWorker = totalHours.Value;
+                            var groupHours = hoursPerWorker * group.Amount;
+                            var groupCosts = (double)groupHours * (double)group.HourlyRateGroup.HourlyRate;
+                            totalCosts += groupCosts;
+                        }
                     }
                 }
 
