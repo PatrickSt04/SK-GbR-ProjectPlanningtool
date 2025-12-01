@@ -60,6 +60,8 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Create<OnPostAsync>Begin");
                 if (!ModelState.IsValid)
                 {
+                    await PublishHourlyRateGroupsAsync();
+                    await PublishRolesAsync(_roleManager);
                     return Page();
                 }
 
@@ -76,6 +78,8 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 catch (Exception ex)
                 {
                     ModelState.AddModelError(string.Empty, ex.Message);
+                    await PublishHourlyRateGroupsAsync();
+                    await PublishRolesAsync(_roleManager);
                     return Page();
                 }
 

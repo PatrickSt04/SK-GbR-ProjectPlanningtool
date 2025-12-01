@@ -221,7 +221,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             //    .FirstOrDefaultAsync(m => m.ProjectId == projectId);
 
             var Project = await _context.Project
-                .AsNoTracking()
+                //.AsNoTracking()
 
                 // --- Simple Includes ---
                 .Include(p => p.LatestModifier)

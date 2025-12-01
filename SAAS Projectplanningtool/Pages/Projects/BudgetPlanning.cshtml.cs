@@ -370,6 +370,49 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         public async Task<IActionResult> OnPostRecalculateProjectBudgetAsync(string? projectId)
         {
+            //if (projectId == null)
+            //{
+            //    return NotFound();
+            //}
+            //// Übernimm used budget to project recalculations
+            //var stats = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
+            //var usedBudget = stats.UsedBudget;
+            //await SetProjectBindingAsync(projectId);
+            //if (Project == null)
+            //{
+            //    return NotFound();
+            //}
+            //var projectBudget = Project.ProjectBudget;
+            //if (projectBudget == null)
+            //{
+            //    return NotFound();
+            //}
+
+            //if (projectBudget.BudgetRecalculations == null)
+            //{
+            //    projectBudget.BudgetRecalculations = new List<BudgetRecalculation>();
+            //}
+            //var currentEmployee = await GetEmployeeAsync();
+
+            //// Neue Budgetrecalculation hinzufügen
+            //var newBudgetRecalculation = new BudgetRecalculation
+            //{
+            //    NewBudget = usedBudget,
+            //    CompanyId = currentEmployee.CompanyId,
+            //    RecalculationDateTime = DateTime.UtcNow,
+            //    RecalculatedBy = currentEmployee
+            //};
+            //// Recalculatiion dem Budget anfügen
+            //projectBudget.BudgetRecalculations.Add(newBudgetRecalculation);
+            //// DB Updates
+            //_context.BudgetRecalculation.Add(newBudgetRecalculation);
+            //_context.ProjectBudget.Update(projectBudget);
+
+            //await _context.SaveChangesAsync();
+
+            //await _context.SaveChangesAsync();
+
+            //return RedirectToPage(new { id = projectId });
             if (projectId == null)
             {
                 return NotFound();
@@ -388,9 +431,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return NotFound();
             }
 
-            if (projectBudget.BudgetRecalculations == null)
+            if (Project.ProjectBudget?.BudgetRecalculations == null)
             {
-                projectBudget.BudgetRecalculations = new List<BudgetRecalculation>();
+                Project.ProjectBudget.BudgetRecalculations = new List<BudgetRecalculation>();
             }
             var currentEmployee = await GetEmployeeAsync();
 
@@ -403,10 +446,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 RecalculatedBy = currentEmployee
             };
             // Recalculatiion dem Budget anfügen
-            projectBudget.BudgetRecalculations.Add(newBudgetRecalculation);
-            // DB Updates
             _context.BudgetRecalculation.Add(newBudgetRecalculation);
-            _context.ProjectBudget.Update(projectBudget);
+
+
+            Project.ProjectBudget.BudgetRecalculations.Add(newBudgetRecalculation);
+
+            _context.Update(Project);
 
             await _context.SaveChangesAsync();
 
