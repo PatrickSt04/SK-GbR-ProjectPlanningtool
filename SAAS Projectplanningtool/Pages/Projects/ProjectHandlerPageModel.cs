@@ -59,7 +59,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 _context.ProjectTask.Add(pt);
                 await _context.SaveChangesAsync();
 
-
+                if (IsTaskCatalogEntry) { 
                 //Dann fixcosts zur DB hinzufügen
                 _context.ProjectTaskFixCosts.Add(ptFixCosts);
                 await _context.SaveChangesAsync();
@@ -69,7 +69,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 _context.ProjectTask.Update(pt);
                 await _context.SaveChangesAsync();
 
-
+                }
 
 
 

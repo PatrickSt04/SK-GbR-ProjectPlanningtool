@@ -9,7 +9,18 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="post" asp-page-handler="CreateProjectTask">
-
+                @if (context == "Scheduling")
+                {
+                    <!--Wenn Modal in Scheduling Page eingebunden wird-->
+                    <input type="hidden" asp-for="IsScheduleEntry" value="true" class="form-check-input" />
+                    <input type="hidden" asp-for="IsTaskCatalogEntry" value="false" class="form-check-input" />
+                }
+                else if (context == "TaskCatalog")
+                {
+                    <!--Wenn Modal in TaskCatalog Page eingebunden wird-->
+                    <input type="hidden" asp-for="IsTaskCatalogEntry" value="true" class="form-check-input" />
+                    <input type="hidden" asp-for="IsScheduleEntry" value="false" class="form-check-input" />
+                }
                 <div class="modal-header">
                     <h5 class="modal-title">Neue Aufgabe hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -23,6 +34,7 @@
                     <div class="mb-3">
                         <label class="form-label">Abschnitt</label>
                         <select class="form-select" id="taskSectionSelect" name="SectionId" required>
+                            @* <select class="form-select" id="taskSectionSelect" name="SectionId" required> *@
                             <option value="">-- Abschnitt auswählen --</option>
                             @if (Model.Project?.ProjectSections != null)
                             {
@@ -44,14 +56,14 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label class="form-label">Startdatum</label>
-                            <input type="date" class="form-control" name="startDate" />
+                            <input type="date" class="form-control" name="startDate" @(context == "Scheduling" ? "required" : "") />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Enddatum</label>
-                            <input type="date" class="form-control" name="endDate" />
+                            <input type="date" class="form-control" name="endDate" @(context == "Scheduling" ? "required" : "") />
                         </div>
                     </div>
-                    @if (context == "Scheduling")
+                    @* @if (context == "Scheduling")
                     {
                         <!--Wenn Modal in Scheduling Page eingebunden wird-->
                         <input type="hidden" asp-for="IsScheduleEntry" value="true" class="form-check-input" />
@@ -68,7 +80,7 @@
 
                         <input asp-for="IsScheduleEntry" value="true" class="form-check-input" />
                         <label asp-for="IsScheduleEntry" class="form-check-label">Im Terminplan speichern</label>
-                    }
+                    } *@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
