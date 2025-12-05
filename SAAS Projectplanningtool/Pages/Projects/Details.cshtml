@@ -3,7 +3,7 @@
 @model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
 
 @{
-    ViewData["Title"] =  Model.Project?.ProjectName;
+    ViewData["Title"] = Model.Project?.ProjectName;
 }
 
 <div class="project-details-container">
@@ -188,7 +188,7 @@
                                     Abgeschlossene
                                 </button>
                             </form>
-                            <button type="button" class="btn btn-primary" onclick="showAddTaskModal()">
+                            <button type="button" class="btn btn-primary" onclick="showAddTaskCatalogModal()">
                                 <i class="fas fa-plus me-1"></i>
                                 Aufgabe hinzufügen
                             </button>
@@ -216,7 +216,7 @@
 
                                         <div class="task-item @(isCompleted ? "completed" : "")">
                                             <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
-                                                <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
+                                                <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
                                                 <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                                                 <input type="hidden" name="StateId" value="@task.StateId" />
 
@@ -226,7 +226,7 @@
                                                            @(isCompleted ? "checked" : "") />
                                                 </div>
                                                 <div class="task-content">
-                                                    <div class="task-name">@task.ProjectTaskName</div>
+                                                    <div class="task-name">@task.TaskName</div>
                                                     <div class="task-details">
                                                         <span class="status-badge @(isCompleted ? "completed" : "pending")">
                                                             @task.State?.StateName
@@ -252,11 +252,11 @@
                                                 </div>
                                                 <div class="task-actions">
                                                     <button type="button" class="btn btn-sm btn-outline-primary"
-                                                            onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.IsTaskCatalogEntry)', '@(task.IsScheduleEntry)' )">
+                                                            onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")' )">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-danger"
-                                                            onclick="deleteItem('@task.ProjectTaskId', 'task', '@task.ProjectTaskName')">
+                                                            onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'taskCatalog', '@task.TaskName')">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -274,7 +274,7 @@
 
                                                 <div class="task-item @(isCompleted ? "completed" : "")">
                                                     <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
-                                                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskId" />
+                                                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
                                                         <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                                                         <input type="hidden" name="StateId" value="@task.StateId" />
 
@@ -284,7 +284,7 @@
                                                                    @(isCompleted ? "checked" : "") />
                                                         </div>
                                                         <div class="task-content">
-                                                            <div class="task-name">@task.ProjectTaskName</div>
+                                                            <div class="task-name">@task.TaskName</div>
                                                             <div class="task-details">
                                                                 <span class="status-badge @(isCompleted ? "completed" : "pending")">
                                                                     @task.State?.StateName
@@ -310,11 +310,11 @@
                                                         </div>
                                                         <div class="task-actions">
                                                             <button type="button" class="btn btn-sm btn-outline-primary"
-                                                                    onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
+                                                                    onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
                                                             <button type="button" class="btn btn-sm btn-outline-danger"
-                                                                    onclick="deleteItem('@task.ProjectTaskId', 'task', '@task.ProjectTaskName')">
+                                                                    onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'task', '@task.TaskName')">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
                                                         </div>
@@ -360,23 +360,23 @@
                                 </a>
                             </button>
                         } *@
-                            <button type="button"
-                                    class="btn btn-outline-secondary btn-sm @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")"
-                                    @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")
-                                    style="@(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "pointer-events: none;" : "")">
-                                @if (Model.Project?.ProjectBudget?.InitialBudget != null && Model.Project?.ProjectBudget?.InitialBudget > 0)
-                                {
-                                    <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
-                                        <i class="fas fa-calendar me-1"></i>Terminplanung
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span>
-                                        <i class="fas fa-calendar me-1"></i>Terminplanung
-                                    </span>
-                                }
-                            </button>
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")"
+                                @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")
+                                style="@(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "pointer-events: none;" : "")">
+                            @if (Model.Project?.ProjectBudget?.InitialBudget != null && Model.Project?.ProjectBudget?.InitialBudget > 0)
+                            {
+                                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                    <i class="fas fa-calendar me-1"></i>Terminplanung
+                                </a>
+                            }
+                            else
+                            {
+                                <span>
+                                    <i class="fas fa-calendar me-1"></i>Terminplanung
+                                </span>
+                            }
+                        </button>
                         <button type="button" class="btn btn-outline-secondary btn-sm">
                             <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
                                 <i class="fas fa-users me-1"></i>Budgetplanung
@@ -447,7 +447,8 @@
 <!-- Add Partial Modals for ProjectHandling -->
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
-@await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "TaskCatalog" } })
+@await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskCatalogTaskModal.cshtml", (ProjectHandlerPageModel)Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskCatalogModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "TaskCatalog" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", (ProjectHandlerPageModel)Model)
 
 @section Styles {

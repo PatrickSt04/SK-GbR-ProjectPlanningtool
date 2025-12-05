@@ -64,6 +64,8 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         public ICollection<ProjectSection>? ProjectSections { get; set; }
 
+        public ICollection<ProjectTaskCatalogTask>? ProjectTaskCatalogTasks { get; set; }
+
         // The project's default working days
         // Represented as numbers from 1 to 7 (Monday - Sunday)
         public List<int>? DefaultWorkDays { get; set; } = new(new int[] { 1, 2, 3, 4, 5 });

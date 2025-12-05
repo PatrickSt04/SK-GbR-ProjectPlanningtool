@@ -32,12 +32,6 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         [ForeignKey(nameof(StateId))]
         public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
 
-        // Is relevant for task catalog
-        public bool IsTaskCatalogEntry { get; set; } = true;
-
-        // Is relevant for the task schedule
-        public bool IsScheduleEntry { get; set; } = true;
-
         // Latest Modification Attributes
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]
@@ -55,9 +49,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // Amount of Workers per hourly rate group
         public ICollection<ProjectTaskHourlyRateGroup> ProjectTaskHourlyRateGroups { get; set; } = new List<ProjectTaskHourlyRateGroup>();
 
-        public string? ProjectTaskFixCostsId { get; set; }
-        [ForeignKey(nameof(ProjectTaskFixCostsId))]
-        public ProjectTaskFixCosts? ProjectTaskFixCosts { get; set; }
+
         // ---------- Berechnete Eigenschaften ----------
 
         /// <summary>
@@ -109,45 +101,30 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
             get
             {
                 double totalCosts = 0;
-                //Wenn task nur TaskCatalogeintrag ist, dann werden Kosten über ProjectTaskFixCosts abgebildet
-                if (IsTaskCatalogEntry && !IsScheduleEntry)
+                var totalHours = DurationInHours;
+                if (!totalHours.HasValue || totalHours <= 0)
+                    return null;
+
+                if (ProjectTaskHourlyRateGroups == null || !ProjectTaskHourlyRateGroups.Any())
+                    return null;
+
+
+                var totalWorkers = ProjectTaskHourlyRateGroups.Sum(g => g.Amount);
+
+                if (totalWorkers == 0)
+                    return null;
+
+                foreach (var group in ProjectTaskHourlyRateGroups)
                 {
-                    if (ProjectTaskFixCosts == null)
-                        return null;
-
-                    if (ProjectTaskFixCosts.FixCosts == null)
-                        return null;
-
-                    totalCosts = (double)ProjectTaskFixCosts?.FixCosts?.Where(p => p.Cost != null).Sum(p => p?.Cost);
-                }
-                else
-                {
-                    var totalHours = DurationInHours;
-                    if (!totalHours.HasValue || totalHours <= 0)
-                        return null;
-
-                    if (ProjectTaskHourlyRateGroups == null || !ProjectTaskHourlyRateGroups.Any())
-                        return null;
-
-
-                    var totalWorkers = ProjectTaskHourlyRateGroups.Sum(g => g.Amount);
-
-                    if (totalWorkers == 0)
-                        return null;
-
-                    foreach (var group in ProjectTaskHourlyRateGroups)
+                    if (group.HourlyRateGroup?.HourlyRate != null && group.Amount > 0)
                     {
-                        if (group.HourlyRateGroup?.HourlyRate != null && group.Amount > 0)
-                        {
-                            // Berechne die Stunden pro Arbeiter in dieser Gruppe
-                            var hoursPerWorker = totalHours.Value;
-                            var groupHours = hoursPerWorker * group.Amount;
-                            var groupCosts = (double)groupHours * (double)group.HourlyRateGroup.HourlyRate;
-                            totalCosts += groupCosts;
-                        }
+                        // Berechne die Stunden pro Arbeiter in dieser Gruppe
+                        var hoursPerWorker = totalHours.Value;
+                        var groupHours = hoursPerWorker * group.Amount;
+                        var groupCosts = (double)groupHours * (double)group.HourlyRateGroup.HourlyRate;
+                        totalCosts += groupCosts;
                     }
                 }
-
                 return totalCosts;
             }
         }

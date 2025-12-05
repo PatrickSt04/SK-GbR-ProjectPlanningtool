@@ -106,20 +106,22 @@
             var m = el('addTaskModal');
             if (m) new bootstrap.Modal(m).show();
         };
-
-        ns.editTask = function (taskId, taskName, startDate, endDate, isTaskCatalogEntry, isScheduleEntry) {
+        ns.showAddTaskCatalogModal = function (projectId) {
+            if (projectId) {
+                var sel = el('projectId');
+                if (sel) sel.value = projectId;
+            }
+            var m = el('addTaskCatalogModal');
+            if (m) new bootstrap.Modal(m).show();
+        };
+        ns.editTask = function (taskId, taskName, startDate, endDate) {
             var idEl = el('editTaskId'); if (idEl) idEl.value = taskId || '';
             var nameEl = el('editTaskName'); if (nameEl) nameEl.value = taskName || '';
             var sEl = el('editTaskStartDate'); if (sEl) sEl.value = startDate || '';
             var eEl = el('editTaskEndDate'); if (eEl) eEl.value = endDate || '';
             //var tcEl = el('editTaskIsTaskCatalogEntry'); if (tcEl) tcEl.value = isTaskCatalogEntry || '';
             //var scEl = el('editTaskIsScheduleEntry'); if (scEl) scEl.value = isScheduleEntry || '';
-            // Checkboxen sauber setzen:
-            const tcEl = el('editTaskIsTaskCatalogEntry');
-            if (tcEl) tcEl.checked = (isTaskCatalogEntry === true || isTaskCatalogEntry === 'true' || isTaskCatalogEntry === 'True');
 
-            const scEl = el('editTaskIsScheduleEntry');
-            if (scEl) scEl.checked = (isScheduleEntry === true || isScheduleEntry === 'true' || isScheduleEntry === 'True');
 
             var m = el('editTaskModal'); if (m) new bootstrap.Modal(m).show();
         };
@@ -128,7 +130,7 @@
             var t = el('deleteConfirmText');
             if (t) t.textContent = 'Sind Sie sicher, dass Sie "' + (itemName || '') + '" löschen möchten?';
             var json = {
-                Type: itemType === 'task' ? 'ProjectTask' : 'ProjectSection',
+                Type: itemType === 'task' ? 'ProjectTask' : itemType === 'taskCatalog' ? 'TaskCatalogTask' : 'ProjectSection',
                 Data: { itemId: itemId, itemName: itemName }
             };
             var j = el('deleteObjectJson'); if (j) j.value = JSON.stringify(json);
@@ -184,6 +186,7 @@
             if (typeof window.editTask === 'undefined') window.editTask = ns.editTask;
             if (typeof window.deleteItem === 'undefined') window.deleteItem = ns.deleteItem;
             if (typeof window.showAddItemModal === 'undefined') window.showAddItemModal = ns.showAddItemModal;
+            if (typeof window.showAddTaskCatalogModal === 'undefined') window.showAddTaskCatalogModal = ns.showAddTaskCatalogModal;
         } catch (e) { /* ignore */ }
 
         // optional debug helper

@@ -21,27 +21,21 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
         }
-
-
-        //[BindProperty]
-        //public string ProjectTaskId { get; set; } = "";
-
-
-
         public List<HourlyRateGroup> AllHourlyRateGroups { get; set; } = new List<HourlyRateGroup>();
-
-
-        //[BindProperty]
-        //public Dictionary<int, HourlyRateGroup> AmountPerHourlyRateGroup { get; set; } = new Dictionary<int, HourlyRateGroup>();
-
-
-
         protected async Task<ProjectTask?> GetProjectTaskAsync(string projectTaskId)
         {
             var existing = await _context.ProjectTask
                 .Include(pt => pt.ProjectTaskHourlyRateGroups)
-                .Include(pt => pt.ProjectTaskFixCosts)
+                .Include(pt => pt.State)
                 .FirstOrDefaultAsync(x => x.ProjectTaskId == projectTaskId);
+            return existing;
+        }
+        protected async Task<ProjectTaskCatalogTask?> GetTaskCatalogTaskAsync(string projectTaskId)
+        {
+            var existing = await _context.ProjectTaskCatalogTask
+                .Include(pt => pt.ProjectTaskFixCosts)
+                .Include(pt => pt.State)
+                .FirstOrDefaultAsync(x => x.ProjectTaskCatalogTaskId == projectTaskId);
             return existing;
         }
 

@@ -87,7 +87,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var task in Model.TaskCatalogTasks.OrderBy(t => t.ProjectTaskName))
+                        @foreach (var task in Model.TaskCatalogTasks.OrderBy(t => t.TaskName))
                         {
                             var hasFixCosts = task.ProjectTaskFixCosts != null;
                             var totalFixCosts = hasFixCosts
@@ -98,7 +98,7 @@
 
                             <tr>
                                 <td>
-                                    <strong>@task.ProjectTaskName</strong>
+                                    <strong>@task.TaskName</strong>
                                 </td>
                                 <td>
                                     @{
@@ -183,8 +183,8 @@
                                     <button class="modern-btn @(hasFixCosts && totalFixCosts > 0 ? "warning" : "success") small open-fixcosts-modal"
                                             data-bs-toggle="modal"
                                             data-bs-target="#addFixCostsModal"
-                                            data-task-id="@task.ProjectTaskId"
-                                            data-task-name="@task.ProjectTaskName">
+                                            data-task-id="@task.ProjectTaskCatalogTaskId"
+                                            data-task-name="@task.TaskName">
                                         <i class="fas @(hasFixCosts && totalFixCosts > 0 ? "fa-edit" : "fa-plus-circle")"></i>
                                         @(hasFixCosts && totalFixCosts > 0 ? "Ändern" : "Hinzufügen")
                                     </button>
@@ -1255,7 +1255,7 @@ else
     {
         var tasks = new List<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTask>();
         if (section.ProjectTasks != null)
-            tasks.AddRange(section.ProjectTasks.Where(pt => pt.IsScheduleEntry == true));
+            tasks.AddRange(section.ProjectTasks);
 
         if (section.SubSections != null)
         {

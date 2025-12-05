@@ -156,6 +156,11 @@ namespace SAAS_Projectplanningtool.CustomManagers
         {
             return await getState("Offen");
         }
+
+        public async Task<State> getClosedState()
+        {
+            return await getState("Abgeschlossen");
+        }
     }
 }
 
