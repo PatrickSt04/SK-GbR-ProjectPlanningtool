@@ -1,38 +1,39 @@
 ﻿@using SAAS_Projectplanningtool.Pages.Projects
 @model SAAS_Projectplanningtool.Pages.Projects.ProjectHandlerPageModel
 @{
-    ViewData["Title"] = "Aufgabe bearbeiten";
+    ViewData["Title"] = "Add Task Modal";
+    var context = ViewData["Context"]?.ToString();
 }
-<!-- Edit Task Modal -->
-<div class="modal fade" id="editTaskModal" tabindex="-1">
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskCatalogModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="EditProjectTask">
+            <form method="post" asp-page-handler="CreateTaskCatalogTask">
                 <div class="modal-header">
-                    <h5 class="modal-title">Aufgabe bearbeiten</h5>
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                     <h5 class="modal-title">Neue Aufgabe in Aufgabenkatalog hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="editTaskId" name="taskId" />
-                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                     <div class="mb-3">
                         <label class="form-label">Aufgabenname</label>
-                        <input type="text" class="form-control" id="editTaskName" name="name" />
+                        <input type="text" class="form-control" name="Name" required />
+                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <label class="form-label">Startdatum</label>
-                            <input type="date" class="form-control" id="editTaskStartDate" name="startDate" required/>
+                            <input type="date" class="form-control" name="startDate"  />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Enddatum</label>
-                            <input type="date" class="form-control" id="editTaskEndDate" name="endDate" required/>
+                            <input type="date" class="form-control" name="endDate" />
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Speichern</button>
+                    <button type="submit" class="btn btn-primary">Erstellen</button>
                 </div>
             </form>
         </div>

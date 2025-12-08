@@ -4,7 +4,9 @@ using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
@@ -60,8 +62,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
 
             // Berechne verwendetes Budget aus allen Tasks
-            var usedBudgetFromTasks = CalculateUsedBudget(project.ProjectSections, true);
-            var usedBudgetFromAllTasks = CalculateUsedBudget(project.ProjectSections, false);
+            var usedBudgetFromTasks = await CalculateUsedBudgetAsync(project.ProjectId, project.ProjectSections, true);
+            var usedBudgetFromAllTasks = await CalculateUsedBudgetAsync(project.ProjectId, project.ProjectSections, false);
 
             // Berechne zusätzliche Projektkosten
             var additionalCosts = await CalculateAdditionalProjectCostsAsync(projectId);
@@ -158,7 +160,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         /// <summary>
         /// Berechnet das verwendete Budget aus allen Project Tasks rekursiv
         /// </summary>
-        private double CalculateUsedBudget(ICollection<ProjectSection>? sections, bool onlyCompletedTasks)
+        private async Task<double> CalculateUsedBudgetAsync(string projectId, ICollection<ProjectSection>? sections, bool onlyCompletedTasks)
         {
             if (sections == null) return 0.0;
 
@@ -168,7 +170,53 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 totalUsedBudget += CalculateSectionCosts(section, onlyCompletedTasks);
             }
+            var taskcatalogtaksBudget = await CalculateTaskCatalogCostsAsync(projectId, onlyCompletedTasks);
+            return totalUsedBudget + taskcatalogtaksBudget;
+        }
 
+        private async Task<double> CalculateTaskCatalogCostsAsync(string projectId, bool onlyCompletedTasks)
+        {
+            double totalUsedBudget = 0.0;
+
+            var closedState = await new StateManager(_context).getClosedState();
+            if(closedState == null)
+            {
+                return 0.0;
+            }
+            Project project; 
+                project = await _context.Project
+                    .Include(p => p.ProjectTaskCatalogTasks)
+                    .ThenInclude(ptc => ptc.State)
+                    .Include(p => p.ProjectTaskCatalogTasks)
+                    .ThenInclude(ptc => ptc.ProjectTaskFixCosts)
+                    .ThenInclude(ptfc => ptfc.FixCosts)
+                    .FirstOrDefaultAsync(p => p.ProjectId == projectId);
+            if (project == null)
+            {
+                return 0.0;
+            }
+            if (project.ProjectTaskCatalogTasks == null || project.ProjectTaskCatalogTasks.Count() == 0)
+            {
+                return 0.0;
+            }
+            var tcts = project.ProjectTaskCatalogTasks;
+            if (onlyCompletedTasks)
+            {
+                tcts = project.ProjectTaskCatalogTasks.Where(ptc => ptc.StateId == closedState.StateId).ToList();
+            }
+
+            foreach (var tct in tcts)
+            {
+                if (tct.ProjectTaskFixCosts == null)
+                {
+                    continue;
+                }
+                if (tct.ProjectTaskFixCosts.FixCosts == null || tct.ProjectTaskFixCosts.FixCosts.Count() == 0)
+                {
+                    continue;
+                }
+                totalUsedBudget += (double)tct.ProjectTaskFixCosts.FixCosts.Sum(fc => fc.Cost);
+            }
             return totalUsedBudget;
         }
 
@@ -383,8 +431,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             var query = _context.ProjectTask
                 .Where(pt => sectionIds.Contains(pt.ProjectSectionId))
-                .Where(pt => pt.CompanyId == companyId)
-                .Where(pt => pt.IsTaskCatalogEntry);
+                .Where(pt => pt.CompanyId == companyId);
 
             if (!string.IsNullOrEmpty(stateId))
             {
@@ -412,14 +459,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         .ThenInclude(ss => ss.ProjectTasks)
                             .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
                                 .ThenInclude(hrg => hrg.HourlyRateGroup)
-                //pt fixCosts laden
-                .Include(p => p.ProjectSections)
-                    .ThenInclude(ps => ps.SubSections)
-                        .ThenInclude(ss => ss.ProjectTasks)
-                            .ThenInclude(pt => pt.ProjectTaskFixCosts)
-                                .ThenInclude(hrg => hrg.FixCosts)
-                .Include(p => p.ProjectSections)
-                        .ThenInclude(ss => ss.ProjectTasks)
+                        //pt fixCosts laden
+                        .Include(ss => ss.ProjectTaskCatalogTasks)
                             .ThenInclude(pt => pt.ProjectTaskFixCosts)
                                 .ThenInclude(hrg => hrg.FixCosts)
                 .FirstOrDefaultAsync(p => p.ProjectId == projectId && p.CompanyId == companyId);

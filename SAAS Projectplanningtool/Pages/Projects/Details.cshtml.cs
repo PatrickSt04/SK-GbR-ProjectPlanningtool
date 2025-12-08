@@ -28,7 +28,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             _logger = new Logger(_context, _userManager);
         }
         [BindProperty]
-        public List<ProjectTask> TaskCatalog { get; set; } = new List<ProjectTask>();
+        public List<ProjectTaskCatalogTask> TaskCatalog { get; set; } = new List<ProjectTaskCatalogTask>();
 
         //Information for Project progress
         public int TotalTasks { get; set; } = 0;
@@ -41,6 +41,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         [BindProperty(SupportsGet = true)]
         public bool showCompleted { get; set; } = default!;
 
+
+
         public bool ScheduleAlreadyExists { get; set; } = false;
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -51,7 +53,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     return NotFound();
                 }
-               await SetProjectBindingAsync(id);
+                await SetProjectBindingAsync(id);
                 if (Project == null)
                 {
                     return NotFound();
@@ -60,23 +62,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
 
-                var sectionsOfThisProject = await _context.ProjectSection
-                     .Where(s => s.ProjectId == id)
-                     .Where(s => s.CompanyId == employee.CompanyId)
-                     .Select(s => s.ProjectSectionId)
-                     .ToListAsync();
-
-
+                //var sectionsOfThisProject = await _context.ProjectSection
+                //     .Where(s => s.ProjectId == id)
+                //     .Where(s => s.CompanyId == employee.CompanyId)
+                //     .Select(s => s.ProjectSectionId)
+                //     .ToListAsync();
                 //TaskCatalog
-                var sectionsofProject = await _context.ProjectSection
-                    .Where(ps => ps.ProjectId == id)
-                    .Where(ps => ps.CompanyId == employee.CompanyId)
-                    .Select(ps => ps.ProjectSectionId)
-                    .ToListAsync();
-                TaskCatalog = await _context.ProjectTask.Where(pt => pt.CompanyId == employee.CompanyId)
-                        .Where(pt => pt.IsTaskCatalogEntry == true)
-                        .Where(pt => sectionsofProject.Contains(pt.ProjectSectionId))
-                        .ToListAsync();
+                TaskCatalog = Project.ProjectTaskCatalogTasks != null ? Project.ProjectTaskCatalogTasks.ToList() : new List<ProjectTaskCatalogTask>();
+
 
                 //Projects statistics
                 var projectStats = await new ProjectStatisticsCalculator(_context, _userManager).CalculateStatisticsAsync(Project.ProjectId, User);
@@ -102,6 +95,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         }
                     }
                 }
+
+                ViewData["AllStates"] = await _context.State.ToListAsync();
+
                 await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
                 return Page();
             }
@@ -116,14 +112,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 await _logger.Log(null, User, null, "Projects/Details<OnPostToggleTaskStateAsync>Begin");
                 // Hier: Aufgabenstatus ändern im DB-Kontext
-                var task = await _context.ProjectTask.FindAsync(ProjectTaskId);
+                var task = await _context.ProjectTaskCatalogTask.FindAsync(ProjectTaskId);
                 if (task != null)
                 {
                     var openState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Offen");
                     var doneState = await _context.State.FirstOrDefaultAsync(s => s.StateName == "Abgeschlossen");
 
                     task.StateId = task.StateId == openState.StateId ? doneState.StateId : openState.StateId;
-                    _context.ProjectTask.Update(task);
+                    _context.ProjectTaskCatalogTask.Update(task);
                     await _context.SaveChangesAsync();
                 }
                 await _logger.Log(null, User, null, "Projects/Details<OnPostToggleTaskStateAsync>End");
@@ -135,5 +131,16 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
+        public async Task<IActionResult> OnPostUpdateTaskStateAsync(string taskId, string stateId, string projectId)
+        {
+            var task = await _context.ProjectTask.FindAsync(taskId);
+            if (task != null)
+            {
+                task.StateId = stateId;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToPage(new { id = projectId });
+        }
     }
 }

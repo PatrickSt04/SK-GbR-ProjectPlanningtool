@@ -148,10 +148,7 @@
                                                                         Name = t.ProjectTaskName,
                                                                         StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
                                                                         EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                                                                        Type = "task",
-                                                                                                       //Hier müssen auch diese Attribute übergeben werden, damit sie im EditModal gesetzt werden können
-                                                                        IsTaskCatalogEntry = t.IsTaskCatalogEntry,
-                                                                        IsScheduleEntry = t.IsScheduleEntry
+                                                                        Type = "task"
                                                         })
                                         }),
                                         Tasks = s.ProjectTasks?.Select(t => new
@@ -160,10 +157,7 @@
                                                         Name = t.ProjectTaskName,
                                                         StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
                                                         EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                                                        Type = "task",
-                                                                                   //Hier müssen auch diese Attribute übergeben werden, damit sie im EditModal gesetzt werden können
-                                                        IsTaskCatalogEntry = t.IsTaskCatalogEntry,
-                                                        IsScheduleEntry = t.IsScheduleEntry
+                                                        Type = "task"
                                         })
                         })
         }))

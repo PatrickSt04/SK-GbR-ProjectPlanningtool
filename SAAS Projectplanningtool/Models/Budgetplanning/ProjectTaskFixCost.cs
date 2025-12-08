@@ -8,9 +8,9 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
     {
         [Key]
         public string ProjectTaskFixCostsId { get; set; } = Guid.NewGuid().ToString();
-        public string ProjectTaskId { get; set; } = default!;
-        [ForeignKey(nameof(ProjectTaskId))]
-        public ProjectTask ProjectTask { get; set; } = default!;
+        public string TaskId { get; set; } = default!;
+        [ForeignKey(nameof(TaskId))]
+        public ProjectTaskCatalogTask ProjectTaskCatalogTask { get; set; } = default!;
 
         public List<FixCost>? FixCosts { get; set; } = new();
         //[Owned]

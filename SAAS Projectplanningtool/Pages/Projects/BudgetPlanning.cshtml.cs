@@ -28,7 +28,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<HRGAssignment> HRGAmounts { get; set; } = new();
 
         [BindProperty]
-        public List<ProjectTask> TaskCatalogTasks { get; set; } = new();
+        public List<ProjectTaskCatalogTask> TaskCatalogTasks { get; set; } = new();
 
         public class HRGAssignment
         {
@@ -141,30 +141,16 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 //konkret: ProjectTasks werden hier geladen, Context ChangeTracker hängt die IDs zum Project in die Navigation sonst an
                 //Lösung: ChangeTracker leeren vor neuen Abfragen Optional: 2. Context nutzen
-                _context.ChangeTracker.Clear();
+                //_context.ChangeTracker.Clear();
                 try
                 {
-                    TaskCatalogTasks = await _context.ProjectTask
-                            .Where(pt =>
-                                pt.ProjectSection!.ProjectId == id &&
-                                pt.IsTaskCatalogEntry &&
-                                !pt.IsScheduleEntry
-                            )
-                            .Include(pt => pt.State)
-                            .Include(pt => pt.ProjectTaskFixCosts)
-                                .ThenInclude(fc => fc.FixCosts)
-                            .ToListAsync();
+                    TaskCatalogTasks = Project.ProjectTaskCatalogTasks != null
+                        ? Project.ProjectTaskCatalogTasks.ToList()
+                        : new List<ProjectTaskCatalogTask>();
                 }
                 catch (Exception)
                 {
-                    //Bei Neuanlage existiert noch kein PT, dann würde hier eine Exception geworfen werden
-                    TaskCatalogTasks = await _context.ProjectTask
-                       .Where(pt =>
-                           pt.ProjectSection!.ProjectId == id &&
-                           pt.IsTaskCatalogEntry &&
-                           !pt.IsScheduleEntry
-                       )
-                       .ToListAsync();
+                    TaskCatalogTasks = new List<ProjectTaskCatalogTask>();
                 }
 
             }
@@ -517,11 +503,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         public async Task<IActionResult> OnPostSaveFixCosts(string? ProjectTaskId, string? ProjectId)
         {
-            if (string.IsNullOrEmpty(ProjectTaskId))
+             if (string.IsNullOrEmpty(ProjectTaskId))
             {
                 return NotFound();
             }
-            var task = await GetProjectTaskAsync(ProjectTaskId);
+            //var task = await GetProjectTaskAsync(ProjectTaskId);
+            var task = await GetTaskCatalogTaskAsync(ProjectTaskId);
             if (task == null)
             {
                 return NotFound();
@@ -551,7 +538,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             try
             {
                 var taskFixCosts = await _context.ProjectTaskFixCosts
-                    .Where(fc => fc.ProjectTaskId == taskId)
+                    .Where(fc => fc.TaskId == taskId)
                     .FirstOrDefaultAsync();
 
                 if (taskFixCosts == null || taskFixCosts.FixCosts == null || !taskFixCosts.FixCosts.Any())
@@ -575,13 +562,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
-        //private async Task<ProjectTask?> GetProjectTaskWithFixCostsAsync(string taskId)
-        //{
-        //    return await _context.ProjectTask
-        //        .Include(t => t.ProjectTaskFixCosts)
-        //        .Include(t => t.State)
-        //        .FirstOrDefaultAsync(t => t.ProjectTaskId == taskId);
-        //}
     }
 
 }

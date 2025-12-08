@@ -202,25 +202,10 @@ public static class DbInitializer
                             StartDate = taskStartDate,
                             EndDate = taskDueDate,
                             CreatedByEmployee = employee,
-                            //IsScheduleEntry = true,
-                            //IsTaskCatalogEntry = true,
                             CreatedTimestamp = DateTime.Now
 
                         };
                         context.Set<ProjectTask>().Add(projectTask);
-                        context.SaveChanges();
-                        var ptFixcost = new ProjectTaskFixCosts
-                        {
-                            ProjectTask = projectTask,
-                            //FixCosts = new List<ProjectTaskFixCosts.FixCost> ()
-
-                        };
-
-                        context.Set<ProjectTaskFixCosts>().Add(ptFixcost);
-                        context.SaveChanges();
-                        projectTask.ProjectTaskFixCosts = ptFixcost;
-                        context.Update(projectTask);
-
                         context.SaveChanges();
                     }
                     //TASK CATALOG TASKS
@@ -237,25 +222,20 @@ public static class DbInitializer
                         var taskStartDate = sectionStartDate.AddDays(new Random().Next(1, 5)); // Tasks starten innerhalb weniger Tage nach dem Beginn des Abschnitts
                         var taskDueDate = taskStartDate.AddDays(new Random().Next(5, 15)); // Jede Aufgabe dauert 5-15 Tage
 
-                        var projectTask = new ProjectTask
+                        var projectTask = new ProjectTaskCatalogTask
                         {
-                            ProjectTaskName = task,
-                            ProjectSection = section,
+                            TaskName = task,
                             Company = company,
                             State = GetRandomState(),
-                            StartDate = taskStartDate,
-                            EndDate = taskDueDate,
                             CreatedByEmployee = employee,
-                            IsScheduleEntry = false,
-                            IsTaskCatalogEntry = true,
                             CreatedTimestamp = DateTime.Now
 
                         };
-                        context.Set<ProjectTask>().Add(projectTask);
+                        context.Set<ProjectTaskCatalogTask>().Add(projectTask);
                         context.SaveChanges();
                         var ptFixcost = new ProjectTaskFixCosts
                         {
-                            ProjectTask = projectTask,
+                            ProjectTaskCatalogTask = projectTask,
                             FixCosts = new List<ProjectTaskFixCosts.FixCost>
                             {
                                 new ProjectTaskFixCosts.FixCost { Description = "Materialkosten", Cost = 3000 },

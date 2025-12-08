@@ -24,10 +24,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
         [BindProperty]
         public string? Origin { get; set; } = null;
-        [BindProperty]
-        public bool IsTaskCatalogEntry { get; set; } = true;
-        [BindProperty]
-        public bool IsScheduleEntry { get; set; } = true;
         public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
@@ -43,34 +39,80 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     EndDate = endDate,
                     ProjectTaskName = Name,
                     ProjectSectionId = SectionId,
-                    IsTaskCatalogEntry = IsTaskCatalogEntry,
-                    IsScheduleEntry = IsScheduleEntry
+                };
+                pt.State = await new StateManager(_context).getOpenState();
+                pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
+
+                //Erst task zur DB hinzufügen
+                _context.ProjectTask.Add(pt);
+                await _context.SaveChangesAsync();
+
+                TempData.SetMessage("Success", "Aufgabe erfolgreich angelegt.");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
+            }
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>End");
+            if (Origin != null && Origin == "Details")
+            {
+                return RedirectToPage("/Projects/Details", new { id = projectId });
+            }
+            else
+            {
+                return RedirectToPage(new { id = projectId });
+            }
+        }
+        public async Task<IActionResult> OnPostCreateTaskCatalogTaskAsync(string projectId, string Name, DateOnly? startDate, DateOnly? endDate)
+        {
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
+            try
+            {
+                var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+
+
+                var pt = new ProjectTaskCatalogTask
+                {
+                    CompanyId = excecutingUser.CompanyId,
+                    TaskName = Name,
+                    ProjectId = projectId,
+                    StartDate = startDate,
+                    EndDate = endDate,
                 };
                 pt.State = await new StateManager(_context).getOpenState();
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
 
                 var ptFixCosts = new ProjectTaskFixCosts
                 {
-                    ProjectTask = pt,
+                    ProjectTaskCatalogTask = pt,
                     FixCosts = new List<ProjectTaskFixCosts.FixCost>(),
-                    ProjectTaskId = pt.ProjectTaskId
                 };
                 //Erst task zur DB hinzufügen
-                _context.ProjectTask.Add(pt);
+                _context.ProjectTaskCatalogTask.Add(pt);
                 await _context.SaveChangesAsync();
 
-                if (IsTaskCatalogEntry) { 
-                //Dann fixcosts zur DB hinzufügen
                 _context.ProjectTaskFixCosts.Add(ptFixCosts);
                 await _context.SaveChangesAsync();
 
                 //Dann fixcosts zum Task hinzuladen und updaten
                 pt.ProjectTaskFixCosts = ptFixCosts;
-                _context.ProjectTask.Update(pt);
+                _context.ProjectTaskCatalogTask.Update(pt);
                 await _context.SaveChangesAsync();
 
+                //TaskCataLog Tagst zur Nav in Project hinzufügen
+                var project = await _context.Project.FirstOrDefaultAsync(p => p.ProjectId == projectId);
+                if (project == null)
+                {
+                    return NotFound();
                 }
+                if (project.ProjectTaskCatalogTasks == null)
+                {
+                    project.ProjectTaskCatalogTasks = new List<ProjectTaskCatalogTask>();
+                }
+                project.ProjectTaskCatalogTasks.Add(pt);
 
+                _context.Project.Update(project);
+                await _context.SaveChangesAsync();
 
 
 
@@ -91,7 +133,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
-        public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name, bool isTaskCatalogEntry, bool isScheduleEntry)
+        public async Task<IActionResult> OnPostEditProjectTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>Begin");
             try
@@ -109,11 +151,47 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     pt.ProjectTaskName = name;
                 }
-                pt.IsTaskCatalogEntry = isTaskCatalogEntry;
-                pt.IsScheduleEntry = isScheduleEntry;
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe bearbeitet", pt, false);
 
                 _context.ProjectTask.Update(pt);
+                await _context.SaveChangesAsync();
+                TempData.SetMessage("Success", "Aufgabe erfolgreich geändert.");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
+            }
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>End");
+            if (Origin != null && Origin == "Details")
+            {
+                return RedirectToPage("/Projects/Details", new { id = projectId });
+            }
+            else
+            {
+                return RedirectToPage(new { id = projectId });
+            }
+        }
+        public async Task<IActionResult> OnPostEditTaskCatalogTaskAsync(string projectId, string taskId, DateOnly? startDate, DateOnly? endDate, string? name)
+        {
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditProjectTaskAsync>Begin");
+            try
+            {
+                var pt = await _context.ProjectTaskCatalogTask.FirstOrDefaultAsync(pt => pt.ProjectTaskCatalogTaskId == taskId);
+                if (startDate != null)
+                {
+                    pt.StartDate = startDate;
+                }
+                if (endDate != null)
+                {
+                    pt.EndDate = endDate;
+                }
+                if (name != null)
+                {
+                    pt.TaskName = name;
+                }
+                pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe bearbeitet", pt, false);
+
+                _context.ProjectTaskCatalogTask.Update(pt);
                 await _context.SaveChangesAsync();
                 TempData.SetMessage("Success", "Aufgabe erfolgreich geändert.");
             }
@@ -265,6 +343,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     "ProjectSection" => await HandleDeleteProjectSection(wrapper.Data),
                     "ProjectTask" => await HandleDeleteProjectTask(wrapper.Data),
+                    "TaskCatalogTask" => await HandleDeleteTaskCatalogTask(wrapper.Data),
                     _ => await HandleUnknownType(wrapper.Type)
                 };
 
@@ -401,6 +480,50 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
 
             _context.ProjectTask.Remove(task);
+            await _context.SaveChangesAsync();
+            TempData.SetMessage("Success", "Aufgabe erfolgreich gelöscht.");
+            return null;
+        }
+        private async Task<IActionResult?> HandleDeleteTaskCatalogTask(JsonElement data)
+        {
+            var taskId = data.GetProperty("itemId").GetString();
+            if (string.IsNullOrWhiteSpace(taskId))
+            {
+                TempData.SetMessage("Danger", "Ungültiger Aufgabenbezeichner.");
+                if (Origin != null && Origin == "Details")
+                {
+                    return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                }
+                else
+                {
+                    return RedirectToPage(new { id = Project.ProjectId });
+                }
+            }
+
+            var task = await _context.ProjectTaskCatalogTask.FirstOrDefaultAsync(pt => pt.ProjectTaskCatalogTaskId == taskId);
+            if (task == null)
+            {
+                TempData.SetMessage("Danger", "Aufgabe nicht gefunden.");
+                if (Origin != null && Origin == "Details")
+                {
+                    return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                }
+                else
+                {
+                    return RedirectToPage(new { id = Project.ProjectId });
+                }
+            }
+            
+            var tfc = await _context.ProjectTaskFixCosts.Where(hrg => hrg.TaskId == taskId).FirstOrDefaultAsync();
+
+            if (tfc != null)
+            {
+                _context.ProjectTaskFixCosts.Remove(tfc);
+                await _context.SaveChangesAsync();
+            }
+
+            _context.ProjectTaskCatalogTask.Remove(task);
+            
             await _context.SaveChangesAsync();
             TempData.SetMessage("Success", "Aufgabe erfolgreich gelöscht.");
             return null;

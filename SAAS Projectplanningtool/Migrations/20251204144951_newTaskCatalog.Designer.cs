@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251204144951_newTaskCatalog")]
+    partial class newTaskCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -592,9 +595,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<DateTime?>("CreatedTimestamp")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateOnly?>("EndDate")
-                        .HasColumnType("date");
-
                     b.Property<string>("LatestModificationText")
                         .HasColumnType("nvarchar(max)");
 
@@ -609,9 +609,6 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Property<string>("ProjectTaskFixCostsId")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateOnly?>("StartDate")
-                        .HasColumnType("date");
 
                     b.Property<string>("StateId")
                         .HasColumnType("nvarchar(450)");
