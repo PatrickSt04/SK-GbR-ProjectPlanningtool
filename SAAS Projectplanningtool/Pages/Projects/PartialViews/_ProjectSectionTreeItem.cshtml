@@ -1,0 +1,447 @@
+﻿@model SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection
+
+<div class="structure-item structure-section" data-section-id="@Model.ProjectSectionId">
+    <div class="structure-header" onclick="toggleSection(this)">
+        <div class="structure-toggle">
+            <i class="fas fa-chevron-right toggle-icon"></i>
+            <i class="fas fa-folder"></i>
+        </div>
+        <div class="structure-content">
+            <span class="structure-name">@Model.ProjectSectionName</span>
+            <span class="structure-meta">
+                @{
+                    int taskCount = Model.ProjectTasks?.Count ?? 0;
+                    int subSectionCount = Model.SubSections?.Count ?? 0;
+                }
+                @if (taskCount > 0)
+                {
+                    <span>@taskCount Task(s)</span>
+                }
+                @if (subSectionCount > 0)
+                {
+                    <span>@subSectionCount Subsection(s)</span>
+                }
+            </span>
+        </div>
+    </div>
+
+    <div class="structure-children" style="display: none;">
+        <!-- SubSections -->
+        @if (Model.SubSections != null && Model.SubSections.Any())
+        {
+            @foreach (var subSection in Model.SubSections)
+            {
+                @await Html.PartialAsync("_ProjectSectionTreeItem", subSection)
+            }
+        }
+
+        <!-- Tasks -->
+        @if (Model.ProjectTasks != null && Model.ProjectTasks.Any())
+        {
+            @foreach (var task in Model.ProjectTasks)
+            {
+                <div class="structure-item structure-task">
+                    <div class="structure-header">
+                        <div class="structure-toggle">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="structure-content">
+                            <span class="structure-name">@task.ProjectTaskName</span>
+                            <span class="structure-meta">
+                                @if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                {
+                                    <span class="task-dates">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        @task.StartDate.Value.ToString("dd.MM") - @task.EndDate.Value.ToString("dd.MM")
+                                    </span>
+                                }
+                            </span>
+                        </div>
+                        <div class="structure-actions">
+                            <!-- Status Badge with Dropdown -->
+                            <div class="status-dropdown-container">
+                                @if (task.State != null)
+                                {
+                                    <button type="button"
+                                            class="status-badge-button"
+                                            style="background-color: @task.State.Color;"
+                                            onclick="toggleStatusDropdown(event, '@task.ProjectTaskId')">
+                                        @task.State.StateName
+                                        <i class="fas fa-chevron-down ms-1"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="status-badge-button status-badge-empty"
+                                            onclick="toggleStatusDropdown(event, '@task.ProjectTaskId')">
+                                        <em>Kein Status</em>
+                                        <i class="fas fa-chevron-down ms-1"></i>
+                                    </button>
+                                }
+
+                                <!-- Status Dropdown Menu -->
+                                <div class="status-dropdown-menu" id="statusDropdown_@task.ProjectTaskId" style="display: none;">
+                                    @* You'll need to pass available states to this partial *@
+                                    @* For now, using common states - you should inject actual states from your DB *@
+                                    @{
+                                        var availableStates = ViewData["AllStates"] as IEnumerable<SAAS_Projectplanningtool.Models.IndependentTables.State>;
+                                        if (availableStates != null)
+                                        {
+                                            foreach (var state in availableStates)
+                                            {
+                                                <form method="post" asp-page-handler="UpdateTaskState" class="status-dropdown-item-form">
+                                                    <input type="hidden" name="taskId" value="@task.ProjectTaskId" />
+                                                    <input type="hidden" name="stateId" value="@state.StateId" />
+                                                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                                                    <button type="submit"
+                                                            class="status-dropdown-item"
+                                                            style="border-left: 4px solid @state.Color;">
+                                                        <span class="status-color-indicator" style="background-color: @state.Color;"></span>
+                                                        @state.StateName
+                                                        @if (task.StateId == state.StateId)
+                                                        {
+                                                            <i class="fas fa-check ms-auto"></i>
+                                                        }
+                                                    </button>
+                                                </form>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-icon"
+                                    onclick="editTask('@task.ProjectTaskId', '@task.ProjectTaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')"
+                                    title="Bearbeiten">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    /* Project Structure Styles */
+    .project-structure-tree {
+        padding: 10px 0;
+    }
+
+    .structure-item {
+        margin: 5px 0;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .structure-header {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .structure-item:hover > .structure-header {
+        background-color: #f8f9fa;
+    }
+
+    .structure-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-right: 12px;
+        color: #6c757d;
+    }
+
+    .toggle-icon {
+        transition: transform 0.2s ease;
+        font-size: 0.8rem;
+    }
+
+    .structure-header.expanded .toggle-icon {
+        transform: rotate(90deg);
+    }
+
+    .structure-toggle i:not(.toggle-icon) {
+        font-size: 1.1rem;
+    }
+
+    .structure-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .structure-name {
+        font-weight: 500;
+        color: #333;
+        font-size: 1rem;
+    }
+
+    .structure-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+        .structure-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+    .structure-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    /* Different levels styling */
+    .structure-project {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        border: 2px solid #667eea40;
+        margin-bottom: 20px;
+    }
+
+        .structure-project .structure-header {
+            cursor: default;
+        }
+
+        .structure-project .structure-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .structure-project .structure-toggle i {
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+
+    .structure-section {
+        border-left: 3px solid #dee2e6;
+        margin-left: 30px;
+    }
+
+        .structure-section .structure-toggle i:not(.toggle-icon) {
+            color: #ffc107;
+        }
+
+    .structure-task {
+        border-left: 3px solid #e9ecef;
+        margin-left: 30px;
+        background-color: #ffffff;
+    }
+
+        .structure-task .structure-header {
+            cursor: default;
+        }
+
+        .structure-task .structure-toggle i {
+            color: #28a745;
+        }
+
+    .structure-children {
+        padding-left: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    /* Status Badge Button */
+    .status-badge-button {
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+
+        .status-badge-button:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+    .status-badge-empty {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    /* Status Dropdown */
+    .status-dropdown-container {
+        position: relative;
+    }
+
+    .status-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 5px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        min-width: 200px;
+        z-index: 1000;
+        overflow: hidden;
+    }
+
+    .status-dropdown-item-form {
+        margin: 0;
+    }
+
+    .status-dropdown-item {
+        width: 100%;
+        padding: 10px 15px;
+        border: none;
+        background: white;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+        .status-dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+    .status-color-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    /* Icon Button */
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #6c757d;
+        transition: all 0.2s ease;
+    }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+            color: #495057;
+            border-color: #adb5bd;
+        }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+        .empty-state i {
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+    /* Task Dates */
+    .task-dates {
+        padding: 4px 8px;
+        background: #e7f3ff;
+        border-radius: 4px;
+        color: #0066cc;
+        font-size: 0.8rem;
+    }
+
+    @* /* Responsive */
+    @media (max-width: 768px) {
+        .structure-section,
+        .structure-task {
+            margin-left: 15px;
+        }
+
+        .structure-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+
+        .structure-actions {
+            flex-direction: column;
+        } *@
+    }
+</style>
+
+<script>
+    function toggleSection(element) {
+        const header = element;
+        const item = header.closest('.structure-item');
+        const children = item.querySelector('.structure-children');
+
+        if (!children) return; // No children to toggle
+
+        const isExpanded = children.style.display !== 'none';
+
+        if (isExpanded) {
+            children.style.display = 'none';
+            header.classList.remove('expanded');
+        } else {
+            children.style.display = 'block';
+            header.classList.add('expanded');
+        }
+    }
+
+    function toggleStatusDropdown(event, taskId) {
+        event.stopPropagation();
+
+        // Close all other dropdowns
+        document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
+            if (menu.id !== `statusDropdown_${taskId}`) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Toggle current dropdown
+        const dropdown = document.getElementById(`statusDropdown_${taskId}`);
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.status-dropdown-container')) {
+            document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+    });
+
+    // Prevent dropdown from closing when clicking inside
+    document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
+        menu.addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    });
+</script>

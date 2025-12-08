@@ -41,6 +41,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         [BindProperty(SupportsGet = true)]
         public bool showCompleted { get; set; } = default!;
 
+
+
         public bool ScheduleAlreadyExists { get; set; } = false;
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -93,6 +95,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         }
                     }
                 }
+
+                ViewData["AllStates"] = await _context.State.ToListAsync();
+
                 await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
                 return Page();
             }
@@ -126,5 +131,16 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
+        public async Task<IActionResult> OnPostUpdateTaskStateAsync(string taskId, string stateId, string projectId)
+        {
+            var task = await _context.ProjectTask.FindAsync(taskId);
+            if (task != null)
+            {
+                task.StateId = stateId;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToPage(new { id = projectId });
+        }
     }
 }

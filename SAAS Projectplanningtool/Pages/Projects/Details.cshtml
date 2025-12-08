@@ -351,15 +351,6 @@
                 <div class="card-header">
                     <h2><i class="fas fa-sitemap me-2"></i>Projektstruktur</h2>
                     <div class="card-actions">
-                        <!-- Wenn bereits das initiale Budget geplant wurde-->
-                        @* @if (Model.Project?.ProjectBudget?.InitialBudget != null)
-                        {
-                            <button type="button" class="btn btn-outline-secondary btn-sm">
-                                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
-                                    <i class="fas fa-calendar me-1"></i>Terminplanung
-                                </a>
-                            </button>
-                        } *@
                         <button type="button"
                                 class="btn btn-outline-secondary btn-sm @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")"
                                 @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")
@@ -385,19 +376,39 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <!-- Gantt Chart Area -->
-                    <div id="gantt-container">
-                        <div class="gantt-header">
-                            <div class="task-name-header">Aufgabe</div>
-                            <div class="task-duration-header">Dauer</div>
-                            <div class="task-start-header">Start</div>
-                            <div class="task-end-header">Ende</div>
-                            <div class="task-actions-header">Aktionen</div>
+                    @if (Model.Project?.ProjectSections != null && Model.Project.ProjectSections.Any())
+                    {
+                        <div class="project-structure-tree">
+                            <!-- Project Root -->
+                            <div class="structure-item structure-project">
+                                <div class="structure-header">
+                                    <div class="structure-toggle">
+                                        <i class="fas fa-project-diagram"></i>
+                                    </div>
+                                    <div class="structure-content">
+                                        <span class="structure-name">@Model.Project.ProjectName</span>
+                                        <span class="structure-meta">@Model.Project.ProjectSections.Count Section(s)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Project Sections -->
+                            @foreach (var section in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
+                            {
+                                @await Html.PartialAsync("~/Pages/Projects/PartialViews/_ProjectSectionTreeItem.cshtml", section)
+                            }
                         </div>
-                        <div id="task-list-body" class="gantt-task-list-body">
-                            <!-- Tasks will be populated here -->
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+                            <p class="text-muted">Noch keine Projektstruktur vorhanden</p>
+                            <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
+                                <i class="fas fa-plus me-2"></i>Ersten Abschnitt hinzufügen
+                            </button>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
         </section>
