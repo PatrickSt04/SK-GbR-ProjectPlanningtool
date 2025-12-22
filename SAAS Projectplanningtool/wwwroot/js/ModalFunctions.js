@@ -106,6 +106,16 @@
             var m = el('addTaskModal');
             if (m) new bootstrap.Modal(m).show();
         };
+
+        ns.showAddMileStoneModal = function () {
+            //if (sectionId) {
+            //    var sel = el('MilestoneSectionSelect');
+            //    if (sel) sel.value = sectionId;
+            //}
+            var m = el('addMilestoneModal');
+            if (m) new bootstrap.Modal(m).show();
+        }
+
         ns.showAddTaskCatalogModal = function (projectId) {
             if (projectId) {
                 var sel = el('projectId');
@@ -187,6 +197,7 @@
             if (typeof window.deleteItem === 'undefined') window.deleteItem = ns.deleteItem;
             if (typeof window.showAddItemModal === 'undefined') window.showAddItemModal = ns.showAddItemModal;
             if (typeof window.showAddTaskCatalogModal === 'undefined') window.showAddTaskCatalogModal = ns.showAddTaskCatalogModal;
+            if (typeof window.showAddMileStoneModal === 'undefined') window.showAddMileStoneModal = ns.showAddMileStoneModal;
         } catch (e) { /* ignore */ }
 
         // optional debug helper

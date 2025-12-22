@@ -31,6 +31,8 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public ICollection<ProjectSection>? SubSections { get; set; } = new List<ProjectSection>();
         public ICollection<ProjectTask>? ProjectTasks { get; set; } = new List<ProjectTask>();
 
+        public ICollection<ProjectSectionMilestone>? ProjectSectionMilestones { get; set; } = new List<ProjectSectionMilestone>();
+
         public string? StateId { get; set; }
         [ForeignKey(nameof(StateId))]
         public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }

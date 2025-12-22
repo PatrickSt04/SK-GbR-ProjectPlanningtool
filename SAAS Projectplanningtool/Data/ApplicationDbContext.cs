@@ -30,6 +30,7 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.BudgetRecalculation> BudgetRecalculation { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskFixCosts> ProjectTaskFixCosts { get; set; } = default!;
 
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSectionMilestone> ProjectSectionMilestone { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskCatalogTask> ProjectTaskCatalogTask { get; set; } = default!;
 
 

@@ -306,6 +306,48 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateSubSectionAsync>End");
         }
+
+        public async Task<IActionResult> OnPostCreateMileStoneAsync(string sectionId, string Name, DateOnly Date)
+        {
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateMileStoneAsync>Begin");
+            try
+            {
+                var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                var milestone = new ProjectSectionMilestone
+                {
+                    CompanyId = excecutingUser.CompanyId,
+                    MilestoneName = Name,
+                    Date = Date,
+                    ProjectSectionId = sectionId
+                };
+                milestone = await _customObjectModifier.AddLatestModificationAsync(User, "Meilenstein angelegt", milestone, true);
+                await _context.ProjectSectionMilestone.AddAsync(milestone);
+                await _context.SaveChangesAsync();
+
+
+                var section = await _context.ProjectSection.FirstOrDefaultAsync(ps => ps.ProjectSectionId == sectionId);
+                if (section != null)
+                {
+                    var milestones = section.ProjectSectionMilestones;
+                    if (milestones == null)
+                    {
+                        milestones = new List<ProjectSectionMilestone>();
+                    }
+                    milestones.Add(milestone);
+                    section.ProjectSectionMilestones = milestones;
+                    _context.ProjectSection.Update(section);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
+            }
+
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateMileStoneAsync>End");
+            return RedirectToPage(new { id = Project.ProjectId });
+        }
+
         public async Task<IActionResult> OnPostDeleteSelectedAsync(string? objectJson)
         {
             try
@@ -484,6 +526,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             TempData.SetMessage("Success", "Aufgabe erfolgreich gelöscht.");
             return null;
         }
+
+
         private async Task<IActionResult?> HandleDeleteTaskCatalogTask(JsonElement data)
         {
             var taskId = data.GetProperty("itemId").GetString();
@@ -513,7 +557,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     return RedirectToPage(new { id = Project.ProjectId });
                 }
             }
-            
+
             var tfc = await _context.ProjectTaskFixCosts.Where(hrg => hrg.TaskId == taskId).FirstOrDefaultAsync();
 
             if (tfc != null)
@@ -523,7 +567,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
 
             _context.ProjectTaskCatalogTask.Remove(task);
-            
+
             await _context.SaveChangesAsync();
             TempData.SetMessage("Success", "Aufgabe erfolgreich gelöscht.");
             return null;

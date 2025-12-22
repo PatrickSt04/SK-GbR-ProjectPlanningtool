@@ -429,6 +429,11 @@
                             <i class="fas fa-tasks"></i>
                             Aufgabe hinzufügen
                         </button>
+                        <button type="button" class="action-btn secondary" onclick="showAddMileStoneModal()">
+                            <i class="fas fa-tasks"></i>
+                            Meilenstein hinzufügen
+                        </button>
+
                         <a asp-page="Edit" asp-route-id="@Model.Project.ProjectId" class="action-btn secondary">
                             <i class="fas fa-edit"></i>
                             Projekt bearbeiten
@@ -461,6 +466,7 @@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskCatalogTaskModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskCatalogModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "TaskCatalog" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", (ProjectHandlerPageModel)Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionMileStone.cshtml", (ProjectHandlerPageModel)Model)
 
 @section Styles {
     <style>
