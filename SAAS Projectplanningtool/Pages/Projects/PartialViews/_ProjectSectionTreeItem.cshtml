@@ -31,7 +31,7 @@
         {
             @foreach (var subSection in Model.SubSections)
             {
-                @await Html.PartialAsync("_ProjectSectionTreeItem", subSection)
+                @await Html.PartialAsync("~/Pages/Projects/PartialViews/_ProjectSectionTreeItem.cshtml", subSection)
             }
         }
 
@@ -82,8 +82,6 @@
 
                                 <!-- Status Dropdown Menu -->
                                 <div class="status-dropdown-menu" id="statusDropdown_@task.ProjectTaskId" style="display: none;">
-                                    @* You'll need to pass available states to this partial *@
-                                    @* For now, using common states - you should inject actual states from your DB *@
                                     @{
                                         var availableStates = ViewData["AllStates"] as IEnumerable<SAAS_Projectplanningtool.Models.IndependentTables.State>;
                                         if (availableStates != null)
@@ -125,275 +123,9 @@
     </div>
 </div>
 
-<style>
-    /* Project Structure Styles */
-    .project-structure-tree {
-        padding: 10px 0;
-    }
+<div class="dropdown-backdrop"></div>
 
-    .structure-item {
-        margin: 5px 0;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-
-    .structure-header {
-        display: flex;
-        align-items: center;
-        padding: 12px 15px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .structure-item:hover > .structure-header {
-        background-color: #f8f9fa;
-    }
-
-    .structure-toggle {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-right: 12px;
-        color: #6c757d;
-    }
-
-    .toggle-icon {
-        transition: transform 0.2s ease;
-        font-size: 0.8rem;
-    }
-
-    .structure-header.expanded .toggle-icon {
-        transform: rotate(90deg);
-    }
-
-    .structure-toggle i:not(.toggle-icon) {
-        font-size: 1.1rem;
-    }
-
-    .structure-content {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .structure-name {
-        font-weight: 500;
-        color: #333;
-        font-size: 1rem;
-    }
-
-    .structure-meta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
-
-        .structure-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-    .structure-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-left: auto;
-    }
-
-    /* Different levels styling */
-    .structure-project {
-        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-        border: 2px solid #667eea40;
-        margin-bottom: 20px;
-    }
-
-        .structure-project .structure-header {
-            cursor: default;
-        }
-
-        .structure-project .structure-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #667eea;
-        }
-
-        .structure-project .structure-toggle i {
-            color: #667eea;
-            font-size: 1.3rem;
-        }
-
-    .structure-section {
-        border-left: 3px solid #dee2e6;
-        margin-left: 30px;
-    }
-
-        .structure-section .structure-toggle i:not(.toggle-icon) {
-            color: #ffc107;
-        }
-
-    .structure-task {
-        border-left: 3px solid #e9ecef;
-        margin-left: 30px;
-        background-color: #ffffff;
-    }
-
-        .structure-task .structure-header {
-            cursor: default;
-        }
-
-        .structure-task .structure-toggle i {
-            color: #28a745;
-        }
-
-    .structure-children {
-        padding-left: 0;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    /* Status Badge Button */
-    .status-badge-button {
-        border: none;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: white;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        white-space: nowrap;
-    }
-
-        .status-badge-button:hover {
-            opacity: 0.8;
-            transform: translateY(-1px);
-        }
-
-    .status-badge-empty {
-        background-color: #6c757d;
-        color: white;
-    }
-
-    /* Status Dropdown */
-    .status-dropdown-container {
-        position: relative;
-    }
-
-    .status-dropdown-menu {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        margin-top: 5px;
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        min-width: 200px;
-        z-index: 1000;
-        overflow: hidden;
-    }
-
-    .status-dropdown-item-form {
-        margin: 0;
-    }
-
-    .status-dropdown-item {
-        width: 100%;
-        padding: 10px 15px;
-        border: none;
-        background: white;
-        text-align: left;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.9rem;
-        color: #333;
-    }
-
-        .status-dropdown-item:hover {
-            background-color: #f8f9fa;
-        }
-
-    .status-color-indicator {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
-
-    /* Icon Button */
-    .btn-icon {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
-        background: white;
-        color: #6c757d;
-        transition: all 0.2s ease;
-    }
-
-        .btn-icon:hover {
-            background: #f8f9fa;
-            color: #495057;
-            border-color: #adb5bd;
-        }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-    }
-
-        .empty-state i {
-            opacity: 0.3;
-        }
-
-        .empty-state p {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-
-    /* Task Dates */
-    .task-dates {
-        padding: 4px 8px;
-        background: #e7f3ff;
-        border-radius: 4px;
-        color: #0066cc;
-        font-size: 0.8rem;
-    }
-
-    @* /* Responsive */
-    @media (max-width: 768px) {
-        .structure-section,
-        .structure-task {
-            margin-left: 15px;
-        }
-
-        .structure-meta {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 5px;
-        }
-
-        .structure-actions {
-            flex-direction: column;
-        } *@
-    }
-</style>
+<link rel="stylesheet" href="~/css/ProjectStructureTreeItem.css" />
 
 <script>
     function toggleSection(element) {
@@ -401,7 +133,7 @@
         const item = header.closest('.structure-item');
         const children = item.querySelector('.structure-children');
 
-        if (!children) return; // No children to toggle
+        if (!children) return;
 
         const isExpanded = children.style.display !== 'none';
 
@@ -417,19 +149,80 @@
     function toggleStatusDropdown(event, taskId) {
         event.stopPropagation();
 
-        // Close all other dropdowns
+        const button = event.currentTarget;
+        const dropdown = document.getElementById(`statusDropdown_${taskId}`);
+
+        // Schließe alle anderen Dropdowns
         document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
             if (menu.id !== `statusDropdown_${taskId}`) {
                 menu.style.display = 'none';
             }
         });
 
-        // Toggle current dropdown
-        const dropdown = document.getElementById(`statusDropdown_${taskId}`);
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        // Toggle aktuelles Dropdown
+        const isCurrentlyOpen = dropdown.style.display === 'block';
+
+        if (isCurrentlyOpen) {
+            dropdown.style.display = 'none';
+
+
+        } else {
+            dropdown.style.display = 'block';
+
+            // Position berechnen und setzen
+            setTimeout(() => {
+                positionDropdown(button, dropdown);
+            }, 0);
+        }
     }
 
-    // Close dropdowns when clicking outside
+    function positionDropdown(button, dropdown) {
+        const buttonRect = button.getBoundingClientRect();
+        const dropdownHeight = dropdown.offsetHeight;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Horizontale Positionierung (rechts vom Button ausgerichtet)
+        let left = buttonRect.right - dropdown.offsetWidth;
+
+        // Falls zu weit links, dann am linken Rand des Buttons ausrichten
+        if (left < 10) {
+            left = buttonRect.left;
+        }
+
+        // Falls immer noch zu weit rechts
+        if (left + dropdown.offsetWidth > viewportWidth - 10) {
+            left = viewportWidth - dropdown.offsetWidth - 10;
+        }
+
+        // Vertikale Positionierung
+        const spaceBelow = viewportHeight - buttonRect.bottom;
+        const spaceAbove = buttonRect.top;
+
+        let top;
+
+        if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+            // Platz unten oder mehr Platz unten als oben
+            top = buttonRect.bottom + 5;
+        } else {
+            // Mehr Platz oben
+            top = buttonRect.top - dropdownHeight - 5;
+        }
+
+        // Falls Dropdown über Viewport hinausgeht, anpassen
+        if (top + dropdownHeight > viewportHeight - 10) {
+            top = viewportHeight - dropdownHeight - 10;
+        }
+
+        if (top < 10) {
+            top = 10;
+        }
+
+        dropdown.style.left = left + 'px';
+        dropdown.style.top = top + 'px';
+    }
+
+    // Schließe Dropdowns beim Klicken außerhalb
     document.addEventListener('click', function(event) {
         if (!event.target.closest('.status-dropdown-container')) {
             document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
@@ -438,10 +231,41 @@
         }
     });
 
-    // Prevent dropdown from closing when clicking inside
-    document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
-        menu.addEventListener('click', function(event) {
-            event.stopPropagation();
+    // Verhindere Schließen beim Klicken innerhalb
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
+            menu.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+    });
+
+    // Repositioniere Dropdowns beim Scrollen oder Fenster-Resize
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(function() {
+            document.querySelectorAll('.status-dropdown-menu').forEach(dropdown => {
+                if (dropdown.style.display === 'block') {
+                    const taskId = dropdown.id.replace('statusDropdown_', '');
+                    const button = document.querySelector(`button[onclick*="'${taskId}'"]`);
+                    if (button) {
+                        positionDropdown(button, dropdown);
+                    }
+                }
+            });
+        }, 10);
+    }, true);
+
+    window.addEventListener('resize', function() {
+        document.querySelectorAll('.status-dropdown-menu').forEach(dropdown => {
+            if (dropdown.style.display === 'block') {
+                const taskId = dropdown.id.replace('statusDropdown_', '');
+                const button = document.querySelector(`button[onclick*="'${taskId}'"]`);
+                if (button) {
+                    positionDropdown(button, dropdown);
+                }
+            }
         });
     });
 </script>

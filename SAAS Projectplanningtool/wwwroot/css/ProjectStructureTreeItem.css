@@ -1,0 +1,315 @@
+﻿/* Project Structure Styles */
+.project-structure-tree {
+    padding: 10px 0;
+    position: relative;
+}
+
+.structure-item {
+    margin: 5px 0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: visible;
+}
+
+.structure-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.structure-item:hover > .structure-header {
+    background-color: #f8f9fa;
+}
+
+.structure-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 12px;
+    color: #6c757d;
+}
+
+.toggle-icon {
+    transition: transform 0.2s ease;
+    font-size: 0.8rem;
+}
+
+.structure-header.expanded .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.structure-toggle i:not(.toggle-icon) {
+    font-size: 1.1rem;
+}
+
+.structure-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.structure-name {
+    font-weight: 500;
+    color: #333;
+    font-size: 1rem;
+}
+
+.structure-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+    .structure-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+.structure-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    position: relative;
+    z-index: 2;
+}
+
+/* Different levels styling */
+.structure-project {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border: 2px solid #667eea40;
+    margin-bottom: 20px;
+}
+
+    .structure-project .structure-header {
+        cursor: default;
+    }
+
+    .structure-project .structure-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .structure-project .structure-toggle i {
+        color: #667eea;
+        font-size: 1.3rem;
+    }
+
+.structure-section {
+    border-left: 3px solid #dee2e6;
+    margin-left: 30px;
+}
+
+    .structure-section .structure-toggle i:not(.toggle-icon) {
+        color: #ffc107;
+    }
+
+.structure-task {
+    border-left: 3px solid #e9ecef;
+    margin-left: 30px;
+    background-color: #ffffff;
+}
+
+    .structure-task .structure-header {
+        cursor: default;
+    }
+
+    .structure-task .structure-toggle i {
+        color: #28a745;
+    }
+
+.structure-children {
+    padding-left: 0;
+    overflow: visible;
+    transition: max-height 0.3s ease;
+}
+
+/* Status Badge Button */
+.status-badge-button {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 2;
+    white-space: nowrap;
+}
+
+    .status-badge-button:hover {
+        opacity: 0.8;
+        transform: translateY(-1px);
+    }
+
+.status-badge-empty {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Status Dropdown Container */
+.status-dropdown-container {
+    position: relative;
+    z-index: 3;
+}
+
+/* Overlay für Hintergrund beim geöffneten Dropdown */
+.dropdown-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 4;
+    display: none;
+}
+
+    .dropdown-backdrop.active {
+        display: block;
+    }
+
+/* Status Dropdown Menu */
+.status-dropdown-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    min-width: 220px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 5;
+    margin: 0;
+}
+
+    .status-dropdown-menu::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .status-dropdown-menu::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .status-dropdown-menu::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+        .status-dropdown-menu::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+.status-dropdown-item-form {
+    margin: 0;
+}
+
+.status-dropdown-item {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #333;
+    z-index: 6;
+}
+
+    .status-dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status-dropdown-item:active {
+        background-color: #e9ecef;
+    }
+
+.status-color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Icon Button */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+    .btn-icon:hover {
+        background: #f8f9fa;
+        color: #495057;
+        border-color: #adb5bd;
+    }
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+    .empty-state i {
+        opacity: 0.3;
+    }
+
+    .empty-state p {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+
+/* Task Dates */
+.task-dates {
+    padding: 4px 8px;
+    background: #e7f3ff;
+    border-radius: 4px;
+    color: #0066cc;
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .structure-section,
+    .structure-task {
+        margin-left: 15px;
+    }
+
+    .structure-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .structure-actions {
+        flex-direction: column;
+    }
+}
