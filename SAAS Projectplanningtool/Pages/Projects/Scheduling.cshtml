@@ -5,591 +5,1318 @@
     ViewData["Title"] = "Projektterminplanung - " + Model.Project?.ProjectName;
 }
 
-<div class="container-fluid">
-    <div class="row mb-3">
-        <div class="col">
-            <h2>@ViewData["Title"]</h2>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-page="./Index">Projekte</a></li>
-                    <li class="breadcrumb-item active">Terminplanung</li>
-                </ol>
-            </nav>
-        </div>
+
+@* @if (TempData["Message"] is SAAS_Projectplanningtool.Models.ResultMessage message)
+{
+    <div class="alert alert-@message.Type.ToLower() alert-dismissible fade show" role="alert">
+        @message.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <!--  Feedbackhandling (should only be displayed for certain amount of seconds)-->
-    @{
-        var message = TempData.GetMessage();
-    }
-    @if (message != null)
-    {
-        <div class="alert alert-@message.Type.ToLower()" id="feedback-message">
-            @message.Message
-        </div>
+} *@
 
-        <script>
-            setTimeout(function () {
-                var msg = document.getElementById('feedback-message');
-                if (msg) {
-                    msg.style.transition = "opacity 0.5s ease";
-                    msg.style.opacity = 0;
-                    setTimeout(() => msg.remove(), 500); // Remove after fade
+<style>
+    /* ===== Page Container ===== */
+    .scheduling-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* ===== Header Section ===== */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .page-header .project-meta {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+        .header-actions .btn {
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 500;
+        }
+
+    /* ===== Cards ===== */
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+
+    .card-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+        .card-header h5 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+    .card-body {
+        padding: 0;
+    }
+
+    /* ===== Time Scale Buttons ===== */
+    .time-scale-buttons .btn {
+        min-width: 80px;
+    }
+
+        .time-scale-buttons .btn.active {
+            background-color: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+    /* ===== Gantt Container ===== */
+    .gantt-container {
+        display: flex;
+        overflow: hidden;
+        min-height: 400px;
+    }
+
+    /* ===== Task List (Left Panel) ===== */
+    .gantt-task-list {
+        min-width: 500px;
+        max-width: 500px;
+        border-right: 2px solid #dee2e6;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+    }
+
+    .gantt-task-header {
+        display: grid;
+        grid-template-columns: 200px 70px 85px 85px 60px;
+        background: #e9ecef;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+        .gantt-task-header > div {
+            padding: 12px 8px;
+            border-right: 1px solid #dee2e6;
+        }
+
+            .gantt-task-header > div:last-child {
+                border-right: none;
+            }
+
+    .gantt-task-body {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    /* ===== Task Row Styles ===== */
+    .gantt-row {
+        display: grid;
+        grid-template-columns: 200px 70px 85px 85px 60px;
+        border-bottom: 1px solid #eee;
+        align-items: center;
+        min-height: 40px;
+        transition: background 0.2s;
+    }
+
+        .gantt-row:hover {
+            background: #f8f9fa;
+        }
+
+        .gantt-row > div {
+            padding: 8px;
+            font-size: 0.85rem;
+            border-right: 1px solid #eee;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+            .gantt-row > div:last-child {
+                border-right: none;
+            }
+
+        /* Section Row */
+        .gantt-row.section-row {
+            background: #e3f2fd;
+            font-weight: 600;
+        }
+
+            .gantt-row.section-row:hover {
+                background: #bbdefb;
+            }
+
+        /* SubSection Row */
+        .gantt-row.subsection-row {
+            background: #f3e5f5;
+        }
+
+            .gantt-row.subsection-row:hover {
+                background: #e1bee7;
+            }
+
+        /* Task Row */
+        .gantt-row.task-row {
+            background: #fff;
+        }
+
+    /* Row Name with Indentation */
+    .row-name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .row-name .caret {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+            .row-name .caret:hover {
+                background: rgba(0,0,0,0.1);
+            }
+
+            .row-name .caret.collapsed i {
+                transform: rotate(-90deg);
+            }
+
+        .row-name i {
+            transition: transform 0.2s;
+        }
+
+        .row-name .icon {
+            flex-shrink: 0;
+        }
+
+        .row-name .text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .indent-1 {
+        padding-left: 20px !important;
+    }
+
+    .indent-2 {
+        padding-left: 40px !important;
+    }
+
+    .indent-3 {
+        padding-left: 60px !important;
+    }
+
+    .indent-4 {
+        padding-left: 80px !important;
+    }
+
+    /* Row Actions */
+    .row-actions {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+    }
+
+        .row-actions .btn {
+            padding: 2px 6px;
+            font-size: 0.75rem;
+        }
+
+    /* ===== Timeline (Right Panel) ===== */
+    .gantt-timeline {
+        flex: 1;
+        overflow-x: auto;
+        overflow-y: hidden;
+        display: flex;
+        flex-direction: column;
+        background: #fafafa;
+    }
+
+    .gantt-timeline-header {
+        display: flex;
+        background: #e9ecef;
+        border-bottom: 2px solid #dee2e6;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .timeline-cell {
+        min-width: var(--cell-width, 40px);
+        max-width: var(--cell-width, 40px);
+        text-align: center;
+        font-size: 0.75rem;
+        padding: 8px 2px;
+        border-right: 1px solid #dee2e6;
+        color: #495057;
+        font-weight: 500;
+    }
+
+        .timeline-cell.weekend {
+            background: #f0f0f0;
+        }
+
+        .timeline-cell.today {
+            background: #e3f2fd;
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+    .gantt-timeline-body {
+        flex: 1;
+        position: relative;
+    }
+
+    .timeline-row {
+        display: flex;
+        min-height: 40px;
+        border-bottom: 1px solid #eee;
+        position: relative;
+    }
+
+        .timeline-row.section-row {
+            background: rgba(227, 242, 253, 0.5);
+        }
+
+        .timeline-row.subsection-row {
+            background: rgba(243, 229, 245, 0.5);
+        }
+
+    .timeline-grid-cell {
+        min-width: var(--cell-width, 40px);
+        max-width: var(--cell-width, 40px);
+        border-right: 1px solid #eee;
+        height: 100%;
+    }
+
+        .timeline-grid-cell.weekend {
+            background: rgba(0,0,0,0.03);
+        }
+
+    /* ===== Gantt Bars ===== */
+    .gantt-bar {
+        position: absolute;
+        height: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        font-size: 0.75rem;
+        color: white;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 5;
+    }
+
+        .gantt-bar:hover {
+            transform: translateY(-50%) scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .gantt-bar.task-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gantt-bar.section-bar {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .gantt-bar.subsection-bar {
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+            height: 8px;
+            border-radius: 4px;
+        }
+
+    /* ===== Today Marker ===== */
+    .today-marker {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #f44336;
+        z-index: 20;
+        pointer-events: none;
+    }
+
+        .today-marker::before {
+            content: 'Heute';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f44336;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h4 {
+            margin-bottom: 10px;
+        }
+
+    /* ===== Quick Add Section ===== */
+    .quick-add-section {
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .quick-add-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+        .quick-add-form input,
+        .quick-add-form select {
+            border-radius: 6px;
+        }
+
+    /* ===== Collapsed Rows ===== */
+    .gantt-row.collapsed-child,
+    .timeline-row.collapsed-child {
+        display: none !important;
+    }
+
+    /* ===== Responsive ===== */
+    @@media (max-width: 992px) {
+        .gantt-task-list {
+            min-width: 400px;
+            max-width: 400px;
+        }
+
+        .gantt-task-header,
+        .gantt-row {
+            grid-template-columns: 150px 60px 70px 70px 50px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .page-header {
+            padding: 20px;
+        }
+
+            .page-header h1 {
+                font-size: 1.4rem;
+            }
+
+        .gantt-task-list {
+            min-width: 280px;
+            max-width: 280px;
+        }
+
+        .gantt-task-header,
+        .gantt-row {
+            grid-template-columns: 130px 50px 50px;
+        }
+
+            .gantt-task-header > div:nth-child(4),
+            .gantt-task-header > div:nth-child(5),
+            .gantt-row > div:nth-child(4),
+            .gantt-row > div:nth-child(5) {
+                display: none;
+            }
+    }
+</style>
+
+<div class="scheduling-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1><i class="fas fa-calendar-alt me-2"></i>Terminplan</h1>
+            <div class="project-meta">
+                <span><i class="fas fa-folder me-1"></i>@Model.Project?.ProjectName</span>
+                @if (Model.Project?.StartDate != null && Model.Project?.EndDate != null)
+                {
+                    <span><i class="fas fa-clock me-1"></i>@Model.Project.StartDate?.ToString("dd.MM.yyyy") - @Model.Project.EndDate?.ToString("dd.MM.yyyy")</span>
                 }
-            }, 3000); // Display for 3 seconds
-        </script>
-    }
-
-    <!-- Toolbar -->
-    <div class="row mb-3">
-        <div class="col">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
-                    <i class="fas fa-plus"></i> Abschnitt hinzufügen
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="showAddTaskModal()">
-                    <i class="fas fa-tasks"></i> Aufgabe hinzufügen
-                </button>
-                <button type="button" class="btn btn-info" onclick="toggleViewMode()">
-                    <i class="fas fa-eye"></i> Ansicht wechseln
-                </button>
-                <button type="button" class="btn btn-warning" onclick="zoomToFit()">
-                    <i class="fas fa-search"></i> Anpassen
-                </button>
             </div>
         </div>
+        <div class="header-actions">
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addSectionModal">
+                <i class="fas fa-folder-plus me-1"></i>Abschnitt
+            </button>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                <i class="fas fa-plus me-1"></i>Aufgabe
+            </button>
+            <a href="/Projects/Details/@Model.Project?.ProjectId" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-1"></i>Zurück
+            </a>
+        </div>
     </div>
 
-    <!-- Gantt Chart Container -->
-    <div class="row">
-        <div class="col">
-            <div class="card" style="margin-bottom:80px;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Gantt-Diagramm</h5>
-                    <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-secondary" onclick="changeTimeScale('day')">Tag</button>
-                        <button type="button" class="btn btn-outline-secondary active" onclick="changeTimeScale('week')">Woche</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="changeTimeScale('month')">Monat</button>
-                    </div>
+    <!-- Gantt Chart Card -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-chart-gantt me-2"></i>Gantt-Diagramm</h5>
+            <div class="d-flex gap-3 align-items-center flex-wrap">
+                <!-- Navigation Buttons -->
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-secondary" onclick="navigateTimeline(-1)" title="Zurück">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="scrollToToday()" title="Heute">
+                        <i class="fas fa-crosshairs"></i> Heute
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="navigateTimeline(1)" title="Vorwärts">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-                <div class="card-body p-0">
-                    @* <div id="gantt-container" style="height: 600px; overflow: hidden;"> *@
-                    <div id="gantt-container">
-                        <div class="gantt-wrapper">
-                            <!-- Task List Panel -->
-                            <div class="gantt-task-list">
-                                <div class="gantt-header">
-                                    <div class="task-name-header">Aufgabe</div>
-                                    <div class="task-duration-header">Dauer</div>
-                                    <div class="task-start-header">Start</div>
-                                    <div class="task-end-header">Ende</div>
-                                    <div class="task-actions-header">Aktionen</div>
-                                </div>
-                                <div id="task-list-body" class="gantt-task-list-body">
-                                    <!-- Tasks will be populated here -->
-                                </div>
-                            </div>
+                <!-- Time Scale Buttons -->
+                <div class="btn-group btn-group-sm time-scale-buttons">
+                    <button type="button" class="btn btn-outline-secondary" data-scale="day" onclick="changeTimeScale('day')">Tag</button>
+                    <button type="button" class="btn btn-outline-secondary" data-scale="week" onclick="changeTimeScale('week')">KW</button>
+                    <button type="button" class="btn btn-outline-secondary" data-scale="month" onclick="changeTimeScale('month')">Monat</button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            @if (Model.Project?.ProjectSections == null || !Model.Project.ProjectSections.Any())
+            {
+                <div class="empty-state">
+                    <i class="fas fa-calendar-plus"></i>
+                    <h4>Noch keine Abschnitte vorhanden</h4>
+                    <p>Erstellen Sie einen neuen Abschnitt, um mit der Terminplanung zu beginnen.</p>
+                    <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addSectionModal">
+                        <i class="fas fa-folder-plus me-1"></i>Ersten Abschnitt erstellen
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="gantt-container" id="ganttContainer">
+                    <!-- Task List Panel -->
+                    <div class="gantt-task-list">
+                        <div class="gantt-task-header">
+                            <div>Aufgabe</div>
+                            <div>Dauer</div>
+                            <div>Start</div>
+                            <div>Ende</div>
+                            <div>Akt.</div>
+                        </div>
+                        <div class="gantt-task-body" id="taskListBody">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
 
-                            <!-- Timeline Panel -->
-                            <div class="gantt-timeline">
-                                <div id="timeline-header" class="gantt-timeline-header">
-                                    <!-- Timeline header will be generated -->
-                                </div>
-                                <div id="timeline-body" class="gantt-timeline-body">
-                                    <!-- Timeline bars will be generated -->
-                                </div>
-                            </div>
+                    <!-- Timeline Panel -->
+                    <div class="gantt-timeline" id="ganttTimeline">
+                        <div class="gantt-timeline-header" id="timelineHeader">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                        <div class="gantt-timeline-body" id="timelineBody">
+                            <!-- Will be populated by JavaScript -->
+                            <div class="today-marker" id="todayMarker" style="display: none;"></div>
                         </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </div>
 
-<!-- Add Partial Modals for ProjectHandling -->
-@await Html.PartialAsync("~/Pages/Projects/Modals/_AddSubSectionModal.cshtml", Model)
+<!-- Partial Modals -->
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionModal.cshtml", Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_AddSubSectionModal.cshtml", Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddItemModal.cshtml", Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
-<!-- Hier ViewData Context, da Modal je nach Aufrufpage unterschiedlich aufgebaut ist-->
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "Scheduling" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", Model)
+
 <script>
-
-    document.addEventListener('click', e => {
-        if (e.target.classList.contains('caret')) {
-            e.stopPropagation();                    // keine Zeilen-Clicks auslösen
-            toggleCollapse(e.target.dataset.id);
-        }
-    });
-
-    const collapsed = new Map();
-
+    // ===== Project Data =====
     const projectData = {
         project: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
         {
-                        Id = Model.Project?.ProjectId,
-                        Name = Model.Project?.ProjectName,
-                        StartDate = Model.Project?.StartDate?.ToString("yyyy-MM-dd"),
-                        EndDate = Model.Project?.EndDate?.ToString("yyyy-MM-dd"),
-                        Sections = Model.Project?.ProjectSections?.Where(s => s.ParentSectionId == null).Select(s => new
-                        {
-                                        Id = s.ProjectSectionId,
-                                        Name = s.ProjectSectionName,
-                                        Type = "section",
-                                        SubSections = s.SubSections?.Select(sub => new
-                                        {
-                                                        Id = sub.ProjectSectionId,
-                                                        Name = sub.ProjectSectionName,
-                                                        Type = "subsection",
-                                                        Tasks = sub.ProjectTasks?.Select(t => new
-                                                        {
-                                                                        Id = t.ProjectTaskId,
-                                                                        Name = t.ProjectTaskName,
-                                                                        StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                                                                        EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                                                                        Type = "task"
-                                                        })
-                                        }),
-                                        Tasks = s.ProjectTasks?.Select(t => new
-                                        {
-                                                        Id = t.ProjectTaskId,
-                                                        Name = t.ProjectTaskName,
-                                                        StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
-                                                        EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
-                                                        Type = "task"
-                                        })
-                        })
-        }))
+            Id = Model.Project?.ProjectId,
+            Name = Model.Project?.ProjectName,
+            StartDate = Model.Project?.StartDate?.ToString("yyyy-MM-dd"),
+            EndDate = Model.Project?.EndDate?.ToString("yyyy-MM-dd")
+        })),
+        sections: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.Project?.ProjectSections?.Where(s => s.ParentSectionId == null)
+           .OrderBy(s => s.ProjectSectionName)
+           .Select(s => new
+           {
+               Id = s.ProjectSectionId,
+               Name = s.ProjectSectionName,
+               Type = "section",
+               SubSections = GetSubSectionsRecursive(s),
+               Tasks = s.ProjectTasks?.OrderBy(t => t.ProjectTaskName).Select(t => new
+               {
+                   Id = t.ProjectTaskId,
+                   Name = t.ProjectTaskName,
+                   StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                   EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                   Type = "task"
+               })
+           })
+        ))
     };
 
-    let currentTimeScale = 'week';
-    let ganttStartDate = new Date();
-    let ganttEndDate = new Date();
+    @functions {
+        private object GetSubSectionsRecursive(SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSection section)
+        {
+            return section.SubSections?.OrderBy(sub => sub.ProjectSectionName).Select(sub => new
+            {
+                Id = sub.ProjectSectionId,
+                Name = sub.ProjectSectionName,
+                Type = "subsection",
+                SubSections = GetSubSectionsRecursive(sub),
+                Tasks = sub.ProjectTasks?.OrderBy(t => t.ProjectTaskName).Select(t => new
+                {
+                    Id = t.ProjectTaskId,
+                    Name = t.ProjectTaskName,
+                    StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
+                    EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
+                    Type = "task"
+                })
+            });
+        }
+    }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        initializeGanttChart();
+    // ===== State =====
+    const STORAGE_KEY = 'gantt_time_scale_@Model.Project?.ProjectId';
+    let currentScale = localStorage.getItem(STORAGE_KEY) || 'week';
+    let collapsedSections = new Set();
+    let timelineStartDate = null;
+    let timelineEndDate = null;
+    let cellWidth = 40;
+
+    // ===== Initialize =====
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!projectData.sections || projectData.sections.length === 0) return;
+
+        // Set active button
+        document.querySelectorAll('.time-scale-buttons .btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.scale === currentScale);
+        });
+
+        calculateTimelineRange();
+        renderGantt();
+
+        // Scroll to today after rendering
+        setTimeout(() => scrollToToday(), 100);
     });
 
-    function preloadCollapse() {
-        function walk(node) {
-            if (node.Type !== 'task') {                  // nur Section/Subsection
-                collapsed.set(node.Id, true);         // ← als eingeklappt merken
-                if (node.SubSections) node.SubSections.forEach(walk);
-            }
-        }
-        projectData.project.Sections?.forEach(walk);
-    }
-
-    function initializeGanttChart() {
-        calculateDateRange();
-        preloadCollapse();
-        renderTaskList();
-        renderTimeline();
-    }
-
-    function calculateDateRange() {
+    // ===== Calculate Timeline Range =====
+    function calculateTimelineRange() {
+        let minDate = null;
+        let maxDate = null;
         const today = new Date();
-        ganttStartDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        ganttEndDate = new Date(today.getFullYear(), today.getMonth() + 6, 0);
+        today.setHours(0, 0, 0, 0);
 
-        // Adjust based on project dates if available
-        if (projectData.project.StartDate) {
-            const projectStart = new Date(projectData.project.StartDate);
-            if (projectStart < ganttStartDate) {
-                ganttStartDate = new Date(projectStart.getFullYear(), projectStart.getMonth(), 1);
-            }
+        function processItems(items, level = 0) {
+            if (!items) return;
+            items.forEach(item => {
+                if (item.StartDate) {
+                    const start = new Date(item.StartDate);
+                    if (!minDate || start < minDate) minDate = start;
+                }
+                if (item.EndDate) {
+                    const end = new Date(item.EndDate);
+                    if (!maxDate || end > maxDate) maxDate = end;
+                }
+                if (item.Tasks) processItems(item.Tasks, level + 1);
+                if (item.SubSections) processItems(item.SubSections, level + 1);
+            });
         }
 
-        if (projectData.project.EndDate) {
-            const projectEnd = new Date(projectData.project.EndDate);
-            if (projectEnd > ganttEndDate) {
-                ganttEndDate = new Date(projectEnd.getFullYear(), projectEnd.getMonth() + 1, 0);
-            }
+        processItems(projectData.sections);
+
+        // Use project dates as fallback
+        if (!minDate && projectData.project.StartDate) {
+            minDate = new Date(projectData.project.StartDate);
+        }
+        if (!maxDate && projectData.project.EndDate) {
+            maxDate = new Date(projectData.project.EndDate);
+        }
+
+        // Default to current month if no dates
+        if (!minDate) minDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (!maxDate) maxDate = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+
+        // Ensure today is always included in the range
+        if (today < minDate) minDate = new Date(today);
+        if (today > maxDate) maxDate = new Date(today);
+
+        // Add padding before and after
+        timelineStartDate = new Date(minDate);
+        timelineStartDate.setDate(timelineStartDate.getDate() - 14);
+        timelineEndDate = new Date(maxDate);
+        timelineEndDate.setDate(timelineEndDate.getDate() + 30);
+    }
+
+    // ===== Change Time Scale =====
+    function changeTimeScale(scale) {
+        currentScale = scale;
+        localStorage.setItem(STORAGE_KEY, scale);
+
+        document.querySelectorAll('.time-scale-buttons .btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.scale === scale);
+        });
+
+        renderGantt();
+    }
+
+    // ===== Get Cell Width based on Scale =====
+    function getCellWidth() {
+        switch (currentScale) {
+            case 'day': return 35;
+            case 'week': return 60;
+            case 'month': return 80;
+            default: return 40;
         }
     }
 
-    function isCollapsed(id) {
-        return collapsed.has(id) && collapsed.get(id);   // true | false
+    // ===== Generate Timeline Units =====
+    function generateTimelineUnits() {
+        const units = [];
+        const current = new Date(timelineStartDate);
+
+        switch (currentScale) {
+            case 'day':
+                while (current <= timelineEndDate) {
+                    units.push({
+                        date: new Date(current),
+                        label: current.getDate().toString(),
+                        subLabel: current.toLocaleDateString('de-DE', { weekday: 'short' }),
+                        isWeekend: current.getDay() === 0 || current.getDay() === 6,
+                        isToday: isSameDay(current, new Date())
+                    });
+                    current.setDate(current.getDate() + 1);
+                }
+                break;
+
+            case 'week':
+                // Align to Monday
+                const dayOfWeek = current.getDay();
+                const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                current.setDate(current.getDate() + diff);
+
+                while (current <= timelineEndDate) {
+                    const weekNum = getWeekNumber(current);
+                    units.push({
+                        date: new Date(current),
+                        label: `KW ${weekNum}`,
+                        subLabel: `${current.getDate()}.${current.getMonth() + 1}`,
+                        isWeekend: false,
+                        isToday: isInSameWeek(current, new Date())
+                    });
+                    current.setDate(current.getDate() + 7);
+                }
+                break;
+
+            case 'month':
+                current.setDate(1);
+                while (current <= timelineEndDate) {
+                    units.push({
+                        date: new Date(current),
+                        label: current.toLocaleDateString('de-DE', { month: 'short' }),
+                        subLabel: current.getFullYear().toString(),
+                        isWeekend: false,
+                        isToday: isSameMonth(current, new Date())
+                    });
+                    current.setMonth(current.getMonth() + 1);
+                }
+                break;
+        }
+
+        return units;
     }
 
+    // ===== Render Gantt Chart =====
+    function renderGantt() {
+        cellWidth = getCellWidth();
+        document.documentElement.style.setProperty('--cell-width', cellWidth + 'px');
 
-    function toggleCollapse(id) {
-        collapsed.set(id, !isCollapsed(id));
+        const units = generateTimelineUnits();
+        renderTimelineHeader(units);
         renderTaskList();
-        renderTimeline();
+        renderTimelineBody(units);
+        updateTodayMarker(units);
     }
 
-    /* Ermittelt frühesten Start / spätestes Ende unterhalb eines Knotens */
-    function getDateRange(node) {
-        let min = node.StartDate ? new Date(node.StartDate) : null;
-        let max = node.EndDate ? new Date(node.EndDate) : null;
+    // ===== Render Timeline Header =====
+    function renderTimelineHeader(units) {
+        const header = document.getElementById('timelineHeader');
+        if (!header) return;
 
-        if (node.SubSections) {
-            node.SubSections.forEach(sub => {
-                const [s, e] = getDateRange(sub);
-                if (s && (!min || s < min)) min = s;
-                if (e && (!max || e > max)) max = e;
-            });
-        }
-        if (node.Tasks) {
-            node.Tasks.forEach(t => {
-                if (t.StartDate) {
-                    const d = new Date(t.StartDate);
-                    if (!min || d < min) min = d;
-                }
-                if (t.EndDate) {
-                    const d = new Date(t.EndDate);
-                    if (!max || d > max) max = d;
-                }
-            });
-        }
-        return [min, max];
+        header.innerHTML = units.map(unit => `
+            <div class="timeline-cell ${unit.isWeekend ? 'weekend' : ''} ${unit.isToday ? 'today' : ''}">
+                <div>${unit.label}</div>
+                <div style="font-size: 0.65rem; opacity: 0.7;">${unit.subLabel}</div>
+            </div>
+        `).join('');
     }
 
+    // ===== Render Task List =====
     function renderTaskList() {
-        // const body = document.getElementById('task-list-body');
-        // body.innerHTML = '';
+        const body = document.getElementById('taskListBody');
+        if (!body) return;
 
-        // if (!projectData.project.Sections) return;
+        let html = '';
 
-        // projectData.project.Sections.forEach(sec => walk(sec, 0));
+        function renderSection(section, level = 0) {
+            const hasChildren = (section.SubSections && section.SubSections.length > 0) ||
+                               (section.Tasks && section.Tasks.length > 0);
+            const isCollapsed = collapsedSections.has(section.Id);
+            const rowType = level === 0 ? 'section' : 'subsection';
+            const dates = getSectionDates(section);
 
-        const body = document.getElementById('task-list-body');
-        body.innerHTML = '';
+            html += `
+                <div class="gantt-row ${rowType}-row" data-id="${section.Id}" data-type="${rowType}" data-level="${level}">
+                    <div class="row-name indent-${level}">
+                        ${hasChildren ? `
+                            <span class="caret ${isCollapsed ? 'collapsed' : ''}" data-id="${section.Id}" onclick="toggleCollapse('${section.Id}')">
+                                <i class="fas fa-chevron-down"></i>
+                            </span>
+                        ` : '<span style="width: 18px;"></span>'}
+                        <i class="fas fa-folder icon" style="color: ${level === 0 ? '#2196f3' : '#9c27b0'};"></i>
+                        <span class="text" title="${section.Name}">${section.Name}</span>
+                    </div>
+                    <div>${dates.duration || '-'}</div>
+                    <div>${dates.start || '-'}</div>
+                    <div>${dates.end || '-'}</div>
+                    <div class="row-actions">
+                        <button class="btn btn-outline-primary btn-sm" onclick="openAddSubSection('${section.Id}')" title="Unterabschnitt">
+                            <i class="fas fa-folder-plus"></i>
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="openAddTask('${section.Id}')" title="Aufgabe">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
 
-        if (!projectData.project.Sections) return;
-        projectData.project.Sections.forEach(sec => walk(sec, 0));
-
-        /* Footer-Adder ganz unten */
-        const footer = document.createElement('div');
-        footer.className = 'task-row adder-row';
-        footer.dataset.level = 0;
-        footer.innerHTML = `
-                 <div class="task-name">
-                    <button class="btn btn-sm btn-outline-primary"
-                            onclick="showAddSectionModal()">
-                       <i class="fas fa-plus"></i> Neuer Abschnitt
-                    </button>
-                 </div>`;
-        body.appendChild(footer);
-
-        //// ---------- rekursive Hilfsfunktion ----------
-        function walk(node, depth) {
-            renderTaskRow(node, body, depth);
-
-            if (node.Type === 'task' || isCollapsed(node.Id)) return;
-
-        //     Inline-Adder hinter jedem Nicht-Task
-            if (node.Type !== 'task') {
-                const adder = document.createElement('div');
-                adder.className = 'task-row adder-row';
-                adder.style.setProperty('--lvl', depth);
-                adder.innerHTML = `
-                       <div class="task-name">
-                          <button class="btn btn-sm btn-outline-primary"
-                                  onclick="showAddItemModal('${node.Id}','${node.Type}')">
-                              <i class="fas fa-plus"></i>
-                          </button>
-                       </div>`;
-                body.appendChild(adder);
+            // Render SubSections
+            if (section.SubSections) {
+                section.SubSections.forEach(sub => renderSection(sub, level + 1));
             }
-            // ---------- rekursiv weiterlaufen ----------
-            if (node.SubSections) {
-                node.SubSections.forEach(sub => walk(sub, depth + 1));
-            }
-            if (node.Tasks) {
-                node.Tasks.forEach(t => walk(t, depth + 1));
-            }
-        }
-    }
 
-
-
-    function renderTaskRow(item, container, depth, additionalTaskobject) {
-        /* Grundgerüst */
-        const row = document.createElement('div');
-        row.className = `task-row ${item.Type}`;
-        row.style.setProperty('--lvl', depth);
-        row.dataset.id = item.Id;
-        row.dataset.type = item.Type;
-
-        /* ⬇︎  NEU: Datenbereich ermitteln  --------------------------- */
-        let start = item.StartDate;
-        let end = item.EndDate;
-
-        if (item.Type !== 'task') {                   // Section / Subsection
-            const [min, max] = getDateRange(item);  // rekursive Suche
-            if (min && max) {
-                start = min.toISOString().slice(0, 10);   // "yyyy-mm-dd"
-                end = max.toISOString().slice(0, 10);
+            // Render Tasks
+            if (section.Tasks) {
+                section.Tasks.forEach(task => {
+                    const duration = calculateDuration(task.StartDate, task.EndDate);
+                    html += `
+                        <div class="gantt-row task-row ${isCollapsed ? 'collapsed-child' : ''}"
+                             data-id="${task.Id}" data-type="task" data-parent="${section.Id}" data-level="${level + 1}">
+                            <div class="row-name indent-${level + 1}">
+                                <span style="width: 18px;"></span>
+                                <i class="fas fa-tasks icon" style="color: #667eea;"></i>
+                                <span class="text" title="${task.Name}">${task.Name}</span>
+                            </div>
+                            <div>${duration || '-'}</div>
+                            <div>${task.StartDate ? formatDate(task.StartDate) : '-'}</div>
+                            <div>${task.EndDate ? formatDate(task.EndDate) : '-'}</div>
+                            <div class="row-actions">
+                                <button class="btn btn-outline-primary btn-sm" onclick="editTask('${task.Id}')" title="Bearbeiten">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
             }
         }
 
-        const duration = (start && end) ? calculateDuration(start, end) : '-';
-        const startStr = start ? formatDate(start) : '-';
-        const endStr = end ? formatDate(end) : '-';
-
-        /* Pfeil & Aktionen bleiben wie zuvor ------------------------ */
-        const hasChildren =
-            (item.SubSections && item.SubSections.length) ||
-            (item.Tasks && item.Tasks.length);
-
-        const folded = isCollapsed(item.Id);
-        const caret = hasChildren
-            ? `<i class="fas fa-caret-down caret ${folded ? 'collapsed' : ''}"
-                      data-id="${item.Id}"></i>`
-            : '';
-
-        const isTask = item.Type === 'task';
-
-        row.innerHTML = `
-                <div class="task-name">${caret}${item.Name}</div>
-                <div class="task-duration">${duration}</div>
-                <div class="task-start">${startStr}</div>
-                <div class="task-end">${endStr}</div>
-                <div class="task-actions">
-                    ${isTask ? `
-                        <button class="btn btn-sm btn-outline-primary me-1"
-                                onclick="editTask('${item.Id}', '${item.Name}',
-                                                  '${item.StartDate || ''}', '${item.EndDate || ''}',
-                                                  '${item.IsTaskCatalogEntry}', '${item.IsScheduleEntry}'
-                                                  )">
-                            <i class="fas fa-edit"></i>
-                        </button>` : ''}
-                    <button class="btn btn-sm btn-outline-danger"
-                            onclick="deleteItem('${item.Id}', '${item.Type}', '${item.Name}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>`;
-        container.appendChild(row);
-    }
-
-    function renderTimeline() {
-        const timelineHeader = document.getElementById('timeline-header');
-        const timelineBody = document.getElementById('timeline-body');
-
-        timelineHeader.innerHTML = '';
-        timelineBody.innerHTML = '';
-
-        //renderTimelineHeader(timelineHeader);
-        //renderTimelineBars(timelineBody);
-        renderTimelineHeader(timelineHeader);
-        renderVerticalGridLines(
-            timelineBody,
-            Math.ceil((ganttEndDate - ganttStartDate) / 86400000),
-            40                       // gleicher Wert wie dayWidth
-        );
-        renderTimelineBars(timelineBody);
-    }
-
-    function renderTimelineHeader(container) {
-        const totalDays = Math.ceil((ganttEndDate - ganttStartDate) / (1000 * 60 * 60 * 24));
-        const dayWidth = 48; // pixels per day
-
-        for (let i = 0; i <= totalDays; i += (currentTimeScale === 'day' ? 1 : currentTimeScale === 'week' ? 7 : 30)) {
-            const date = new Date(ganttStartDate);
-            date.setDate(date.getDate() + i);
-
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'timeline-header-day';
-            headerDiv.style.left = (i * dayWidth) + 'px';
-            headerDiv.style.width = (dayWidth * (currentTimeScale === 'day' ? 1 : currentTimeScale === 'week' ? 7 : 30)) + 'px';
-            headerDiv.textContent = formatHeaderDate(date);
-
-            container.appendChild(headerDiv);
+        if (projectData.sections) {
+            projectData.sections.forEach(section => renderSection(section, 0));
         }
 
-        container.style.width = (totalDays * dayWidth) + 'px';
+        body.innerHTML = html;
+        applyCollapsedState();
     }
 
-    function renderTimelineBars(container) {
-        const totalDays = Math.ceil((ganttEndDate - ganttStartDate) / 86400000);
-        const dayWidth = 48;
-        let row = 0;
-        container.style.width = (totalDays * dayWidth) + 'px';
-        container.style.height = (calculateTotalRows() * 40) + 'px';
+    // ===== Render Timeline Body =====
+    function renderTimelineBody(units) {
+        const body = document.getElementById('timelineBody');
+        if (!body) return;
 
-        if (!projectData.project.Sections) return;
-        projectData.project.Sections.forEach(sec => walk(sec, 0));
+        let html = '';
+        const totalWidth = units.length * cellWidth;
 
-        /* ---------- rekursiv ---------- */
-        function walk(node, depth) {
-            // const isCollapsed=collapsed.get(node.Id);
-            const fold = isCollapsed(node.Id)
+        function renderTimelineRow(item, type, level, parentId = null) {
+            const isCollapsed = parentId && collapsedSections.has(parentId);
+            const rowClass = type === 'task' ? 'task-row' : (level === 0 ? 'section-row' : 'subsection-row');
 
-            if (node.Type !== 'task' && fold) {
-                const [min, max] = getDateRange(node);
-                if (min && max) drawBar(node, min, max, row, dayWidth, 'fold');
-                row++;                              // eigene Zeile
-                return;                             // Kinder überspringen
+            html += `
+                <div class="timeline-row ${rowClass} ${isCollapsed ? 'collapsed-child' : ''}"
+                     data-id="${item.Id}" data-parent="${parentId || ''}" style="width: ${totalWidth}px;">
+                    ${units.map(unit => `
+                        <div class="timeline-grid-cell ${unit.isWeekend ? 'weekend' : ''}"></div>
+                    `).join('')}
+                    ${renderBar(item, type, units, totalWidth)}
+                </div>
+            `;
+        }
+
+        function processSection(section, level = 0) {
+            renderTimelineRow(section, level === 0 ? 'section' : 'subsection', level);
+
+            if (section.SubSections) {
+                section.SubSections.forEach(sub => processSection(sub, level + 1));
             }
 
-            if (node.StartDate && node.EndDate)
-                drawBar(node, new Date(node.StartDate), new Date(node.EndDate), row, dayWidth, node.Type);
-            row++;                                  // eigene Zeile
-
-            if (node.Type !== 'task') {
-                /* Adder-Row überspringen => +1 */
-                row++;
-                if (node.SubSections) node.SubSections.forEach(sub => walk(sub, depth + 1));
-                if (node.Tasks) node.Tasks.forEach(t => walk(t, depth + 1));
+            if (section.Tasks) {
+                section.Tasks.forEach(task => {
+                    renderTimelineRow(task, 'task', level + 1, section.Id);
+                });
             }
         }
 
-        function drawBar(item, startDate, endDate, r, dayWidth, extraClass = '') {
-            const startOff = Math.max(0, Math.ceil((startDate - ganttStartDate) / 86400000));
-            const dur = Math.ceil((endDate - startDate) / 86400000) + 1;
-
-            const bar = document.createElement('div');
-            bar.className = `timeline-bar ${item.Type} ${extraClass}`;
-            bar.style.left = (startOff * dayWidth) + 'px';
-            bar.style.width = (dur * dayWidth - 4) + 'px';
-            bar.style.top = (r * 40 + 10) + 'px';
-            bar.textContent = item.Name;
-            container.appendChild(bar);
+        if (projectData.sections) {
+            projectData.sections.forEach(section => processSection(section, 0));
         }
+
+        body.innerHTML = html;
+        applyCollapsedState();
     }
 
-
-    function renderTimelineBar(item, container, rowIndex, dayWidth) {
-        if (!item.StartDate || !item.EndDate) return;
+    // ===== Render Bar =====
+    function renderBar(item, type, units, totalWidth) {
+        if (!item.StartDate || !item.EndDate) {
+            // For sections, calculate from children
+            if (type !== 'task') {
+                const dates = getSectionDates(item);
+                if (!dates.startDate || !dates.endDate) return '';
+                item = { ...item, StartDate: dates.startDate, EndDate: dates.endDate };
+            } else {
+                return '';
+            }
+        }
 
         const startDate = new Date(item.StartDate);
         const endDate = new Date(item.EndDate);
 
-        const startOffset = Math.max(0, Math.ceil((startDate - ganttStartDate) / (1000 * 60 * 60 * 24)));
-        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        const position = calculateBarPosition(startDate, endDate, units);
+        if (!position) return '';
 
-        const bar = document.createElement('div');
-        bar.className = `timeline-bar ${item.Type}`;
-        bar.style.left = (startOffset * dayWidth) + 'px';
-        bar.style.width = (duration * dayWidth - 4) + 'px';
-        bar.style.top = (rowIndex * 40 + 10) + 'px'; // 10px offset to center in 40px row
-        bar.textContent = item.Name;
-        bar.title = `${item.Name} (${formatDate(item.StartDate)} - ${formatDate(item.EndDate)})`;
+        const barClass = type === 'task' ? 'task-bar' : (type === 'section' ? 'section-bar' : 'subsection-bar');
+        const showText = type === 'task' && position.width > 60;
 
-        container.appendChild(bar);
+        return `
+            <div class="gantt-bar ${barClass}"
+                 style="left: ${position.left}px; width: ${position.width}px;"
+                 title="${item.Name}: ${formatDate(item.StartDate)} - ${formatDate(item.EndDate)}">
+                ${showText ? item.Name : ''}
+            </div>
+        `;
     }
-    function renderVerticalGridLines(container, totalDays, dayWidth) {
-        // Alte Linien entfernen (beim Neurendern)
-        container.querySelectorAll('.timeline-grid-line').forEach(el => el.remove());
 
-        // Schrittweite wie im Header
-        const step = currentTimeScale === 'day' ? 1 :
-            currentTimeScale === 'week' ? 7 : 30;
+    // ===== Calculate Bar Position =====
+    function calculateBarPosition(startDate, endDate, units) {
+        if (units.length === 0) return null;
 
-        for (let i = 0; i <= totalDays; i += step) {
-            const line = document.createElement('div');
-            line.className = 'timeline-grid-line';
-            line.style.left = (i * dayWidth) + 'px';
-            container.appendChild(line);
+        let left = 0;
+        let width = 0;
+
+        switch (currentScale) {
+            case 'day':
+                const startDiff = Math.floor((startDate - units[0].date) / (1000 * 60 * 60 * 24));
+                const endDiff = Math.floor((endDate - units[0].date) / (1000 * 60 * 60 * 24));
+                left = startDiff * cellWidth;
+                width = (endDiff - startDiff + 1) * cellWidth;
+                break;
+
+            case 'week':
+                const weekStart = getStartOfWeek(startDate);
+                const firstWeek = getStartOfWeek(units[0].date);
+                const weeksFromStart = Math.floor((weekStart - firstWeek) / (1000 * 60 * 60 * 24 * 7));
+                const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24 * 7)) + 1;
+                left = weeksFromStart * cellWidth;
+                width = Math.max(duration * cellWidth, cellWidth);
+                break;
+
+            case 'month':
+                const monthsDiff = (startDate.getFullYear() - units[0].date.getFullYear()) * 12
+                                 + (startDate.getMonth() - units[0].date.getMonth());
+                const monthsDuration = (endDate.getFullYear() - startDate.getFullYear()) * 12
+                                      + (endDate.getMonth() - startDate.getMonth()) + 1;
+                left = monthsDiff * cellWidth;
+                width = Math.max(monthsDuration * cellWidth, cellWidth);
+                break;
+        }
+
+        return { left, width };
+    }
+
+    // ===== Update Today Marker =====
+    function updateTodayMarker(units) {
+        const marker = document.getElementById('todayMarker');
+        if (!marker || units.length === 0) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let position = -1;
+
+        switch (currentScale) {
+            case 'day':
+                for (let i = 0; i < units.length; i++) {
+                    if (isSameDay(units[i].date, today)) {
+                        position = i * cellWidth + cellWidth / 2;
+                        break;
+                    }
+                }
+                break;
+
+            case 'week':
+                for (let i = 0; i < units.length; i++) {
+                    if (isInSameWeek(units[i].date, today)) {
+                        const dayInWeek = today.getDay() === 0 ? 6 : today.getDay() - 1;
+                        position = i * cellWidth + (dayInWeek / 7) * cellWidth;
+                        break;
+                    }
+                }
+                break;
+
+            case 'month':
+                for (let i = 0; i < units.length; i++) {
+                    if (isSameMonth(units[i].date, today)) {
+                        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                        position = i * cellWidth + (today.getDate() / daysInMonth) * cellWidth;
+                        break;
+                    }
+                }
+                break;
+        }
+
+        if (position >= 0) {
+            marker.style.left = position + 'px';
+            marker.style.display = 'block';
+        } else {
+            marker.style.display = 'none';
         }
     }
 
-
-    function calculateTotalRows() {
-        let rows = 1;                                // Footer
-        if (!projectData.project.Sections) return rows;
-
-        function walk(node) {
-            rows++;                                // eigene Zeile
-            if (node.Type === 'task') return;         // fertig
-
-            if (collapsed.get(node.Id)) return;     // Kinder versteckt
-
-            rows++;                                // Adder
-            if (node.SubSections) node.SubSections.forEach(walk);
-            if (node.Tasks) node.Tasks.forEach(walk);
+    // ===== Toggle Collapse =====
+    function toggleCollapse(sectionId) {
+        if (collapsedSections.has(sectionId)) {
+            collapsedSections.delete(sectionId);
+        } else {
+            collapsedSections.add(sectionId);
         }
-        projectData.project.Sections.forEach(walk);
-        return rows;
+        applyCollapsedState();
+
+        // Update caret icon
+        const caret = document.querySelector(`.caret[data-id="${sectionId}"]`);
+        if (caret) {
+            caret.classList.toggle('collapsed', collapsedSections.has(sectionId));
+        }
     }
 
+    // ===== Apply Collapsed State =====
+    function applyCollapsedState() {
+        function hideChildren(parentId) {
+            // Hide direct children
+            document.querySelectorAll(`[data-parent="${parentId}"]`).forEach(el => {
+                el.classList.add('collapsed-child');
+            });
+
+            // Find subsections and hide their children too
+            document.querySelectorAll(`.gantt-row[data-parent="${parentId}"][data-type="subsection"]`).forEach(subsection => {
+                hideChildren(subsection.dataset.id);
+            });
+        }
+
+        function showChildren(parentId) {
+            document.querySelectorAll(`[data-parent="${parentId}"]`).forEach(el => {
+                el.classList.remove('collapsed-child');
+
+                // If this is a subsection that's not collapsed, show its children too
+                if (el.dataset.type === 'subsection' && !collapsedSections.has(el.dataset.id)) {
+                    showChildren(el.dataset.id);
+                }
+            });
+        }
+
+        // First, show all
+        document.querySelectorAll('.collapsed-child').forEach(el => {
+            el.classList.remove('collapsed-child');
+        });
+
+        // Then hide collapsed
+        collapsedSections.forEach(sectionId => {
+            hideChildren(sectionId);
+        });
+    }
+
+    // ===== Navigation =====
+    function navigateTimeline(direction) {
+        const timeline = document.getElementById('ganttTimeline');
+        if (!timeline) return;
+
+        const scrollAmount = cellWidth * 5 * direction;
+        timeline.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+
+    function scrollToToday() {
+        const marker = document.getElementById('todayMarker');
+        const timeline = document.getElementById('ganttTimeline');
+        if (!marker || !timeline) return;
+
+        // Calculate today's position even if marker is hidden
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const units = generateTimelineUnits();
+
+        let position = -1;
+
+        switch (currentScale) {
+            case 'day':
+                for (let i = 0; i < units.length; i++) {
+                    if (isSameDay(units[i].date, today)) {
+                        position = i * cellWidth + cellWidth / 2;
+                        break;
+                    }
+                }
+                break;
+
+            case 'week':
+                for (let i = 0; i < units.length; i++) {
+                    if (isInSameWeek(units[i].date, today)) {
+                        const dayInWeek = today.getDay() === 0 ? 6 : today.getDay() - 1;
+                        position = i * cellWidth + (dayInWeek / 7) * cellWidth;
+                        break;
+                    }
+                }
+                break;
+
+            case 'month':
+                for (let i = 0; i < units.length; i++) {
+                    if (isSameMonth(units[i].date, today)) {
+                        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                        position = i * cellWidth + (today.getDate() / daysInMonth) * cellWidth;
+                        break;
+                    }
+                }
+                break;
+        }
+
+        if (position >= 0) {
+            const timelineWidth = timeline.clientWidth;
+            timeline.scrollTo({ left: Math.max(0, position - timelineWidth / 3), behavior: 'smooth' });
+        }
+    }
+
+    // ===== Helper Functions =====
+    function getSectionDates(section) {
+        let minStart = null;
+        let maxEnd = null;
+
+        function processItems(items) {
+            if (!items) return;
+            items.forEach(item => {
+                if (item.StartDate) {
+                    const start = new Date(item.StartDate);
+                    if (!minStart || start < minStart) minStart = start;
+                }
+                if (item.EndDate) {
+                    const end = new Date(item.EndDate);
+                    if (!maxEnd || end > maxEnd) maxEnd = end;
+                }
+                if (item.Tasks) processItems(item.Tasks);
+                if (item.SubSections) processItems(item.SubSections);
+            });
+        }
+
+        if (section.Tasks) processItems(section.Tasks);
+        if (section.SubSections) processItems(section.SubSections);
+
+        return {
+            startDate: minStart ? minStart.toISOString().split('T')[0] : null,
+            endDate: maxEnd ? maxEnd.toISOString().split('T')[0] : null,
+            start: minStart ? formatDate(minStart.toISOString().split('T')[0]) : null,
+            end: maxEnd ? formatDate(maxEnd.toISOString().split('T')[0]) : null,
+            duration: minStart && maxEnd ? calculateDuration(minStart.toISOString().split('T')[0], maxEnd.toISOString().split('T')[0]) : null
+        };
+    }
 
     function calculateDuration(startDate, endDate) {
-        if (!startDate || !endDate) return '-';
-
+        if (!startDate || !endDate) return null;
         const start = new Date(startDate);
         const end = new Date(endDate);
         const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-        return days + 'd';
+        return days + ' T';
     }
 
-    function formatDate(dateString) {
-        if (!dateString) return '-';
-
-        const date = new Date(dateString);
-        return date.toLocaleDateString('de-DE');
-    }
-
-    function formatHeaderDate(date) {
-        switch (currentTimeScale) {
-            case 'day':
-                return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-            case 'week':
-                return `KW ${getWeekNumber(date)}`;
-            case 'month':
-                return date.toLocaleDateString('de-DE', { month: 'short', year: '2-digit' });
-            default:
-                return date.toLocaleDateString('de-DE');
-        }
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
     }
 
     function getWeekNumber(date) {
-        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     }
 
-    function changeTimeScale(scale) {
-        currentTimeScale = scale;
-
-        // Update active button
-        document.querySelectorAll('.btn-group button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        event.target.classList.add('active');
-
-        renderTimeline();
+    function getStartOfWeek(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
     }
 
-    function toggleViewMode() {
-        // Toggle between different view modes (could be expanded)
-        alert('Ansichtsmodus-Funktion kann hier implementiert werden');
+    function isSameDay(d1, d2) {
+        return d1.getFullYear() === d2.getFullYear() &&
+               d1.getMonth() === d2.getMonth() &&
+               d1.getDate() === d2.getDate();
     }
 
-    function zoomToFit() {
-        calculateDateRange();
-        renderTimeline();
+    function isInSameWeek(d1, d2) {
+        const week1 = getStartOfWeek(d1).getTime();
+        const week2 = getStartOfWeek(d2).getTime();
+        return week1 === week2;
     }
 
-    /* ------------------------------
-    Globale Hilfs-Variablen
-    --------------------------------*/
-    let addItemParentId = null;
-    let addItemParentType = null;
+    function isSameMonth(d1, d2) {
+        return d1.getFullYear() === d2.getFullYear() &&
+               d1.getMonth() === d2.getMonth();
+    }
 
-    /* Klick-Handler erst registrieren, wenn DOM fertig */
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('chooseTaskBtn').addEventListener('click', () => {
-            bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
-            showAddTaskModal(addItemParentId);        // existiert bereits
-        });
+    // ===== Modal Functions =====
+    function openAddSubSection(parentSectionId) {
+        // Set parent section in modal if available
+        const modal = document.getElementById('addSectionModal');
+        if (modal) {
+            const select = modal.querySelector('#parentSectionSelect');
+            if (select) {
+                select.value = parentSectionId;
+            }
+            new bootstrap.Modal(modal).show();
+        }
+    }
 
-        document.getElementById('chooseSubBtn').addEventListener('click', () => {
-            bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
-            showAddSubSectionModal(addItemParentId);  // existiert bereits
-        });
+    function openAddTask(sectionId) {
+        const modal = document.getElementById('addTaskModal');
+        if (modal) {
+            const select = modal.querySelector('#taskSectionSelect');
+            if (select) {
+                select.value = sectionId;
+            }
+            new bootstrap.Modal(modal).show();
+        }
+    }
+
+    function editTask(taskId) {
+        // Find task data
+        let taskData = null;
+        function findTask(items) {
+            if (!items) return;
+            for (const item of items) {
+                if (item.Tasks) {
+                    const task = item.Tasks.find(t => t.Id === taskId);
+                    if (task) { taskData = task; return; }
+                }
+                if (item.SubSections) findTask(item.SubSections);
+            }
+        }
+        findTask(projectData.sections);
+
+        if (taskData) {
+            const modal = document.getElementById('editTaskModal');
+            if (modal) {
+                // Populate modal fields
+                const nameInput = modal.querySelector('input[name="Name"]');
+                const startInput = modal.querySelector('input[name="StartDate"]');
+                const endInput = modal.querySelector('input[name="EndDate"]');
+                const taskIdInput = modal.querySelector('input[name="taskId"]');
+
+                if (nameInput) nameInput.value = taskData.Name || '';
+                if (startInput) startInput.value = taskData.StartDate || '';
+                if (endInput) endInput.value = taskData.EndDate || '';
+                if (taskIdInput) taskIdInput.value = taskId;
+
+                new bootstrap.Modal(modal).show();
+            }
+        }
+    }
+
+    // Sync scroll between task list and timeline
+    document.addEventListener('DOMContentLoaded', function() {
+        const taskBody = document.getElementById('taskListBody');
+        const timelineBody = document.getElementById('timelineBody');
+
+        if (taskBody && timelineBody) {
+            taskBody.addEventListener('scroll', function() {
+                timelineBody.style.marginTop = -taskBody.scrollTop + 'px';
+            });
+        }
     });
 </script>
-<script src="~/js/ModalFunctions.js"></script>
 
-<!-- Include Bootstrap and FontAwesome if not already included -->
-@* <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet"> *@
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link href="/css/gantt.css" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
 
