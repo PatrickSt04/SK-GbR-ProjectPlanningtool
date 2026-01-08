@@ -113,8 +113,8 @@
 
     /* ===== Task List (Left Panel) ===== */
     .gantt-task-list {
-        min-width: 500px;
-        max-width: 500px;
+        min-width: 540px;
+        max-width: 540px;
         border-right: 2px solid #dee2e6;
         display: flex;
         flex-direction: column;
@@ -123,7 +123,7 @@
 
     .gantt-task-header {
         display: grid;
-        grid-template-columns: 200px 70px 85px 85px 60px;
+        grid-template-columns: 200px 70px 85px 85px 100px;
         background: #e9ecef;
         font-weight: 600;
         font-size: 0.85rem;
@@ -148,7 +148,7 @@
     /* ===== Task Row Styles ===== */
     .gantt-row {
         display: grid;
-        grid-template-columns: 200px 70px 85px 85px 60px;
+        grid-template-columns: 200px 70px 85px 85px 100px;
         border-bottom: 1px solid #eee;
         align-items: center;
         min-height: 40px;
@@ -404,6 +404,46 @@
             white-space: nowrap;
         }
 
+    /* ===== Milestone Styles ===== */
+    .gantt-row.milestone-row {
+        background: #fff8e1;
+    }
+
+        .gantt-row.milestone-row:hover {
+            background: #ffecb3;
+        }
+
+    .milestone-marker {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        transform: translateX(-50%) translateY(-50%) rotate(45deg);
+        top: 50%;
+        border-radius: 3px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.2s;
+    }
+
+        .milestone-marker:hover {
+            transform: translateX(-50%) translateY(-50%) rotate(45deg) scale(1.2);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .milestone-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+
     /* ===== Empty State ===== */
     .empty-state {
         text-align: center;
@@ -507,6 +547,9 @@
             <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addTaskModal">
                 <i class="fas fa-plus me-1"></i>Aufgabe
             </button>
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addMilestoneModal">
+                <i class="fas fa-diamond me-1"></i>Meilenstein
+            </button>
             <a href="/Projects/Details/@Model.Project?.ProjectId" class="btn btn-outline-light">
                 <i class="fas fa-arrow-left me-1"></i>Zurück
             </a>
@@ -589,6 +632,7 @@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddItemModal.cshtml", Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "Scheduling" } })
+@await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionMileStone.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", Model)
 
 <script>
@@ -617,6 +661,13 @@
                    StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
                    EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
                    Type = "task"
+               }),
+               Milestones = s.ProjectSectionMilestones?.OrderBy(m => m.Date).Select(m => new
+               {
+                   Id = m.ProjectSectionMilestoneId,
+                   Name = m.MilestoneName,
+                   Date = m.Date?.ToString("yyyy-MM-dd"),
+                   Type = "milestone"
                })
            })
         ))
@@ -638,6 +689,13 @@
                     StartDate = t.StartDate?.ToString("yyyy-MM-dd"),
                     EndDate = t.EndDate?.ToString("yyyy-MM-dd"),
                     Type = "task"
+                }),
+                Milestones = sub.ProjectSectionMilestones?.OrderBy(m => m.Date).Select(m => new
+                {
+                    Id = m.ProjectSectionMilestoneId,
+                    Name = m.MilestoneName,
+                    Date = m.Date?.ToString("yyyy-MM-dd"),
+                    Type = "milestone"
                 })
             });
         }
@@ -685,8 +743,15 @@
                     const end = new Date(item.EndDate);
                     if (!maxDate || end > maxDate) maxDate = end;
                 }
+                // Handle Milestone dates
+                if (item.Date) {
+                    const date = new Date(item.Date);
+                    if (!minDate || date < minDate) minDate = date;
+                    if (!maxDate || date > maxDate) maxDate = date;
+                }
                 if (item.Tasks) processItems(item.Tasks, level + 1);
                 if (item.SubSections) processItems(item.SubSections, level + 1);
+                if (item.Milestones) processItems(item.Milestones, level + 1);
             });
         }
 
@@ -827,7 +892,8 @@
 
         function renderSection(section, level = 0) {
             const hasChildren = (section.SubSections && section.SubSections.length > 0) ||
-                               (section.Tasks && section.Tasks.length > 0);
+                               (section.Tasks && section.Tasks.length > 0) ||
+                               (section.Milestones && section.Milestones.length > 0);
             const isCollapsed = collapsedSections.has(section.Id);
             const rowType = level === 0 ? 'section' : 'subsection';
             const dates = getSectionDates(section);
@@ -852,6 +918,9 @@
                         </button>
                         <button class="btn btn-outline-success btn-sm" onclick="openAddTask('${section.Id}')" title="Aufgabe">
                             <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="openAddMilestone('${section.Id}')" title="Meilenstein">
+                            <i class="fas fa-diamond"></i>
                         </button>
                     </div>
                 </div>
@@ -886,6 +955,28 @@
                     `;
                 });
             }
+
+            // Render Milestones
+            if (section.Milestones) {
+                section.Milestones.forEach(milestone => {
+                    html += `
+                        <div class="gantt-row milestone-row ${isCollapsed ? 'collapsed-child' : ''}"
+                             data-id="${milestone.Id}" data-type="milestone" data-parent="${section.Id}" data-level="${level + 1}">
+                            <div class="row-name indent-${level + 1}">
+                                <span style="width: 18px;"></span>
+                                <i class="fas fa-diamond icon" style="color: #ff9800;"></i>
+                                <span class="text" title="${milestone.Name}">${milestone.Name}</span>
+                            </div>
+                            <div>-</div>
+                            <div>${milestone.Date ? formatDate(milestone.Date) : '-'}</div>
+                            <div>-</div>
+                            <div class="row-actions">
+                                <span class="badge bg-warning text-dark">Meilenstein</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
         }
 
         if (projectData.sections) {
@@ -906,7 +997,9 @@
 
         function renderTimelineRow(item, type, level, parentId = null) {
             const isCollapsed = parentId && collapsedSections.has(parentId);
-            const rowClass = type === 'task' ? 'task-row' : (level === 0 ? 'section-row' : 'subsection-row');
+            const rowClass = type === 'task' ? 'task-row' :
+                            type === 'milestone' ? 'milestone-row' :
+                            (level === 0 ? 'section-row' : 'subsection-row');
 
             html += `
                 <div class="timeline-row ${rowClass} ${isCollapsed ? 'collapsed-child' : ''}"
@@ -914,7 +1007,7 @@
                     ${units.map(unit => `
                         <div class="timeline-grid-cell ${unit.isWeekend ? 'weekend' : ''}"></div>
                     `).join('')}
-                    ${renderBar(item, type, units, totalWidth)}
+                    ${type === 'milestone' ? renderMilestone(item, units) : renderBar(item, type, units, totalWidth)}
                 </div>
             `;
         }
@@ -931,6 +1024,12 @@
                     renderTimelineRow(task, 'task', level + 1, section.Id);
                 });
             }
+
+            if (section.Milestones) {
+                section.Milestones.forEach(milestone => {
+                    renderTimelineRow(milestone, 'milestone', level + 1, section.Id);
+                });
+            }
         }
 
         if (projectData.sections) {
@@ -939,6 +1038,49 @@
 
         body.innerHTML = html;
         applyCollapsedState();
+    }
+
+    // ===== Render Milestone =====
+    function renderMilestone(milestone, units) {
+        if (!milestone.Date) return '';
+
+        const date = new Date(milestone.Date);
+        const position = calculateMilestonePosition(date, units);
+
+        if (position === null) return '';
+
+        return `
+            <div class="milestone-marker"
+                 style="left: ${position}px;"
+                 title="${milestone.Name}: ${formatDate(milestone.Date)}">
+            </div>
+        `;
+    }
+
+    // ===== Calculate Milestone Position =====
+    function calculateMilestonePosition(date, units) {
+        if (units.length === 0) return null;
+
+        switch (currentScale) {
+            case 'day':
+                const dayDiff = Math.floor((date - units[0].date) / (1000 * 60 * 60 * 24));
+                return dayDiff * cellWidth + cellWidth / 2;
+
+            case 'week':
+                const weekStart = getStartOfWeek(date);
+                const firstWeek = getStartOfWeek(units[0].date);
+                const weeksFromStart = Math.floor((weekStart - firstWeek) / (1000 * 60 * 60 * 24 * 7));
+                const dayInWeek = date.getDay() === 0 ? 6 : date.getDay() - 1;
+                return weeksFromStart * cellWidth + (dayInWeek / 7) * cellWidth + cellWidth / 2;
+
+            case 'month':
+                const monthsDiff = (date.getFullYear() - units[0].date.getFullYear()) * 12
+                                 + (date.getMonth() - units[0].date.getMonth());
+                const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+                return monthsDiff * cellWidth + (date.getDate() / daysInMonth) * cellWidth;
+        }
+
+        return null;
     }
 
     // ===== Render Bar =====
@@ -1184,13 +1326,21 @@
                     const end = new Date(item.EndDate);
                     if (!maxEnd || end > maxEnd) maxEnd = end;
                 }
+                // Handle Milestone dates
+                if (item.Date) {
+                    const date = new Date(item.Date);
+                    if (!minStart || date < minStart) minStart = date;
+                    if (!maxEnd || date > maxEnd) maxEnd = date;
+                }
                 if (item.Tasks) processItems(item.Tasks);
                 if (item.SubSections) processItems(item.SubSections);
+                if (item.Milestones) processItems(item.Milestones);
             });
         }
 
         if (section.Tasks) processItems(section.Tasks);
         if (section.SubSections) processItems(section.SubSections);
+        if (section.Milestones) processItems(section.Milestones);
 
         return {
             startDate: minStart ? minStart.toISOString().split('T')[0] : null,
@@ -1271,6 +1421,17 @@
         }
     }
 
+    function openAddMilestone(sectionId) {
+        const modal = document.getElementById('addMilestoneModal');
+        if (modal) {
+            const select = modal.querySelector('#MilestoneSectionSelect');
+            if (select) {
+                select.value = sectionId;
+            }
+            new bootstrap.Modal(modal).show();
+        }
+    }
+
     function editTask(taskId) {
         // Find task data
         let taskData = null;
@@ -1317,6 +1478,3 @@
         }
     });
 </script>
-
-
-
