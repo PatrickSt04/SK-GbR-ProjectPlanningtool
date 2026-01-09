@@ -140,7 +140,7 @@
             var t = el('deleteConfirmText');
             if (t) t.textContent = 'Sind Sie sicher, dass Sie "' + (itemName || '') + '" löschen möchten?';
             var json = {
-                Type: itemType === 'task' ? 'ProjectTask' : itemType === 'taskCatalog' ? 'TaskCatalogTask' : 'ProjectSection',
+                Type: itemType === 'task' ? 'ProjectTask' : itemType === 'taskCatalog' ? 'TaskCatalogTask' : itemType === 'milestone' ? 'ProjectSectionMilestone' : 'ProjectSection',
                 Data: { itemId: itemId, itemName: itemName }
             };
             var j = el('deleteObjectJson'); if (j) j.value = JSON.stringify(json);

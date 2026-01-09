@@ -307,7 +307,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateSubSectionAsync>End");
         }
 
-        public async Task<IActionResult> OnPostCreateMileStoneAsync(string sectionId, string Name, DateOnly Date)
+        public async Task<IActionResult> OnPostCreateMileStoneAsync(string sectionId, string Name, DateOnly startDate)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateMileStoneAsync>Begin");
             try
@@ -317,7 +317,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     CompanyId = excecutingUser.CompanyId,
                     MilestoneName = Name,
-                    Date = Date,
+                    Date = startDate,
                     ProjectSectionId = sectionId
                 };
                 milestone = await _customObjectModifier.AddLatestModificationAsync(User, "Meilenstein angelegt", milestone, true);
@@ -386,6 +386,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     "ProjectSection" => await HandleDeleteProjectSection(wrapper.Data),
                     "ProjectTask" => await HandleDeleteProjectTask(wrapper.Data),
                     "TaskCatalogTask" => await HandleDeleteTaskCatalogTask(wrapper.Data),
+                    "ProjectSectionMilestone" => await HandleDeleteProjectSectionMilestone(wrapper.Data),
                     _ => await HandleUnknownType(wrapper.Type)
                 };
 
@@ -484,6 +485,41 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return RedirectToPage(new { id = Project.ProjectId });
             }
         }
+
+        private async Task<IActionResult> HandleDeleteProjectSectionMilestone(JsonElement data)
+        {
+            var milestoneId = data.GetProperty("itemId").GetString();
+            if (string.IsNullOrWhiteSpace(milestoneId))
+            {
+                TempData.SetMessage("Danger", "Ungültiger Meilensteinbezeichner.");
+                if (Origin != null && Origin == "Details")
+                {
+                    return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                }
+                else
+                {
+                    return RedirectToPage(new { id = Project.ProjectId });
+                }
+            }
+            var milestone = await _context.ProjectSectionMilestone.FirstOrDefaultAsync(ms => ms.ProjectSectionMilestoneId == milestoneId);
+            if (milestone == null)
+            {
+                TempData.SetMessage("Danger", "Meilenstein nicht gefunden.");
+                if (Origin != null && Origin == "Details")
+                {
+                    return RedirectToPage("/Projects/Details", new { id = Project.ProjectId });
+                }
+                else
+                {
+                    return RedirectToPage(new { id = Project.ProjectId });
+                }
+            }
+            _context.ProjectSectionMilestone.Remove(milestone);
+            await _context.SaveChangesAsync();
+            TempData.SetMessage("Success", "Meilenstein erfolgreich gelöscht.");
+            return null;
+        }
+
         private async Task<IActionResult?> HandleDeleteProjectTask(JsonElement data)
         {
             var taskId = data.GetProperty("itemId").GetString();

@@ -253,7 +253,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         // Tasks der Subsections
                         .ThenInclude(ss => ss.ProjectTasks)
                             .ThenInclude(pt => pt.State)
-
+                .Include(p => p.ProjectSections)
+                    .ThenInclude(ps => ps.ProjectSectionMilestones)
+                .Include(p => p.ProjectSections)
+                    .ThenInclude(ps => ps.SubSections)
+                        .ThenInclude(ss => ss.ProjectSectionMilestones)
                 .Include(p => p.ProjectSections)
                     .ThenInclude(ps => ps.SubSections)
                         .ThenInclude(ss => ss.ProjectTasks)
