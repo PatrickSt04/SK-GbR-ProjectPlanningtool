@@ -19,9 +19,6 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         [ForeignKey(nameof(ProjectId))]
         public Project? Project { get; set; }
 
-        public string? SubSectionId { get; set; }
-        [ForeignKey(nameof(SubSectionId))]
-        public ProjectSection? SubSection { get; set; }
         // ParentSectionId to reference a parent ProjectSection
         public string? ParentSectionId { get; set; }
         [ForeignKey("ParentSectionId")]

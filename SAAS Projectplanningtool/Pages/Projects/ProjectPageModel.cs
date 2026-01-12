@@ -189,102 +189,250 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             Project = await GetProjectAsync(projectId);
         }
+        //private async Task<Project?> GetProjectAsync(string projectId)
+        //{
+
+        //    var Project = await _context.Project
+        //        //.AsNoTracking()
+
+        //        // --- Simple Includes ---
+        //        .Include(p => p.LatestModifier)
+        //        .Include(p => p.Company)
+        //        .Include(p => p.CreatedByEmployee)
+        //        .Include(p => p.Customer)
+        //        .Include(p => p.ResponsiblePerson)
+        //        .Include(p => p.State)
+
+        //        // --- Budget & Recalculations ---
+        //        .Include(p => p.ProjectBudget)
+        //            .ThenInclude(pb => pb.BudgetRecalculations)
+        //                .ThenInclude(br => br.RecalculatedBy)
+
+        //        // --- ProjectSections ---
+        //        .Include(p => p.ProjectSections)
+        //            // Tasks der Sections (nur Schedule-Tasks)
+        //            .ThenInclude(ps => ps.ProjectTasks)
+        //                .ThenInclude(pt => pt.State)
+        //        .Include(p => p.ProjectSections)
+        //            .ThenInclude(ps => ps.ProjectTasks)
+        //                .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+        //                    .ThenInclude(h => h.HourlyRateGroup)
+
+        //        .Include(p => p.ProjectTaskCatalogTasks)
+        //            .ThenInclude(ptc => ptc.State)
+        //        .Include(p => p.ProjectTaskCatalogTasks)
+        //        .ThenInclude(ptc => ptc.ProjectTaskFixCosts)
+        //        .ThenInclude(ptfc => ptfc.FixCosts)
+        //        .FirstOrDefaultAsync(p => p.ProjectId == projectId);
+
+
+
+        //    if (Project.ProjectSections != null)
+        //    {
+        //        foreach (var section in Project.ProjectSections)
+        //        {
+        //            // Milestones nachträglich laden -> andernfalls imperformant
+        //            section.ProjectSectionMilestones = await GetProjectSectionMilestones(section);
+
+        //            //TODO: Für Alle PS müssen die Subsections nachträglich inkludiert werden --> Im EF Include kann man nicht beliebig tief verschachteln
+        //            await LoadProjectSectionSubSections(section);
+
+
+        //            section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
+        //            if (section.SubSections != null)
+        //            {
+        //                foreach (var subsection in section.SubSections)
+        //                {
+        //                    subsection.ProjectSectionMilestones = await GetProjectSectionMilestones(subsection);
+        //                    subsection.State = await new StateManager(_context).GetSectionState(subsection.ProjectSectionId);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return Project;
+        //}
+
+        //private async Task<List<ProjectSectionMilestone>> GetProjectSectionMilestones(ProjectSection section)
+        //{
+        //    var milestones = _context.ProjectSectionMilestone
+        //        .Where(m => m.ProjectSectionId == section.ProjectSectionId)
+        //        .Include(m => m.LatestModifier)
+        //        .Include(m => m.CreatedByEmployee)
+        //        .ToList();
+        //    return milestones;
+        //}
+
+        //private async Task LoadProjectSectionSubSections(ProjectSection section)
+        //{
+        //    // Lade die direkten SubSections
+        //    await _context.Entry(section)
+        //        .Collection(s => s.SubSections)
+        //        .Query()
+        //        .Include(ss => ss.State)
+        //        .Include(ss => ss.ProjectTasks)
+        //            .ThenInclude(pt => pt.State)
+        //        .Include(ss => ss.ProjectTasks)
+        //            .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+        //                .ThenInclude(h => h.HourlyRateGroup)
+        //        .LoadAsync();
+
+        //    // Rekursiv für jede SubSection wiederholen
+        //    if (section.SubSections != null && section.SubSections.Any())
+        //    {
+        //        foreach (var subSection in section.SubSections)
+        //        {
+        //            LoadProjectSectionSubSections(subSection);
+        //        }
+        //    }
+        //}
         private async Task<Project?> GetProjectAsync(string projectId)
         {
-            //var Project = await _context.Project
-            //    .AsNoTracking()
-            //    .Include(p => p.LatestModifier)
-            //    .Include(p => p.Company)
-            //    .Include(p => p.CreatedByEmployee)
-            //    .Include(p => p.Customer)
-            //    .Include(p => p.ProjectBudget)
-            //        .ThenInclude(pb => pb.BudgetRecalculations)
-            //        .ThenInclude(br => br.RecalculatedBy)
-            //    .Include(p => p.ResponsiblePerson)
-            //    .Include(p => p.State)
-            //    // Projectsections lesen
-            //    .Include(p => p.ProjectSections)
-            //    //deren Tasks
-            //    .ThenInclude(ps => ps.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
-            //    .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-            //    .ThenInclude(t => t.HourlyRateGroup)
-            //    //.ThenInclude(pt => pt.State)
-            //    // Projectsections lesen
-            //    .Include(p => p.ProjectSections)
-            //    // deren Subsections    
-            //    .ThenInclude(ps => ps.SubSections)
-
-            //    //deren Tasks (die für den Terminplan relevant sind)
-            //    .ThenInclude(ss => ss.ProjectTasks.Where(pt => pt.IsScheduleEntry == true))
-            //    .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-            //    .ThenInclude(t => t.HourlyRateGroup)
-            //    .FirstOrDefaultAsync(m => m.ProjectId == projectId);
-
-            var Project = await _context.Project
-                //.AsNoTracking()
-
-                // --- Simple Includes ---
+            var project = await _context.Project
                 .Include(p => p.LatestModifier)
                 .Include(p => p.Company)
                 .Include(p => p.CreatedByEmployee)
                 .Include(p => p.Customer)
                 .Include(p => p.ResponsiblePerson)
                 .Include(p => p.State)
-
-                // --- Budget & Recalculations ---
                 .Include(p => p.ProjectBudget)
                     .ThenInclude(pb => pb.BudgetRecalculations)
                         .ThenInclude(br => br.RecalculatedBy)
-
-                // --- ProjectSections ---
                 .Include(p => p.ProjectSections)
-                    // Tasks der Sections (nur Schedule-Tasks)
                     .ThenInclude(ps => ps.ProjectTasks)
                         .ThenInclude(pt => pt.State)
-
                 .Include(p => p.ProjectSections)
                     .ThenInclude(ps => ps.ProjectTasks)
                         .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
                             .ThenInclude(h => h.HourlyRateGroup)
-
-                // --- SubSections ---
-                .Include(p => p.ProjectSections)
-                    .ThenInclude(ps => ps.SubSections)
-                        // Tasks der Subsections
-                        .ThenInclude(ss => ss.ProjectTasks)
-                            .ThenInclude(pt => pt.State)
-                .Include(p => p.ProjectSections)
-                    .ThenInclude(ps => ps.ProjectSectionMilestones)
-                .Include(p => p.ProjectSections)
-                    .ThenInclude(ps => ps.SubSections)
-                        .ThenInclude(ss => ss.ProjectSectionMilestones)
-                .Include(p => p.ProjectSections)
-                    .ThenInclude(ps => ps.SubSections)
-                        .ThenInclude(ss => ss.ProjectTasks)
-                            .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-                                .ThenInclude(h => h.HourlyRateGroup)
                 .Include(p => p.ProjectTaskCatalogTasks)
                     .ThenInclude(ptc => ptc.State)
                 .Include(p => p.ProjectTaskCatalogTasks)
-                .ThenInclude(ptc => ptc.ProjectTaskFixCosts)
-                .ThenInclude(ptfc => ptfc.FixCosts)
+                    .ThenInclude(ptc => ptc.ProjectTaskFixCosts)
+                        .ThenInclude(ptfc => ptfc.FixCosts)
                 .FirstOrDefaultAsync(p => p.ProjectId == projectId);
 
-            if (Project.ProjectSections != null)
+            if (project?.ProjectSections == null || !project.ProjectSections.Any())
+                return project;
+
+            // Sammle alle SectionIds (inklusive aller SubSections)
+            var allSectionIds = await GetAllSectionIdsRecursive(project.ProjectSections.Select(s => s.ProjectSectionId).ToList());
+
+            // Lade alle Milestones in einer Abfrage
+            var allMilestones = await _context.ProjectSectionMilestone
+                .Where(m => allSectionIds.Contains(m.ProjectSectionId))
+                .Include(m => m.LatestModifier)
+                .Include(m => m.CreatedByEmployee)
+                .ToListAsync();
+
+            var milestonesBySection = allMilestones
+                .GroupBy(m => m.ProjectSectionId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Lade alle States in einer Abfrage
+            var stateManager = new StateManager(_context);
+            var allStates = await GetAllSectionStates(allSectionIds, stateManager);
+
+            // Lade alle SubSections rekursiv
+            await LoadAllSubSectionsRecursive(project.ProjectSections.ToList());
+
+            // Weise Milestones und States zu
+            AssignMilestonesAndStates(project.ProjectSections, milestonesBySection, allStates);
+
+            return project;
+        }
+
+        private async Task<List<string>> GetAllSectionIdsRecursive(List<string> sectionIds)
+        {
+            var allIds = new List<string>(sectionIds);
+            var currentLevelIds = sectionIds;
+
+            while (currentLevelIds.Any())
             {
-                foreach (var section in Project.ProjectSections)
+                var subSectionIds = await _context.ProjectSection
+                    .Where(ps => currentLevelIds.Contains(ps.ParentSectionId))
+                    .Select(ps => ps.ProjectSectionId)
+                    .ToListAsync();
+
+                if (!subSectionIds.Any())
+                    break;
+
+                allIds.AddRange(subSectionIds);
+                currentLevelIds = subSectionIds;
+            }
+
+            return allIds;
+        }
+
+        private async Task<Dictionary<string, SAAS_Projectplanningtool.Models.IndependentTables.State>> GetAllSectionStates(
+            List<string> sectionIds, StateManager stateManager)
+        {
+            var states = new Dictionary<string, SAAS_Projectplanningtool.Models.IndependentTables.State>();
+
+            foreach (var sectionId in sectionIds)
+            {
+                var state = await stateManager.GetSectionState(sectionId);
+                if (state != null)
                 {
-                    section.State = await new StateManager(_context).GetSectionState(section.ProjectSectionId);
-                    if (section.SubSections != null)
-                    {
-                        foreach (var subsection in section.SubSections)
-                        {
-                            subsection.State = await new StateManager(_context).GetSectionState(subsection.ProjectSectionId);
-                        }
-                    }
+                    states[sectionId] = state;
                 }
             }
-            return Project;
+
+            return states;
+        }
+
+        private async Task LoadAllSubSectionsRecursive(List<ProjectSection> sections)
+        {
+            if (!sections.Any())
+                return;
+
+            foreach (var section in sections)
+            {
+                await _context.Entry(section)
+                    .Collection(s => s.SubSections)
+                    .Query()
+                    .Include(ss => ss.State)
+                    .Include(ss => ss.ProjectTasks)
+                        .ThenInclude(pt => pt.State)
+                    .Include(ss => ss.ProjectTasks)
+                        .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
+                            .ThenInclude(h => h.HourlyRateGroup)
+                    .LoadAsync();
+            }
+
+            // Sammle alle SubSections für die nächste Ebene
+            var allSubSections = sections
+                .Where(s => s.SubSections != null && s.SubSections.Any())
+                .SelectMany(s => s.SubSections)
+                .ToList();
+
+            if (allSubSections.Any())
+            {
+                await LoadAllSubSectionsRecursive(allSubSections);
+            }
+        }
+
+        private void AssignMilestonesAndStates(
+            IEnumerable<ProjectSection> sections,
+            Dictionary<string, List<ProjectSectionMilestone>> milestonesBySection,
+            Dictionary<string, SAAS_Projectplanningtool.Models.IndependentTables.State> statesBySection)
+        {
+            foreach (var section in sections)
+            {
+                if (milestonesBySection.TryGetValue(section.ProjectSectionId, out var milestones))
+                {
+                    section.ProjectSectionMilestones = milestones;
+                }
+
+                if (statesBySection.TryGetValue(section.ProjectSectionId, out var state))
+                {
+                    section.State = state;
+                }
+
+                if (section.SubSections != null && section.SubSections.Any())
+                {
+                    AssignMilestonesAndStates(section.SubSections, milestonesBySection, statesBySection);
+                }
+            }
         }
     }
 }
