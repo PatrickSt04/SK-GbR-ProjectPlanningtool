@@ -1,5 +1,5 @@
 ﻿@using System.Globalization
-@model int  /* Übergabe: Prozentwert (0–100) */
+@model int  
 @{
     /* Konfiguration */
     int strokeWidth = 12;                    // Ringbreite
@@ -26,7 +26,7 @@
             stroke-width="@strokeWidth"
             stroke-linecap="round"
             fill="none"
-            transform="rotate(-90 50 50)" /* Start bei 12 Uhr * /
+            transform="rotate(-90 50 50)"
             stroke-dasharray="@circStr"
             stroke-dashoffset="@offsetStr" />
 

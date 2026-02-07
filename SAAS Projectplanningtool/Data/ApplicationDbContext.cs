@@ -44,7 +44,31 @@ namespace SAAS_Projectplanningtool.Data
                 foreignKey.DeleteBehavior = DeleteBehavior.NoAction;
 
             }
+            // Anpassung für SQLite
+            // --- SQLite-Anpassung für alle string-Spalten ---
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+                {
+                    foreach (var property in entityType.GetProperties())
+                    {
+                        if (property.ClrType == typeof(string))
+                        {
+                            // ColumnType ändern, falls nvarchar(max) gesetzt ist oder null
+                            if (property.GetColumnType() == "nvarchar(max)" || property.GetColumnType() == null)
+                            {
+                                property.SetColumnType("TEXT");
+                            }
 
+                            // Optional: MaxLength für Identity-Felder
+                            if (property.Name.Contains("Normalized") || property.Name.Contains("Name"))
+                            {
+                                property.SetMaxLength(256);
+                            }
+                        }
+                    }
+                }
+            }
             //NOTWENDIG:
             modelBuilder.Entity<ProjectBudget>(entity =>
             {

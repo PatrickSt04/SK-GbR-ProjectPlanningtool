@@ -31,7 +31,8 @@ namespace SAAS_Projectplanningtool.Models
 
         // The company's default working days
         // Represented as numbers from 1 to 7 (Monday - Sunday)
-        [Column(TypeName = "nvarchar(max)")]
+        //COLUMNTYPE AUSKOMMENTIERT FÜR MACOS
+        //[Column(TypeName = "nvarchar(max)")]
         public string? DefaultWorkDaysJson { get; set; }
         // Helper property to work with default work days in code (not mapped to database)
         [NotMapped]
@@ -45,7 +46,8 @@ namespace SAAS_Projectplanningtool.Models
         }
 
         // Default working hours - stored as JSON string in database
-        [Column(TypeName = "nvarchar(max)")]
+        //COLUMNTYPE AUSKOMMENTIERT FÜR MACOS
+        //[Column(TypeName = "nvarchar(max)")]
         public string? DefaultWorkingHoursJson { get; set; }
 
         // Helper property to work with working hours in code (not mapped to database)
