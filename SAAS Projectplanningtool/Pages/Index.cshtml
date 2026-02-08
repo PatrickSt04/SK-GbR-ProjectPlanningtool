@@ -273,27 +273,56 @@
                 </section>
             </div>
         </div>
+        <!-- Budget Plan-Ist Vergleich -->
+        <div class="col-12">
+            <section class="overview-card budget-comparison-section">
+                <div class="budget-comparison-header">
+                    <h2><i class="fas fa-chart-bar me-2"></i>Budget Plan-Ist Vergleich</h2>
 
-        <!-- Customer Snapshot -->
-        <div class="overview-card col-4">
-            <section class="customers-section">
-                <h2>Kunden-Snapshot</h2>
-                <div class="customer-list">
-                    <h3>Zuletzt hinzugefügte Kunden</h3>
-                    @foreach (var customer in Model.RecentCustomers)
-                    {
-                        <div class="customer-item">
-                            <div class="customer-info">
-                                <h4><a href="CustomerManagement/Details?id=@customer.CustomerId">@customer.CustomerName</a></h4>
-                                <p class="customer-location">@customer.Address?.Street @customer.Address?.HouseNumber, @customer.Address?.City</p>
-                                <p><span class="customer-date">@customer.CreatedTimestamp?.ToString("dd.MM.yyyy")</span></p>
-                            </div>
-                            <div class="customer-actions">
-                                <a asp-page="/Projects/Create" asp-route-customerId="@customer.CustomerId" class="btn-small">Neues Projekt</a>
-                                
+                    <!-- Multi-Select Projekt-Filter -->
+                    <div class="budget-filter">
+                        <div class="multi-select-wrapper" id="projectFilterWrapper">
+                            <button type="button" class="multi-select-toggle" id="projectFilterToggle" onclick="toggleFilterDropdown()">
+                                <i class="fas fa-filter me-2"></i>
+                                <span id="filterLabel">Alle Projekte</span>
+                                <i class="fas fa-chevron-down ms-2 toggle-arrow"></i>
+                            </button>
+                            <div class="multi-select-dropdown" id="projectFilterDropdown">
+                                <div class="dropdown-actions">
+                                    <button type="button" class="dropdown-action-btn" onclick="selectAllProjects()">
+                                        <i class="fas fa-check-double me-1"></i>Alle
+                                    </button>
+                                    <button type="button" class="dropdown-action-btn" onclick="deselectAllProjects()">
+                                        <i class="fas fa-times me-1"></i>Keine
+                                    </button>
+                                </div>
+                                <div class="dropdown-options">
+                                    @foreach (var project in Model.ProjectsWithBudget)
+                                    {
+                                        <label class="dropdown-option">
+                                            <input type="checkbox"
+                                                   value="@project.Project.ProjectId"
+                                                   checked
+                                                   onchange="updateBudgetCharts()" />
+                                            <span class="option-checkmark"></span>
+                                            <span class="option-label">@project.Project.ProjectName</span>
+                                        </label>
+                                    }
+                                </div>
                             </div>
                         </div>
-                    }
+                    </div>
+                </div>
+
+                <div class="budget-chart-row">
+                    <!-- 2/3 Säulendiagramm -->
+                    <div class="budget-chart-bar">
+                        <canvas id="budgetBarChart"></canvas>
+                    </div>
+                    <!-- 1/3 Tortendiagramm -->
+                    <div class="budget-chart-pie">
+                        <canvas id="budgetPieChart"></canvas>
+                    </div>
                 </div>
             </section>
         </div>
@@ -453,5 +482,236 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // CSS laden
         loadCSS();
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // ===== Projektdaten global sammeln =====
+    var allProjects = [];
+    @foreach (var project in Model.ProjectsWithBudget)
+    {
+            @:allProjects.push({
+            @:    id: '@project.Project.ProjectId',
+            @:    name: '@Html.Raw(project.Project.ProjectName.Replace("'", "\\'"))',
+            @:    planned: @(project.Project.ProjectBudget?.InitialBudget ?? 0),
+            @:    used: @project.UsedBudget
+            @:});
+    }
+
+    var barChart = null;
+    var pieChart = null;
+
+    // ===== Währungsformatierung =====
+    function currencyFormat(value) {
+        return new Intl.NumberFormat('de-DE', {
+            style: 'currency', currency: 'EUR', maximumFractionDigits: 0
+        }).format(value);
+    }
+
+    // ===== Filter-Dropdown Toggle =====
+    function toggleFilterDropdown() {
+        document.getElementById('projectFilterWrapper').classList.toggle('open');
+    }
+
+    // Dropdown schließen bei Klick außerhalb
+    document.addEventListener('click', function(e) {
+        var wrapper = document.getElementById('projectFilterWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            wrapper.classList.remove('open');
+        }
+    });
+
+    // ===== Alle / Keine auswählen =====
+    function selectAllProjects() {
+        var checkboxes = document.querySelectorAll('#projectFilterDropdown input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = true);
+        updateBudgetCharts();
+    }
+
+    function deselectAllProjects() {
+        var checkboxes = document.querySelectorAll('#projectFilterDropdown input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+        updateBudgetCharts();
+    }
+
+    // ===== Ausgewählte Projekt-IDs lesen =====
+    function getSelectedProjectIds() {
+        var checkboxes = document.querySelectorAll('#projectFilterDropdown input[type="checkbox"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    // ===== Filter-Label aktualisieren =====
+    function updateFilterLabel(selectedCount, totalCount) {
+        var label = document.getElementById('filterLabel');
+        if (selectedCount === 0) {
+            label.textContent = 'Keine Projekte';
+        } else if (selectedCount === totalCount) {
+            label.textContent = 'Alle Projekte';
+        } else if (selectedCount === 1) {
+            var selectedId = getSelectedProjectIds()[0];
+            var proj = allProjects.find(p => p.id === selectedId);
+            label.textContent = proj ? proj.name : '1 Projekt';
+        } else {
+            label.textContent = selectedCount + ' von ' + totalCount + ' Projekten';
+        }
+    }
+
+    // ===== Charts aktualisieren =====
+    function updateBudgetCharts() {
+        var selectedIds = getSelectedProjectIds();
+        var totalCount = allProjects.length;
+
+        updateFilterLabel(selectedIds.length, totalCount);
+
+        // Gefilterte Daten
+        var filtered = selectedIds.length === 0
+            ? []
+            : allProjects.filter(p => selectedIds.includes(p.id));
+
+        var projectNames = filtered.map(p => p.name);
+        var plannedBudgets = filtered.map(p => p.planned);
+        var usedBudgets = filtered.map(p => p.used);
+
+        var totalPlanned = plannedBudgets.reduce((a, b) => a + b, 0);
+        var totalUsed = usedBudgets.reduce((a, b) => a + b, 0);
+        var totalRemaining = Math.max(totalPlanned - totalUsed, 0);
+
+        // Bestehende Charts zerstören
+        if (barChart) barChart.destroy();
+        if (pieChart) pieChart.destroy();
+
+        // Chart-Farben passend zum Dashboard
+        var planColor = 'rgba(102, 126, 234, 0.75)';       // #667eea
+        var planBorder = 'rgba(102, 126, 234, 1)';
+        var istColor = 'rgba(118, 75, 162, 0.75)';          // #764ba2
+        var istBorder = 'rgba(118, 75, 162, 1)';
+        var verbrauchtColor = 'rgba(118, 75, 162, 0.85)';
+        var verbrauchtBorder = 'rgba(118, 75, 162, 1)';
+        var verbleibendColor = 'rgba(102, 126, 234, 0.85)';
+        var verbleibendBorder = 'rgba(102, 126, 234, 1)';
+
+        // ===== SÄULENDIAGRAMM (2/3) =====
+        var barCtx = document.getElementById('budgetBarChart').getContext('2d');
+        barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: projectNames,
+                datasets: [
+                    {
+                        label: 'Plan (€)',
+                        data: plannedBudgets,
+                        backgroundColor: planColor,
+                        borderColor: planBorder,
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Ist (€)',
+                        data: usedBudgets,
+                        backgroundColor: istColor,
+                        borderColor: istBorder,
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'rectRounded',
+                            padding: 16,
+                            font: { size: 12, weight: '500' },
+                            color: '#495057'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 },
+                        cornerRadius: 8,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + currencyFormat(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#6c757d', font: { size: 11 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.06)' },
+                        ticks: {
+                            color: '#6c757d',
+                            font: { size: 11 },
+                            callback: function(value) {
+                                return currencyFormat(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ===== DOUGHNUT (1/3) =====
+        var pieCtx = document.getElementById('budgetPieChart').getContext('2d');
+        pieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Verbraucht (Ist)', 'Verbleibend'],
+                datasets: [{
+                    data: totalPlanned === 0 ? [0, 1] : [totalUsed, totalRemaining],
+                    backgroundColor: [verbrauchtColor, verbleibendColor],
+                    borderColor: [verbrauchtBorder, verbleibendBorder],
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 16,
+                            font: { size: 12, weight: '500' },
+                            color: '#495057'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 },
+                        cornerRadius: 8,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                var pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : '0.0';
+                                return context.label + ': ' + currencyFormat(context.raw) + ' (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ===== Initiale Anzeige =====
+    document.addEventListener('DOMContentLoaded', function () {
+        updateBudgetCharts();
     });
 </script>
