@@ -32,6 +32,7 @@ namespace SAAS_Projectplanningtool.Data
 
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSectionMilestone> ProjectSectionMilestone { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskCatalogTask> ProjectTaskCatalogTask { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.HolidayCalendarEntry> HolidayCalendarEntry { get; set; } = default!;
 
 
         public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;
@@ -210,6 +211,21 @@ namespace SAAS_Projectplanningtool.Data
                 .WithMany()
                 .HasForeignKey(hrg => hrg.LatestModifierId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<HolidayCalendarEntry>()
+                .HasOne(hce => hce.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(hce => hce.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<HolidayCalendarEntry>()
+                .HasOne(hce => hce.LatestModifier)
+                .WithMany()
+                .HasForeignKey(hce => hce.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<HolidayCalendarEntry>()
+                .HasIndex(hce => new { hce.CompanyId, hce.HolidayDate });
         }
     }
 }

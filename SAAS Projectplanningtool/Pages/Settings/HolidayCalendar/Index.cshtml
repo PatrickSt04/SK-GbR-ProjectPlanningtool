@@ -1,0 +1,237 @@
+@page
+@model SAAS_Projectplanningtool.Pages.Settings.HolidayCalendar.IndexModel
+@using System.Text.Json
+@using SAAS_Projectplanningtool.Models
+
+@{
+    ViewData["Title"] = "Feiertagskalender";
+
+    var calendarEntries = Model.HolidayEntries
+        .Where(e => !e.DeleteFlag)
+        .Select(e => new
+        {
+            id = e.HolidayCalendarEntryId,
+            date = e.HolidayDate.ToString("yyyy-MM-dd"),
+            name = e.HolidayName,
+            type = e.HolidayType == HolidayEntryType.PublicHoliday ? "holiday" : "vacation"
+        });
+}
+
+<style>
+    .holiday-calendar-card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background-color: #fff;
+    }
+
+    .holiday-calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .holiday-calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .holiday-calendar-weekday {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-align: center;
+    }
+
+    .holiday-calendar-day {
+        min-height: 96px;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 0.35rem;
+        background-color: #fdfdfd;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .holiday-calendar-day.inactive {
+        background-color: #f8f9fa;
+        opacity: 0.55;
+    }
+
+    .holiday-calendar-day-number {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .holiday-calendar-entry {
+        display: block;
+        font-size: 0.72rem;
+        border-radius: 0.35rem;
+        padding: 0.1rem 0.35rem;
+        color: #212529;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .holiday-calendar-entry.holiday {
+        background-color: #ffe5d0;
+    }
+
+    .holiday-calendar-entry.vacation {
+        background-color: #cce5ff;
+    }
+
+    .holiday-calendar-add {
+        margin-top: auto;
+        text-align: right;
+        font-size: 0.75rem;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">Feiertagskalender</h1>
+        <p class="text-muted mb-0">@Model.CompanyName</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-page="./Create" class="btn btn-primary">Neuer Eintrag</a>
+        <a asp-page="/Settings/CompanySettings" class="btn btn-outline-secondary">Zurück zu Firmeneinstellungen</a>
+    </div>
+</div>
+
+<div class="holiday-calendar-card mb-4">
+    <div class="holiday-calendar-header">
+        <button id="previousMonth" type="button" class="btn btn-sm btn-outline-secondary">Zurück</button>
+        <h2 id="calendarMonthLabel" class="h5 mb-0"></h2>
+        <button id="nextMonth" type="button" class="btn btn-sm btn-outline-secondary">Weiter</button>
+    </div>
+    <div class="holiday-calendar-grid" id="holidayCalendar"></div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Name</th>
+                <th>Art</th>
+                <th>Status</th>
+                <th class="text-end">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in Model.HolidayEntries.OrderBy(e => e.HolidayDate))
+            {
+                <tr class="@(entry.DeleteFlag ? "table-light" : string.Empty)">
+                    <td>@entry.HolidayDate.ToString("dd.MM.yyyy")</td>
+                    <td>@entry.HolidayName</td>
+                    <td>@(entry.HolidayType == HolidayEntryType.PublicHoliday ? "Feiertag" : "Betriebsurlaub")</td>
+                    <td>
+                        @if (entry.DeleteFlag)
+                        {
+                            <span class="badge bg-secondary">Inaktiv</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Aktiv</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <a asp-page="./Details" asp-route-id="@entry.HolidayCalendarEntryId" class="btn btn-sm btn-outline-primary">Details</a>
+                        <a asp-page="./Edit" asp-route-id="@entry.HolidayCalendarEntryId" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const calendarEntries = @Html.Raw(JsonSerializer.Serialize(calendarEntries));
+    const createBaseUrl = '@Url.Page("./Create")';
+    const detailsBaseUrl = '@Url.Page("./Details")';
+    const weekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+    let activeDate = new Date();
+
+    document.getElementById('previousMonth').addEventListener('click', () => {
+        activeDate.setMonth(activeDate.getMonth() - 1);
+        renderHolidayCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+        activeDate.setMonth(activeDate.getMonth() + 1);
+        renderHolidayCalendar();
+    });
+
+    function renderHolidayCalendar() {
+        const calendar = document.getElementById('holidayCalendar');
+        calendar.innerHTML = '';
+
+        weekdays.forEach(day => {
+            const weekdayCell = document.createElement('div');
+            weekdayCell.className = 'holiday-calendar-weekday';
+            weekdayCell.textContent = day;
+            calendar.appendChild(weekdayCell);
+        });
+
+        const year = activeDate.getFullYear();
+        const month = activeDate.getMonth();
+        document.getElementById('calendarMonthLabel').textContent = activeDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+        const firstDay = new Date(year, month, 1);
+        const monthStartOffset = (firstDay.getDay() + 6) % 7;
+        const firstVisibleDay = new Date(year, month, 1 - monthStartOffset);
+
+        for (let i = 0; i < 42; i++) {
+            const currentDay = new Date(firstVisibleDay);
+            currentDay.setDate(firstVisibleDay.getDate() + i);
+
+            const dayCell = document.createElement('div');
+            dayCell.className = 'holiday-calendar-day';
+            if (currentDay.getMonth() !== month) {
+                dayCell.classList.add('inactive');
+            }
+
+            const dateIso = toIsoDate(currentDay);
+            const dayEntries = calendarEntries.filter(entry => entry.date === dateIso);
+
+            const entriesHtml = dayEntries
+                .map(entry => `<a href="${detailsBaseUrl}?id=${entry.id}" class="holiday-calendar-entry ${entry.type}" title="${escapeHtml(entry.name)}">${escapeHtml(entry.name)}</a>`)
+                .join('');
+
+            dayCell.innerHTML = `
+                <div class="holiday-calendar-day-number">${currentDay.getDate()}</div>
+                ${entriesHtml}
+                <div class="holiday-calendar-add">
+                    <a href="${createBaseUrl}?date=${dateIso}">+ Eintrag</a>
+                </div>
+            `;
+
+            calendar.appendChild(dayCell);
+        }
+    }
+
+    function toIsoDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function escapeHtml(value) {
+        return value
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    renderHolidayCalendar();
+</script>
