@@ -1,0 +1,56 @@
+@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.ProjectHandlerPageModel
+@{
+    ViewData["Title"] = "Meilenstein bearbeiten";
+}
+<div class="modal fade" id="editMilestoneModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="EditMileStone">
+                <div class="modal-header">
+                    <h5 class="modal-title">Meilenstein bearbeiten</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editMilestoneId" name="milestoneId" />
+                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Meilenstein Name</label>
+                        <input type="text" class="form-control" id="editMilestoneName" name="name" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Abschnitt</label>
+                        <select class="form-select" id="editMilestoneSectionId" name="sectionId" required>
+                            <option value="">-- Abschnitt auswählen --</option>
+                            @if (Model.Project?.ProjectSections != null)
+                            {
+                                @foreach (var projectSection in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
+                                {
+                                    <option value="@projectSection.ProjectSectionId">@projectSection.ProjectSectionName</option>
+                                    @if (projectSection.SubSections != null)
+                                    {
+                                        @foreach (var subSection in projectSection.SubSections)
+                                        {
+                                            <option value="@subSection.ProjectSectionId">-- @subSection.ProjectSectionName</option>
+                                        }
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Datum</label>
+                        <input type="date" class="form-control" id="editMilestoneDate" name="startDate" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

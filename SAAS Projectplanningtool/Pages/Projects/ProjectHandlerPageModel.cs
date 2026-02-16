@@ -348,6 +348,36 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return RedirectToPage(new { id = Project.ProjectId });
         }
 
+        public async Task<IActionResult> OnPostEditMileStoneAsync(string projectId, string milestoneId, string sectionId, string name, DateOnly startDate)
+        {
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditMileStoneAsync>Begin");
+            try
+            {
+                var milestone = await _context.ProjectSectionMilestone.FirstOrDefaultAsync(ms => ms.ProjectSectionMilestoneId == milestoneId);
+                if (milestone == null)
+                {
+                    TempData.SetMessage("Danger", "Meilenstein nicht gefunden.");
+                    return RedirectToPage(new { id = projectId });
+                }
+
+                milestone.ProjectSectionId = sectionId;
+                milestone.MilestoneName = name;
+                milestone.Date = startDate;
+                milestone = await _customObjectModifier.AddLatestModificationAsync(User, "Meilenstein bearbeitet", milestone, false);
+
+                _context.ProjectSectionMilestone.Update(milestone);
+                await _context.SaveChangesAsync();
+                TempData.SetMessage("Success", "Meilenstein erfolgreich geändert.");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
+            }
+
+            await _logger.Log(null, User, null, "Projects.Scheduling<OnPostEditMileStoneAsync>End");
+            return RedirectToPage(new { id = projectId });
+        }
+
         public async Task<IActionResult> OnPostDeleteSelectedAsync(string? objectJson)
         {
             try
@@ -639,4 +669,3 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public JsonElement Data { get; set; }
     }
 }
-

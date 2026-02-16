@@ -633,6 +633,7 @@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "Scheduling" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionMileStone.cshtml", (ProjectHandlerPageModel)Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_EditMilestoneModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", Model)
 
 <script>
@@ -666,6 +667,7 @@
                {
                    Id = m.ProjectSectionMilestoneId,
                    Name = m.MilestoneName,
+                   SectionId = m.ProjectSectionId,
                    Date = m.Date?.ToString("yyyy-MM-dd"),
                    Type = "milestone"
                })
@@ -694,6 +696,7 @@
                 {
                     Id = m.ProjectSectionMilestoneId,
                     Name = m.MilestoneName,
+                    SectionId = m.ProjectSectionId,
                     Date = m.Date?.ToString("yyyy-MM-dd"),
                     Type = "milestone"
                 })
@@ -971,7 +974,12 @@
                             <div>${milestone.Date ? formatDate(milestone.Date) : '-'}</div>
                             <div>-</div>
                             <div class="row-actions">
-                                <span class="badge bg-warning text-dark">Meilenstein</span>
+                                <button class="btn btn-outline-primary btn-sm" onclick="editMilestone('${milestone.Id}')" title="Bearbeiten">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="deleteMilestone('${milestone.Id}')" title="Löschen">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                     `;
@@ -1463,6 +1471,67 @@
 
                 new bootstrap.Modal(modal).show();
             }
+        }
+    }
+
+    function editMilestone(milestoneId) {
+        const milestoneData = findMilestoneById(projectData.sections, milestoneId);
+        if (!milestoneData) return;
+
+        const modal = document.getElementById('editMilestoneModal');
+        if (!modal) return;
+
+        const milestoneIdInput = modal.querySelector('#editMilestoneId');
+        const nameInput = modal.querySelector('#editMilestoneName');
+        const dateInput = modal.querySelector('#editMilestoneDate');
+        const sectionInput = modal.querySelector('#editMilestoneSectionId');
+
+        if (milestoneIdInput) milestoneIdInput.value = milestoneData.Id || '';
+        if (nameInput) nameInput.value = milestoneData.Name || '';
+        if (dateInput) dateInput.value = milestoneData.Date || '';
+        if (sectionInput) sectionInput.value = milestoneData.SectionId || '';
+
+        new bootstrap.Modal(modal).show();
+    }
+
+    function findMilestoneById(items, milestoneId) {
+        if (!items) return null;
+
+        for (const item of items) {
+            if (item.Milestones) {
+                const milestone = item.Milestones.find(m => m.Id === milestoneId);
+                if (milestone) return milestone;
+            }
+            if (item.SubSections) {
+                const found = findMilestoneById(item.SubSections, milestoneId);
+                if (found) return found;
+            }
+        }
+
+        return null;
+    }
+
+    function deleteMilestone(milestoneId) {
+        const milestoneData = findMilestoneById(projectData.sections, milestoneId);
+        const milestoneName = milestoneData?.Name || '';
+
+        const deleteText = document.getElementById('deleteConfirmText');
+        const deleteObjectJson = document.getElementById('deleteObjectJson');
+        const deleteModal = document.getElementById('deleteModal');
+
+        if (deleteText) {
+            deleteText.textContent = `Sind Sie sicher, dass Sie "${milestoneName}" löschen möchten?`;
+        }
+
+        if (deleteObjectJson) {
+            deleteObjectJson.value = JSON.stringify({
+                Type: 'ProjectSectionMilestone',
+                Data: { itemId: milestoneId, itemName: milestoneName }
+            });
+        }
+
+        if (deleteModal) {
+            new bootstrap.Modal(deleteModal).show();
         }
     }
 
