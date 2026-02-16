@@ -1,0 +1,47 @@
+@page
+@model SAAS_Projectplanningtool.Pages.Settings.HolidayCalendar.CreateModel
+@using SAAS_Projectplanningtool.Models
+
+@{
+    ViewData["Title"] = "Feiertag anlegen";
+}
+
+<h1 class="h3 mb-3">Feiertagseintrag anlegen</h1>
+<p class="text-muted">Pflegen Sie Feiertage und Betriebsurlaubstage für Ihre Company.</p>
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="HolidayCalendarEntry.HolidayName" class="form-label"></label>
+        <input asp-for="HolidayCalendarEntry.HolidayName" class="form-control" list="holidayNameCatalog" />
+        <datalist id="holidayNameCatalog">
+            @foreach (var name in Model.SuggestedHolidayNames)
+            {
+                <option value="@name"></option>
+            }
+        </datalist>
+        <span asp-validation-for="HolidayCalendarEntry.HolidayName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="HolidayCalendarEntry.HolidayDate" class="form-label"></label>
+        <input asp-for="HolidayCalendarEntry.HolidayDate" class="form-control" type="date" />
+        <span asp-validation-for="HolidayCalendarEntry.HolidayDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="HolidayCalendarEntry.HolidayType" class="form-label"></label>
+        <select asp-for="HolidayCalendarEntry.HolidayType" class="form-select" asp-items="Html.GetEnumSelectList<HolidayEntryType>()"></select>
+        <span asp-validation-for="HolidayCalendarEntry.HolidayType" class="text-danger"></span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a asp-page="./Index" class="btn btn-outline-secondary">Abbrechen</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
