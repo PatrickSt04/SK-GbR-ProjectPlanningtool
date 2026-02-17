@@ -1,0 +1,208 @@
+/* ========================================
+   TIME TRACKING STYLES
+   Add to your project CSS or create as separate file
+   and reference in _Layout.cshtml
+   ======================================== */
+
+.time-tracking-section .section-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.time-tracking-section .section-header-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.time-tracking-section .section-header-gradient h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.time-tracking-section .section-header-gradient .btn-light {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.time-tracking-section .section-header-gradient .btn-light:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* Time Entry Form */
+.time-entry-form {
+    background: #f8f9ff;
+    border-bottom: 1px solid #e8ecf4;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.time-entry-form .form-label {
+    font-size: 0.85rem;
+    color: #4a5568;
+    margin-bottom: 4px;
+}
+
+.time-entry-form .form-control,
+.time-entry-form .form-select {
+    border-radius: 8px;
+    border: 1px solid #d4dae4;
+    padding: 8px 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.time-entry-form .form-control:focus,
+.time-entry-form .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.time-entry-form .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 500;
+}
+
+.time-entry-form .btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Summary Bar */
+.time-summary-bar {
+    background: linear-gradient(135deg, #f0f4ff 0%, #f5f0ff 100%);
+    border-bottom: 1px solid #e8ecf4;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #718096;
+    font-weight: 600;
+}
+
+.summary-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+/* Table Styles */
+.time-entries-table .table {
+    margin-bottom: 0;
+}
+
+.time-entries-table .table thead th {
+    background: #f7f8fc;
+    border-bottom: 2px solid #e2e8f0;
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    white-space: nowrap;
+}
+
+.time-entries-table .table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.time-entries-table .table tbody tr:hover {
+    background-color: #f7f8fc;
+}
+
+.time-entries-table .table tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+/* Badges */
+.employee-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+    color: #5a67d8;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.hours-badge {
+    display: inline-block;
+    background: #e6ffed;
+    color: #22863a;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.description-text {
+    color: #4a5568;
+    font-size: 0.85rem;
+}
+
+/* Pagination */
+.time-tracking-section .pagination .page-link {
+    color: #667eea;
+    border-radius: 8px;
+    margin: 0 2px;
+    border: 1px solid #e2e8f0;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+.time-tracking-section .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+}
+
+.time-tracking-section .pagination .page-link:hover {
+    background-color: #f0f4ff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .time-tracking-section .section-header-gradient {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .time-summary-bar .row {
+        gap: 15px;
+    }
+
+    .summary-value {
+        font-size: 1.1rem;
+    }
+}

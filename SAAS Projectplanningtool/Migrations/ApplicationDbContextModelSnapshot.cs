@@ -1046,6 +1046,68 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.ToTable("Logfile");
                 });
 
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.TimeTracking.TimeEntry", b =>
+                {
+                    b.Property<string>("TimeEntryId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("BreakMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CompanyId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("EmployeeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("LatestModificationText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LatestModificationTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LatestModifierId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateOnly>("WorkDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("TimeEntryId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("LatestModifierId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("TimeEntry");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1702,6 +1764,46 @@ namespace SAAS_Projectplanningtool.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("ExcecutingEmployee");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.TimeTracking.TimeEntry", b =>
+                {
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
+                        .WithMany()
+                        .HasForeignKey("LatestModifierId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("LatestModifier");
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.Project", b =>

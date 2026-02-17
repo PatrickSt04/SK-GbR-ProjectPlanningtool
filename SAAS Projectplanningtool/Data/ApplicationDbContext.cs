@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 using SAAS_Projectplanningtool.Models;
+using SAAS_Projectplanningtool.Models.TimeTracking;
 
 
 namespace SAAS_Projectplanningtool.Data
@@ -33,6 +34,8 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectSectionMilestone> ProjectSectionMilestone { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskCatalogTask> ProjectTaskCatalogTask { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.HolidayCalendarEntry> HolidayCalendarEntry { get; set; } = default!;
+
+        public DbSet<TimeEntry> TimeEntry { get; set; } = default!;
 
 
         public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;

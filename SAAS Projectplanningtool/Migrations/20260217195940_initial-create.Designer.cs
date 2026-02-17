@@ -12,8 +12,8 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260208130345_newmigration#")]
-    partial class newmigration
+    [Migration("20260217195940_initial-create")]
+    partial class initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -878,6 +878,54 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.ToTable("Employee");
                 });
 
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.HolidayCalendarEntry", b =>
+                {
+                    b.Property<string>("HolidayCalendarEntryId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CompanyId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("DeleteFlag")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly>("HolidayDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("HolidayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("HolidayType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LatestModificationText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LatestModificationTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LatestModifierId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("HolidayCalendarEntryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("LatestModifierId");
+
+                    b.HasIndex("CompanyId", "HolidayDate");
+
+                    b.ToTable("HolidayCalendarEntry");
+                });
+
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.HourlyRateGroup", b =>
                 {
                     b.Property<string>("HourlyRateGroupId")
@@ -1597,6 +1645,30 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("IdentityRole");
 
                     b.Navigation("IdentityUser");
+
+                    b.Navigation("LatestModifier");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.HolidayCalendarEntry", b =>
+                {
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
+                        .WithMany()
+                        .HasForeignKey("LatestModifierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
                 });
