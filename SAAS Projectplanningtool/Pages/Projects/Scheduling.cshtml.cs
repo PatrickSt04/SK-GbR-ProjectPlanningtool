@@ -48,6 +48,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 }
 
                 await SetProjectBindingAsync(id);
+                var employee = await GetEmployeeAsync();
+
+                if (employee?.CompanyId != null)
+                {
+                    await SetHolidaysBindingAsync(employee.CompanyId);
+                }
                 if (Project == null)
                 {
                     return NotFound();

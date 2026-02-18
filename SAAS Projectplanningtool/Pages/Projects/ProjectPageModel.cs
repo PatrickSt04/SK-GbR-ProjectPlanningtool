@@ -31,6 +31,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public SelectList? ProjectLeads { get; set; }
 
 
+        [BindProperty(SupportsGet = true)]
+        //Feiertage für das Erstellen von ProjectTask über Startdatum und Arbeitstage
+        public List<string> HolidayDates { get; set; } = new();
+
+
         public async Task<IActionResult> OnPostSetProjectArchivedAsync(string id)
         {
             await _logger.Log(null, User, null, "Projects/Details<SetProjectArchived>Beginn");
@@ -183,6 +188,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 await _logger.Log(ex, User, null, "EXCEPTION: Projects/ProjectPageModel<GetEmployeeAsync>");
                 return null;
             }
+        }
+
+        public async Task SetHolidaysBindingAsync(string companyId)
+        {
+            HolidayDates = await _context.HolidayCalendarEntry
+                .Where(h => h.CompanyId == companyId && !h.DeleteFlag)
+                .Select(h => h.HolidayDate.ToString("yyyy-MM-dd"))   // DateOnly → string
+                .ToListAsync();
         }
 
         public async Task SetProjectBindingAsync(string projectId)

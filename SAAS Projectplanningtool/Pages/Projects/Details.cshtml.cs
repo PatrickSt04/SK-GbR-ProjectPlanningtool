@@ -58,16 +58,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 {
                     return NotFound();
                 }
-                Employee employee = default!;
 
-                employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                var employee = await GetEmployeeAsync();
 
-                //var sectionsOfThisProject = await _context.ProjectSection
-                //     .Where(s => s.ProjectId == id)
-                //     .Where(s => s.CompanyId == employee.CompanyId)
-                //     .Select(s => s.ProjectSectionId)
-                //     .ToListAsync();
-                //TaskCatalog
+                if (employee?.CompanyId != null)
+                {
+                    await SetHolidaysBindingAsync(employee.CompanyId);
+                }
                 TaskCatalog = Project.ProjectTaskCatalogTasks != null ? Project.ProjectTaskCatalogTasks.ToList() : new List<ProjectTaskCatalogTask>();
 
 
