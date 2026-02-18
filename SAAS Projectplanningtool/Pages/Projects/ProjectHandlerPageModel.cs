@@ -24,17 +24,24 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
         [BindProperty]
         public string? Origin { get; set; } = null;
-        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name)
+        public async Task<IActionResult> OnPostCreateProjectTaskAsync(string projectId, string SectionId, DateOnly? startDate, DateOnly? endDate, string Name, int? durationWorkDays)
         {
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>Begin");
             try
             {
-                var excecutingUser = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                var executingUser = await new CustomUserManager(_context, _userManager)
+                    .GetEmployeeAsync(_userManager.GetUserId(User));
 
+                // Falls nur Dauer übergeben (Fallback serverseitig)
+                if (startDate.HasValue && durationWorkDays.HasValue && durationWorkDays > 0 && !endDate.HasValue)
+                {
+                    endDate = await CalculateEndDateAsync(
+                        startDate.Value, durationWorkDays.Value, executingUser.CompanyId);
+                }
 
                 var pt = new ProjectTask
                 {
-                    CompanyId = excecutingUser.CompanyId,
+                    CompanyId = executingUser.CompanyId,
                     StartDate = startDate,
                     EndDate = endDate,
                     ProjectTaskName = Name,
@@ -43,7 +50,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 pt.State = await new StateManager(_context).getOpenState();
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
 
-                //Erst task zur DB hinzufügen
                 _context.ProjectTask.Add(pt);
                 await _context.SaveChangesAsync();
 
@@ -54,14 +60,49 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
             await _logger.Log(null, User, null, "Projects.Scheduling<OnPostCreateProjectTaskAsync>End");
-            if (Origin != null && Origin == "Details")
+
+            return Origin == "Details"
+                ? RedirectToPage("/Projects/Details", new { id = projectId })
+                : RedirectToPage(new { id = projectId });
+        }
+
+        /// <summary>
+        /// Berechnet das Enddatum ausgehend von einem Startdatum und einer Anzahl Arbeitstage,
+        /// unter Berücksichtigung der DefaultWorkDays der Company und der Feiertage.
+        /// </summary>
+        private async Task<DateOnly?> CalculateEndDateAsync(
+            DateOnly startDate, int workDays, string? companyId)
+        {
+            if (companyId == null || workDays < 1) return null;
+
+            var company = await _context.Company
+                .FirstOrDefaultAsync(c => c.CompanyId == companyId);
+
+            if (company == null) return null;
+
+            var allowedDays = company.DefaultWorkDays; // List<int>, ISO 1=Mo…7=So
+
+            // Feiertage für diese Company laden
+            var holidays = _context.HolidayCalendarEntry
+                .Where(h => h.CompanyId == companyId && !h.DeleteFlag)
+                .Select(h => h.HolidayDate)
+                .ToHashSet();
+
+            var current = startDate;
+            int counted = 0;
+
+            while (true)
             {
-                return RedirectToPage("/Projects/Details", new { id = projectId });
+                int dow = current.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)current.DayOfWeek;
+                if (allowedDays.Contains(dow) && !holidays.Contains(current))
+                {
+                    counted++;
+                    if (counted >= workDays) break;
+                }
+                current = current.AddDays(1);
             }
-            else
-            {
-                return RedirectToPage(new { id = projectId });
-            }
+
+            return current;
         }
         public async Task<IActionResult> OnPostCreateTaskCatalogTaskAsync(string projectId, string Name, DateOnly? startDate, DateOnly? endDate)
         {

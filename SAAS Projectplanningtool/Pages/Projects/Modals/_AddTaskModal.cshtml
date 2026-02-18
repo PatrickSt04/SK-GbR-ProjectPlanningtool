@@ -22,7 +22,6 @@
                     <div class="mb-3">
                         <label class="form-label">Abschnitt</label>
                         <select class="form-select" id="taskSectionSelect" name="SectionId" required>
-                            @* <select class="form-select" id="taskSectionSelect" name="SectionId" required> *@
                             <option value="">-- Abschnitt auswählen --</option>
                             @if (Model.Project?.ProjectSections != null)
                             {
@@ -39,24 +38,210 @@
                                 }
                             }
                         </select>
+                    </div>
 
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Startdatum</label>
-                            <input type="date" class="form-control" name="startDate" required />
+                    <!-- Modus-Auswahl -->
+                    <div class="mb-3">
+                        <label class="form-label">Datumsangabe</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="dateInputMode"
+                                   id="modeStartEnd" value="startEnd" checked>
+                            <label class="btn btn-outline-primary" for="modeStartEnd">
+                                Start- &amp; Enddatum
+                            </label>
+                            <input type="radio" class="btn-check" name="dateInputMode"
+                                   id="modeDuration" value="duration">
+                            <label class="btn btn-outline-primary" for="modeDuration">
+                                Startdatum &amp; Dauer
+                            </label>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Enddatum</label>
-                            <input type="date" class="form-control" name="endDate" required />
+                    </div>
+
+                    <!-- Modus A: Start + End -->
+                    <div id="panelStartEnd">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Startdatum</label>
+                                <input type="date" class="form-control"
+                                       id="startDateDirect" name="startDate" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Enddatum</label>
+                                <input type="date" class="form-control"
+                                       id="endDateDirect" name="endDate" required />
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Modus B: Start + Dauer -->
+                    <div id="panelDuration" style="display:none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Startdatum</label>
+                                <input type="date" class="form-control" id="startDateDur" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Dauer (Arbeitstage)</label>
+                                <input type="number" class="form-control"
+                                       id="durationDays" min="1" value="1" />
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Berechnetes Enddatum: <strong id="calculatedEndDate">–</strong>
+                            </small>
+                        </div>
+                        <!-- Diese hidden fields überschreiben die aus Modus A beim Submit -->
+                        <input type="hidden" id="hiddenStartDate" name="startDate" disabled />
+                        <input type="hidden" id="hiddenEndDate" name="endDate" disabled />
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Erstellen</button>
+                    <button type="submit" class="btn btn-primary" id="btnCreateTask">Erstellen</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    // Sofort ausführen – kein DOMContentLoaded nötig da Partial am Ende gerendert wird,
+    // aber zur Sicherheit trotzdem absichern
+    document.addEventListener('DOMContentLoaded', function () {
+        initAddTaskModal();
+    });
+
+    // Zusätzlich direkt aufrufen falls DOMContentLoaded bereits gefeuert hat
+    // (passiert bei dynamisch nachgeladenen Partials via AJAX)
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initAddTaskModal();
+    }
+
+    function initAddTaskModal() {
+        const panelStartEnd   = document.getElementById('panelStartEnd');
+        const panelDuration   = document.getElementById('panelDuration');
+        const startDateDirect = document.getElementById('startDateDirect');
+        const endDateDirect   = document.getElementById('endDateDirect');
+        const startDateDur    = document.getElementById('startDateDur');
+        const durationDays    = document.getElementById('durationDays');
+        const hiddenStart     = document.getElementById('hiddenStartDate');
+        const hiddenEnd       = document.getElementById('hiddenEndDate');
+        const calcEndDate     = document.getElementById('calculatedEndDate');
+        const btnCreate       = document.getElementById('btnCreateTask');
+        const radios          = document.querySelectorAll('input[name="dateInputMode"]');
+
+        // Prüfen ob alle Elemente vorhanden (Schutz gegen Doppelaufruf)
+        if (!panelStartEnd || !panelDuration) return;
+        // Verhindern dass init mehrfach läuft
+        if (panelStartEnd.dataset.initialized) return;
+        panelStartEnd.dataset.initialized = 'true';
+
+        const workDays = @Html.Raw(
+                                                System.Text.Json.JsonSerializer.Serialize(
+                                                                Model.Project?.Company?.DefaultWorkDays ?? new List<int> { 1, 2, 3, 4, 5 }
+                                                )
+                                );
+
+        const holidays = @Html.Raw(
+                                                System.Text.Json.JsonSerializer.Serialize(
+                                                                Model.HolidayDates ?? new List<string>()
+                                                )
+                                );
+
+        const holidaySet = new Set(holidays);
+
+            function isWorkDay(dateObj) {
+        const dow = dateObj.getDay();
+        const iso = dow === 0 ? 7 : dow;
+        if (!workDays.includes(iso)) return false;
+
+        // Datum als lokalen String formatieren statt toISOString()
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return !holidaySet.has(`${y}-${m}-${d}`);
+    }
+
+            function addWorkDays(startStr, days) {
+        if (!startStr || isNaN(days) || days < 1) return null;
+
+        // Datum aus den Einzelteilen bauen – vermeidet Timezone-Verschiebung
+        const [year, month, day] = startStr.split('-').map(Number);
+        const current = new Date(year, month - 1, day); // lokale Zeit, kein UTC
+
+        if (!isWorkDay(current)) return null;
+
+        let counted = 1;
+        while (counted < days) {
+            current.setDate(current.getDate() + 1);
+            if (isWorkDay(current)) counted++;
+        }
+
+        // Manuell als yyyy-MM-dd formatieren statt toISOString() (UTC-Problem)
+        const y = current.getFullYear();
+        const m = String(current.getMonth() + 1).padStart(2, '0');
+        const d = String(current.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+        function updateCalculation() {
+            const endDate = addWorkDays(startDateDur.value, parseInt(durationDays.value, 10));
+            if (endDate) {
+                const [y, m, d] = endDate.split('-');
+                calcEndDate.textContent = `${d}.${m}.${y}`;
+                hiddenStart.value = startDateDur.value;
+                hiddenEnd.value   = endDate;
+            } else {
+                calcEndDate.textContent = '–';
+                hiddenStart.value = '';
+                hiddenEnd.value   = '';
+            }
+        }
+
+        function switchMode(mode) {
+            const isDuration = mode === 'duration';
+
+            // Panels ein-/ausblenden
+            panelStartEnd.style.display = isDuration ? 'none' : '';
+            panelDuration.style.display = isDuration ? ''     : 'none';
+
+            // Felder aktivieren/deaktivieren (disabled verhindert Submit-Übermittlung)
+            startDateDirect.disabled = isDuration;
+            endDateDirect.disabled   = isDuration;
+            startDateDirect.required = !isDuration;
+            endDateDirect.required   = !isDuration;
+
+            hiddenStart.disabled = !isDuration;
+            hiddenEnd.disabled   = !isDuration;
+
+            if (isDuration) updateCalculation();
+        }
+
+        // Radio-Change-Listener
+        radios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                switchMode(this.value);
+            });
+        });
+
+        // Berechnungs-Listener
+        startDateDur.addEventListener('change', updateCalculation);
+        durationDays.addEventListener('input',  updateCalculation);
+
+        // Submit-Validierung
+        btnCreate.addEventListener('click', function (e) {
+            const mode = document.querySelector('input[name="dateInputMode"]:checked').value;
+            if (mode === 'duration') {
+                if (!hiddenEnd.value) {
+                    e.preventDefault();
+                    alert('Bitte gültiges Startdatum eingeben. Das Startdatum muss ein Arbeitstag sein.');
+                }
+            }
+        });
+
+        // Initialzustand setzen
+        switchMode('startEnd');
+    }
+</script>

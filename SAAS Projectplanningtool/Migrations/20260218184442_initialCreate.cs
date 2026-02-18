@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SAAS_Projectplanningtool.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,10 +15,10 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -29,21 +29,21 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -54,8 +54,8 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IndustrySector",
                 columns: table => new
                 {
-                    SectorId = table.Column<string>(type: "TEXT", nullable: false),
-                    SectorName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false)
+                    SectorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SectorName = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -66,8 +66,8 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "LicenseModel",
                 columns: table => new
                 {
-                    LicenseId = table.Column<string>(type: "TEXT", nullable: false),
-                    LicenseName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false)
+                    LicenseId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LicenseName = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -78,9 +78,9 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "State",
                 columns: table => new
                 {
-                    StateId = table.Column<string>(type: "TEXT", nullable: false),
-                    StateName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    Color = table.Column<string>(type: "TEXT", nullable: false)
+                    StateId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StateName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Color = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -91,11 +91,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    RoleId = table.Column<string>(type: "TEXT", nullable: false),
-                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
-                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -111,11 +111,11 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
-                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -131,10 +131,10 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    ProviderKey = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false)
+                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -150,8 +150,8 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    RoleId = table.Column<string>(type: "TEXT", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -172,10 +172,10 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    LoginProvider = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    Value = table.Column<string>(type: "TEXT", nullable: true)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -191,19 +191,19 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "Address",
                 columns: table => new
                 {
-                    AddressId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    Street = table.Column<string>(type: "TEXT", nullable: true),
-                    HouseNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    City = table.Column<string>(type: "TEXT", nullable: true),
-                    Region = table.Column<string>(type: "TEXT", nullable: true),
-                    PostalCode = table.Column<string>(type: "TEXT", nullable: true),
-                    Country = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    AddressId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Street = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    HouseNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Region = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Country = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -214,12 +214,12 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "BudgetRecalculation",
                 columns: table => new
                 {
-                    RecalculationId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    NewBudget = table.Column<double>(type: "REAL", nullable: false),
-                    RecalculationDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    RecalculatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectBudgetId = table.Column<string>(type: "TEXT", nullable: true)
+                    RecalculationId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    NewBudget = table.Column<double>(type: "float", nullable: false),
+                    RecalculationDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RecalculatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectBudgetId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -230,18 +230,18 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "Company",
                 columns: table => new
                 {
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    SectorId = table.Column<string>(type: "TEXT", nullable: true),
-                    LicenseId = table.Column<string>(type: "TEXT", nullable: true),
-                    AddressId = table.Column<string>(type: "TEXT", nullable: true),
-                    DefaultWorkDaysJson = table.Column<string>(type: "TEXT", nullable: true),
-                    DefaultWorkingHoursJson = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SectorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LicenseId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    AddressId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    DefaultWorkDaysJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DefaultWorkingHoursJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -267,16 +267,16 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "Customer",
                 columns: table => new
                 {
-                    CustomerId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    AddressId = table.Column<string>(type: "TEXT", nullable: true),
-                    CustomerName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    DeleteFlag = table.Column<bool>(type: "INTEGER", nullable: false)
+                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    AddressId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeleteFlag = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -297,18 +297,18 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "Employee",
                 columns: table => new
                 {
-                    EmployeeId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    IdentityUserId = table.Column<string>(type: "TEXT", nullable: true),
-                    IdentityRoleId = table.Column<string>(type: "TEXT", nullable: false),
-                    HourlyRateGroupId = table.Column<string>(type: "TEXT", nullable: true),
-                    DeleteFlag = table.Column<bool>(type: "INTEGER", nullable: false),
-                    EmployeeDisplayName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    EmployeeId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    IdentityUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    IdentityRoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    HourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    DeleteFlag = table.Column<bool>(type: "bit", nullable: false),
+                    EmployeeDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -343,19 +343,57 @@ namespace SAAS_Projectplanningtool.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HolidayCalendarEntry",
+                columns: table => new
+                {
+                    HolidayCalendarEntryId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    HolidayName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    HolidayDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    HolidayType = table.Column<int>(type: "int", nullable: false),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeleteFlag = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HolidayCalendarEntry", x => x.HolidayCalendarEntryId);
+                    table.ForeignKey(
+                        name: "FK_HolidayCalendarEntry_Company_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Company",
+                        principalColumn: "CompanyId");
+                    table.ForeignKey(
+                        name: "FK_HolidayCalendarEntry_Employee_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_HolidayCalendarEntry_Employee_LatestModifierId",
+                        column: x => x.LatestModifierId,
+                        principalTable: "Employee",
+                        principalColumn: "EmployeeId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "HourlyRateGroup",
                 columns: table => new
                 {
-                    HourlyRateGroupId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    HourlyRate = table.Column<float>(type: "REAL", nullable: false),
-                    HourlyRateGroupName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    DeleteFlag = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    HourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    HourlyRate = table.Column<float>(type: "real", nullable: false),
+                    HourlyRateGroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeleteFlag = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -383,14 +421,14 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "Logfile",
                 columns: table => new
                 {
-                    LogfileId = table.Column<string>(type: "TEXT", nullable: false),
-                    ExceptionName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    ExceptionMessage = table.Column<string>(type: "TEXT", nullable: true),
-                    ExcecutingEmployeeId = table.Column<string>(type: "TEXT", nullable: true),
-                    TimeOfException = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ExceptionPath = table.Column<string>(type: "TEXT", nullable: true),
-                    CustomMessage = table.Column<string>(type: "TEXT", nullable: true),
-                    SerializedObject = table.Column<string>(type: "TEXT", nullable: true)
+                    LogfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ExceptionName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExceptionMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExcecutingEmployeeId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    TimeOfException = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExceptionPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CustomMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SerializedObject = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -406,16 +444,16 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectBudget",
                 columns: table => new
                 {
-                    ProjectBudgetId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    InitialBudget = table.Column<double>(type: "REAL", nullable: false),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    InitialAdditionalCosts = table.Column<string>(type: "TEXT", nullable: true),
-                    InitialHRGPlannings = table.Column<string>(type: "TEXT", nullable: true)
+                    ProjectBudgetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    InitialBudget = table.Column<double>(type: "float", nullable: false),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    InitialAdditionalCosts = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    InitialHRGPlannings = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -443,24 +481,24 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "Project",
                 columns: table => new
                 {
-                    ProjectId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    CustomerId = table.Column<string>(type: "TEXT", nullable: false),
-                    ProjectBudgetId = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    ProjectDescription = table.Column<string>(type: "TEXT", nullable: false),
-                    StartDate = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    EndDate = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    IsArchived = table.Column<bool>(type: "INTEGER", nullable: true),
-                    ResponsiblePersonId = table.Column<string>(type: "TEXT", nullable: true),
-                    StateId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    DefaultWorkDays = table.Column<string>(type: "TEXT", nullable: true),
-                    DefaultWorkingHoursJson = table.Column<string>(type: "TEXT", nullable: true)
+                    ProjectId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProjectBudgetId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProjectDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    IsArchived = table.Column<bool>(type: "bit", nullable: true),
+                    ResponsiblePersonId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DefaultWorkDays = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DefaultWorkingHoursJson = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -508,16 +546,16 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectAdditionalCosts",
                 columns: table => new
                 {
-                    ProjectAdditionalCostsId = table.Column<string>(type: "TEXT", nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectId = table.Column<string>(type: "TEXT", nullable: true),
-                    AdditionalCostName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    AdditionalCostAmount = table.Column<double>(type: "REAL", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    ProjectAdditionalCostsId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    AdditionalCostName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AdditionalCostAmount = table.Column<double>(type: "float", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -548,17 +586,17 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectSection",
                 columns: table => new
                 {
-                    ProjectSectionId = table.Column<string>(type: "TEXT", nullable: false),
-                    ProjectSectionName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectId = table.Column<string>(type: "TEXT", nullable: true),
-                    ParentSectionId = table.Column<string>(type: "TEXT", nullable: true),
-                    StateId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    ProjectSectionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProjectSectionName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ParentSectionId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -601,16 +639,16 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectSectionMilestone",
                 columns: table => new
                 {
-                    ProjectSectionMilestoneId = table.Column<string>(type: "TEXT", nullable: false),
-                    MilestoneName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectSectionId = table.Column<string>(type: "TEXT", nullable: true),
-                    Date = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    ProjectSectionMilestoneId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MilestoneName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectSectionId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Date = table.Column<DateOnly>(type: "date", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -641,18 +679,18 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectTask",
                 columns: table => new
                 {
-                    ProjectTaskId = table.Column<string>(type: "TEXT", nullable: false),
-                    ProjectTaskName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectSectionId = table.Column<string>(type: "TEXT", nullable: true),
-                    StartDate = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    EndDate = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    StateId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    ProjectTaskId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProjectTaskName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectSectionId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -690,10 +728,10 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectTaskHourlyRateGroup",
                 columns: table => new
                 {
-                    ProjectTaskHourlyRateGroupId = table.Column<string>(type: "TEXT", nullable: false),
-                    ProjectTaskId = table.Column<string>(type: "TEXT", nullable: false),
-                    HourlyRateGroupId = table.Column<string>(type: "TEXT", nullable: false),
-                    Amount = table.Column<int>(type: "INTEGER", nullable: false)
+                    ProjectTaskHourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProjectTaskId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    HourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Amount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -714,19 +752,19 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectTaskCatalogTask",
                 columns: table => new
                 {
-                    ProjectTaskCatalogTaskId = table.Column<string>(type: "TEXT", nullable: false),
-                    TaskName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    CompanyId = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectId = table.Column<string>(type: "TEXT", nullable: true),
-                    StartDate = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    EndDate = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    LatestModifierId = table.Column<string>(type: "TEXT", nullable: true),
-                    LatestModificationTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LatestModificationText = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedById = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedTimestamp = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    StateId = table.Column<string>(type: "TEXT", nullable: true),
-                    ProjectTaskFixCostsId = table.Column<string>(type: "TEXT", nullable: true)
+                    ProjectTaskCatalogTaskId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TaskName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StateId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectTaskFixCostsId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -762,9 +800,9 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectTaskFixCosts",
                 columns: table => new
                 {
-                    ProjectTaskFixCostsId = table.Column<string>(type: "TEXT", nullable: false),
-                    TaskId = table.Column<string>(type: "TEXT", nullable: false),
-                    FixCosts = table.Column<string>(type: "TEXT", nullable: true)
+                    ProjectTaskFixCostsId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TaskId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FixCosts = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -800,7 +838,8 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName",
-                unique: true);
+                unique: true,
+                filter: "[NormalizedName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
@@ -826,7 +865,8 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
-                unique: true);
+                unique: true,
+                filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BudgetRecalculation_CompanyId",
@@ -916,6 +956,21 @@ namespace SAAS_Projectplanningtool.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Employee_LatestModifierId",
                 table: "Employee",
+                column: "LatestModifierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HolidayCalendarEntry_CompanyId_HolidayDate",
+                table: "HolidayCalendarEntry",
+                columns: new[] { "CompanyId", "HolidayDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HolidayCalendarEntry_CreatedById",
+                table: "HolidayCalendarEntry",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HolidayCalendarEntry_LatestModifierId",
+                table: "HolidayCalendarEntry",
                 column: "LatestModifierId");
 
             migrationBuilder.CreateIndex(
@@ -1348,6 +1403,9 @@ namespace SAAS_Projectplanningtool.Migrations
 
             migrationBuilder.DropTable(
                 name: "BudgetRecalculation");
+
+            migrationBuilder.DropTable(
+                name: "HolidayCalendarEntry");
 
             migrationBuilder.DropTable(
                 name: "Logfile");
