@@ -46,10 +46,6 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         public DateTime? CreatedTimestamp { get; set; }
 
-        // Amount of Workers per hourly rate group
-        public ICollection<ProjectTaskHourlyRateGroup> ProjectTaskHourlyRateGroups { get; set; } = new List<ProjectTaskHourlyRateGroup>();
-
-
         // ---------- Berechnete Eigenschaften ----------
 
         /// <summary>
@@ -100,32 +96,33 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         {
             get
             {
-                double totalCosts = 0;
-                var totalHours = DurationInHours;
-                if (!totalHours.HasValue || totalHours <= 0)
-                    return null;
+                //double totalCosts = 0;
+                //var totalHours = DurationInHours;
+                //if (!totalHours.HasValue || totalHours <= 0)
+                //    return null;
 
-                if (ProjectTaskHourlyRateGroups == null || !ProjectTaskHourlyRateGroups.Any())
-                    return null;
+                //if (ProjectTaskHourlyRateGroups == null || !ProjectTaskHourlyRateGroups.Any())
+                //    return null;
 
 
-                var totalWorkers = ProjectTaskHourlyRateGroups.Sum(g => g.Amount);
+                //var totalWorkers = ProjectTaskHourlyRateGroups.Sum(g => g.Amount);
 
-                if (totalWorkers == 0)
-                    return null;
+                //if (totalWorkers == 0)
+                //    return null;
 
-                foreach (var group in ProjectTaskHourlyRateGroups)
-                {
-                    if (group.HourlyRateGroup?.HourlyRate != null && group.Amount > 0)
-                    {
-                        // Berechne die Stunden pro Arbeiter in dieser Gruppe
-                        var hoursPerWorker = totalHours.Value;
-                        var groupHours = hoursPerWorker * group.Amount;
-                        var groupCosts = (double)groupHours * (double)group.HourlyRateGroup.HourlyRate;
-                        totalCosts += groupCosts;
-                    }
-                }
-                return totalCosts;
+                //foreach (var group in ProjectTaskHourlyRateGroups)
+                //{
+                //    if (group.HourlyRateGroup?.HourlyRate != null && group.Amount > 0)
+                //    {
+                //        // Berechne die Stunden pro Arbeiter in dieser Gruppe
+                //        var hoursPerWorker = totalHours.Value;
+                //        var groupHours = hoursPerWorker * group.Amount;
+                //        var groupCosts = (double)groupHours * (double)group.HourlyRateGroup.HourlyRate;
+                //        totalCosts += groupCosts;
+                //    }
+                //}
+                //return totalCosts;
+                return 0;
             }
         }
 
@@ -204,64 +201,6 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // ---------- Zusätzliche Hilfsmethoden für erweiterte Berechnungen ----------
 
         /// <summary>
-        /// Berechnet die durchschnittlichen Kosten pro Stunde über alle Stundensatzgruppen
-        /// </summary>
-        [NotMapped]
-        public decimal? AverageHourlyCost
-        {
-            get
-            {
-                if (ProjectTaskHourlyRateGroups == null || !ProjectTaskHourlyRateGroups.Any())
-                    return null;
-
-                var totalWorkers = ProjectTaskHourlyRateGroups.Sum(g => g.Amount);
-                if (totalWorkers == 0)
-                    return null;
-
-                decimal weightedSum = 0;
-                foreach (var group in ProjectTaskHourlyRateGroups)
-                {
-                    if (group.HourlyRateGroup?.HourlyRate != null && group.Amount > 0)
-                    {
-                        weightedSum += (decimal)group.HourlyRateGroup.HourlyRate * (decimal)group.Amount;
-                    }
-                }
-
-                return weightedSum / totalWorkers;
-            }
-        }
-
-        /// <summary>
-        /// Berechnet die Kosten pro Tag
-        /// </summary>
-        [NotMapped]
-        public double? CostPerDay
-        {
-            get
-            {
-                var totalCosts = TotalCosts;
-                var durationDays = DurationInDays;
-
-                if (!totalCosts.HasValue || !durationDays.HasValue || durationDays <= 0)
-                    return null;
-
-                return totalCosts.Value / durationDays.Value;
-            }
-        }
-
-        /// <summary>
-        /// Gibt die Gesamtzahl der Arbeiter zurück
-        /// </summary>
-        [NotMapped]
-        public int TotalWorkers
-        {
-            get
-            {
-                return ProjectTaskHourlyRateGroups?.Sum(g => g.Amount) ?? 0;
-            }
-        }
-
-        /// <summary>
         /// Prüft ob alle erforderlichen Daten für Berechnungen vorhanden sind
         /// </summary>
         [NotMapped]
@@ -273,9 +212,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
                        && EndDate.HasValue
                        && StartDate <= EndDate
                        && ProjectSection?.Project != null
-                       && ProjectTaskHourlyRateGroups != null
-                       && ProjectTaskHourlyRateGroups.Any()
-                       && ProjectTaskHourlyRateGroups.All(g => g.HourlyRateGroup?.HourlyRate != null);
+                     ;
             }
         }
     }

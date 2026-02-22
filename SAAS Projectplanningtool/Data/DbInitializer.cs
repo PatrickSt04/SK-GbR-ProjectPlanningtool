@@ -233,23 +233,6 @@ public static class DbInitializer
                         };
                         context.Set<ProjectTaskCatalogTask>().Add(projectTask);
                         context.SaveChanges();
-                        var ptFixcost = new ProjectTaskFixCosts
-                        {
-                            ProjectTaskCatalogTask = projectTask,
-                            FixCosts = new List<ProjectTaskFixCosts.FixCost>
-                            {
-                                new ProjectTaskFixCosts.FixCost { Description = "Materialkosten", Cost = 3000 },
-                                new ProjectTaskFixCosts.FixCost { Description = "Gerätemiete", Cost = 1200 }
-                            },
-
-                        };
-
-                        context.Set<ProjectTaskFixCosts>().Add(ptFixcost);
-                        context.SaveChanges();
-                        projectTask.ProjectTaskFixCosts = ptFixcost;
-                        context.Update(projectTask);
-
-                        context.SaveChanges();
                     }
                 }
             }

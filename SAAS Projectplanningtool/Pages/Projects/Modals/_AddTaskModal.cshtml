@@ -25,7 +25,7 @@
                             <option value="">-- Abschnitt auswählen --</option>
                             @if (Model.Project?.ProjectSections != null)
                             {
-                                @foreach (var projectSection in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
+                                @foreach (var projectSection in Model.Project.ProjectSections)//.Where(s => s.ParentSectionId == null))
                                 {
                                     <option value="@projectSection.ProjectSectionId">@projectSection.ProjectSectionName</option>
                                     @if (projectSection.SubSections != null)

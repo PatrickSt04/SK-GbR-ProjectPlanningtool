@@ -1,5 +1,5 @@
 @using SAAS_Projectplanningtool.Models.TimeTracking
-@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+@model SAAS_Projectplanningtool.Pages.Projects.BudgetPlanningModel
 
 <!-- Zeiterfassung Section -->
 <div class="time-tracking-section mt-4">
@@ -184,8 +184,8 @@
                                     <td>
                                         <span class="description-text" title="@entry.Description">
                                             @(entry.Description?.Length > 60
-                                                ? entry.Description.Substring(0, 60) + "..."
-                                                : entry.Description ?? "-")
+                                                                                ? entry.Description.Substring(0, 60) + "..."
+                                                                                : entry.Description ?? "-")
                                         </span>
                                     </td>
                                     <td>

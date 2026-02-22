@@ -47,30 +47,5 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         public SAAS_Projectplanningtool.Models.IndependentTables.State? State { get; set; }
 
 
-        public string? ProjectTaskFixCostsId { get; set; }
-        [ForeignKey(nameof(ProjectTaskFixCostsId))]
-        public ProjectTaskFixCosts? ProjectTaskFixCosts { get; set; }
-
-        /// <summary>
-        /// Berechnet die Gesamtkosten basierend auf den Stundensatzgruppen und der Gesamtstundenzahl
-        /// </summary>
-        [NotMapped]
-        public double? TotalCosts
-        {
-            get
-            {
-                double totalCosts = 0;
-                //Wenn task nur TaskCatalogeintrag ist, dann werden Kosten über ProjectTaskFixCosts abgebildet
-                
-                    if (ProjectTaskFixCosts == null)
-                        return null;
-
-                    if (ProjectTaskFixCosts.FixCosts == null)
-                        return null;
-
-                    totalCosts = (double)ProjectTaskFixCosts?.FixCosts?.Where(p => p.Cost != null).Sum(p => p?.Cost);
-                return totalCosts;
-            }
-        }
     }
 }

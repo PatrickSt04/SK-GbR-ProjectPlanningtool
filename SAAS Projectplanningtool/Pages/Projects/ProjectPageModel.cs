@@ -315,13 +315,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         .ThenInclude(pt => pt.State)
                 .Include(p => p.ProjectSections)
                     .ThenInclude(ps => ps.ProjectTasks)
-                        .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-                            .ThenInclude(h => h.HourlyRateGroup)
                 .Include(p => p.ProjectTaskCatalogTasks)
                     .ThenInclude(ptc => ptc.State)
                 .Include(p => p.ProjectTaskCatalogTasks)
-                    .ThenInclude(ptc => ptc.ProjectTaskFixCosts)
-                        .ThenInclude(ptfc => ptfc.FixCosts)
                 .FirstOrDefaultAsync(p => p.ProjectId == projectId);
 
             if (project?.ProjectSections == null || !project.ProjectSections.Any())
@@ -407,8 +403,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     .Include(ss => ss.ProjectTasks)
                         .ThenInclude(pt => pt.State)
                     .Include(ss => ss.ProjectTasks)
-                        .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-                            .ThenInclude(h => h.HourlyRateGroup)
                     .LoadAsync();
             }
 

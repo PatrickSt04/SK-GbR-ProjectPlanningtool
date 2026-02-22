@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Protocol;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
+using SAAS_Projectplanningtool.Models.TimeTracking;
 using Project = SAAS_Projectplanningtool.Models.Budgetplanning.Project;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
@@ -17,28 +16,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
         private readonly ProjectStatisticsCalculator _statisticsCalculator;
-        public BudgetPlanningModel(ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
+
+        public BudgetPlanningModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+            : base(context, userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(context, userManager);
             _statisticsCalculator = new ProjectStatisticsCalculator(context, userManager);
         }
-        [BindProperty]
-        public List<HRGAssignment> HRGAmounts { get; set; } = new();
 
-        [BindProperty]
-        public List<ProjectTaskCatalogTask> TaskCatalogTasks { get; set; } = new();
-
-        public class HRGAssignment
-        {
-            public string HourlyRateGroupId { get; set; } = "";
-            public string HourlyRateGroupName { get; set; } = "";
-            public decimal HourlyRate { get; set; }
-            public int Amount { get; set; }
-        }
-
-        // DTO für Kostenzuweisung
+        // DTO für zusätzliche Projektkosten
         public class ProjectCostAssignment
         {
             public string? ProjectAdditionalCostsId { get; set; }
@@ -50,7 +38,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<ProjectCostAssignment> ProjectCosts { get; set; } = new();
 
         public bool ScheduleAlreadyExists = default!;
-        // Nach der HRGAssignment Klasse
+
+        // Initiale Budgetplanung (vor Terminplan)
         public class InitialHRGPlanning
         {
             public string HourlyRateGroupId { get; set; } = "";
@@ -62,7 +51,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         [BindProperty]
         public List<InitialHRGPlanning> InitialHRGPlannings { get; set; } = new();
-        // Nach InitialHRGPlanning
+
         public class InitialAdditionalCost
         {
             public string AdditionalCostName { get; set; } = "";
@@ -72,168 +61,178 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         [BindProperty]
         public List<InitialAdditionalCost> InitialAdditionalCosts { get; set; } = new();
 
-        public class FixCostAssignment
-        {
-            public string Description { get; set; } = "";
-            public double Cost { get; set; }
-        }
 
-        [BindProperty]
-        public List<FixCostAssignment> FixCosts { get; set; } = new();
+        #region Time Tracking Properties
+        public List<TimeEntry> TimeEntries { get; set; } = new();
+        public bool IsWorkerRole { get; set; } = false;
+        public string? CurrentEmployeeId { get; set; }
+        public List<Employee> CompanyEmployees { get; set; } = new();
+        public double TotalProjectHours { get; set; }
+        public int TotalTimeEntryCount { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public int TimeTrackingPage { get; set; } = 1;
+        public int TimeTrackingTotalPages { get; set; }
+        private const int TimeTrackingPageSize = 15;
+        #endregion
         public async Task<IActionResult> OnGetAsync(string id)
         {
             try
             {
-                await _logger.Log(null, User, null, "Projects.RessourcePlanning<OnGetAsync>Begin");
+                await _logger.Log(null, User, null, "Projects.BudgetPlanning<OnGetAsync>Begin");
+
                 if (id == null)
-                {
                     return NotFound();
-                }
 
                 await SetProjectBindingAsync(id);
                 if (Project == null)
-                {
                     return NotFound();
-                }
+
                 AllHourlyRateGroups = await _context.HourlyRateGroup.ToListAsync();
-                //Wenn im Projekt ein Terminplan vorhanden ist, so ist der wert true (Budgetplanung zeit Planung basierend auf Terminplan an)
-                //Wenn noch kein Terminplan vorhanden ist, so wird das initiale Auftragsvolumen geplant (Stundensatzgruppen und Stunden, sowie zusätzliche Aufwendungen)
+
                 ScheduleAlreadyExists = Project.ProjectSections.Any();
 
-                // Initiale HRG-Planung laden, falls vorhanden
-                if (Project.ProjectBudget != null && Project.ProjectBudget.InitialHRGPlannings != null)
+                // Initiale HRG-Planung laden
+                InitialHRGPlannings = Project.ProjectBudget?.InitialHRGPlannings?
+                    .Select(hrg => new InitialHRGPlanning
+                    {
+                        HourlyRateGroupId = hrg.HourlyRateGroupId,
+                        HourlyRateGroupName = hrg.HourlyRateGroupName,
+                        HourlyRate = hrg.HourlyRate,
+                        Amount = hrg.Amount,
+                        EstimatedHours = hrg.EstimatedHours
+                    })
+                    .ToList() ?? new List<InitialHRGPlanning>();
+
+                // Initiale Zusatzkosten laden
+                InitialAdditionalCosts = Project.ProjectBudget?.InitialAdditionalCosts?
+                    .Select(cost => new InitialAdditionalCost
+                    {
+                        AdditionalCostName = cost.AdditionalCostName,
+                        AdditionalCostAmount = cost.AdditionalCostAmount
+                    })
+                    .ToList() ?? new List<InitialAdditionalCost>();
+
+
+                #region Time Tracking: Mitarbeiter- und Zeiteinträge laden
+                var employee = await GetEmployeeAsync();
+                if (employee != null && employee.CompanyId != null)
                 {
-                    InitialHRGPlannings = Project.ProjectBudget.InitialHRGPlannings
-                        .Select(hrg => new InitialHRGPlanning
-                        {
-                            HourlyRateGroupId = hrg.HourlyRateGroupId,
-                            HourlyRateGroupName = hrg.HourlyRateGroupName,
-                            HourlyRate = hrg.HourlyRate,
-                            Amount = hrg.Amount,
-                            EstimatedHours = hrg.EstimatedHours
-                        })
-                        .ToList();
-                }
-                else
-                {
-                    // Leere Liste initialisieren, falls keine Planung vorhanden ist
-                    InitialHRGPlannings = new List<InitialHRGPlanning>();
-                }
-                //Initiale zusätzliche Kosten laden, falls vorhanden
-                if (Project.ProjectBudget != null && Project.ProjectBudget.InitialAdditionalCosts != null)
-                {
-                    InitialAdditionalCosts = Project.ProjectBudget.InitialAdditionalCosts
-                        .Select(cost => new InitialAdditionalCost
-                        {
-                            AdditionalCostName = cost.AdditionalCostName,
-                            AdditionalCostAmount = cost.AdditionalCostAmount
-                        })
-                        .ToList();
+
+                    CurrentEmployeeId = employee?.EmployeeId;
+
+                    // Rolle ermitteln
+                    if (employee?.IdentityRole != null)
+                    {
+                        IsWorkerRole = employee.IdentityRole.Name == "Worker";
+                    }
+                    else if (employee != null)
+                    {
+                        var role = await _context.Roles
+                            .FirstOrDefaultAsync(r => r.Id == employee.IdentityRoleId);
+                        IsWorkerRole = role?.Name == "Worker";
+                    }
+
+                    // Mitarbeiter-Liste laden (nur für Nicht-Worker, für das Dropdown)
+                    if (!IsWorkerRole && employee?.CompanyId != null)
+                    {
+                        CompanyEmployees = await _context.Employee
+                            .Where(e => e.CompanyId == employee.CompanyId)
+                            .Where(e => e.DeleteFlag == false)
+                            .OrderBy(e => e.EmployeeDisplayName)
+                            .ToListAsync();
+                    }
+
+                    // Zeiteinträge mit Pagination laden
+                    if (TimeTrackingPage < 1) TimeTrackingPage = 1;
+
+                    var timeEntryQuery = _context.TimeEntry
+                        .Include(t => t.Employee)
+                        .Where(t => t.ProjectId == id)
+                        .Where(t => t.CompanyId == employee.CompanyId)
+                        .OrderByDescending(t => t.WorkDate)
+                        .ThenByDescending(t => t.StartTime);
+
+                    TotalTimeEntryCount = await timeEntryQuery.CountAsync();
+                    TimeTrackingTotalPages = (int)Math.Ceiling(TotalTimeEntryCount / (double)TimeTrackingPageSize);
+
+                    TimeEntries = await timeEntryQuery
+                        .Skip((TimeTrackingPage - 1) * TimeTrackingPageSize)
+                        .Take(TimeTrackingPageSize)
+                        .ToListAsync();
+
+                    // Gesamtstunden berechnen (über ALLE Einträge, nicht nur aktuelle Seite)
+                    var allTimeEntries = await _context.TimeEntry
+                        .Where(t => t.ProjectId == id)
+                        .Where(t => t.CompanyId == employee.CompanyId)
+                        .ToListAsync();
+
+                    TotalProjectHours = allTimeEntries.Sum(t => t.NetWorkingHours);
+
+                    #endregion
 
                 }
-                else
-                {
-                    // Leere Liste initialisieren, falls keine Planung vorhanden ist
-                    InitialAdditionalCosts = new List<InitialAdditionalCost>();
-                }
-                //Wenn der Change Tracker nicht geleert wird, gibt es Probleme mit den Include Befehlen (Beim Laden des Projects werden Includes gefiltert, 
-                // wenn nun eine neue DB Abfrage gemacht wird, werden die Includes vom Context in Project aktualisiert
-
-                //konkret: ProjectTasks werden hier geladen, Context ChangeTracker hängt die IDs zum Project in die Navigation sonst an
-                //Lösung: ChangeTracker leeren vor neuen Abfragen Optional: 2. Context nutzen
-                //_context.ChangeTracker.Clear();
-                try
-                {
-                    TaskCatalogTasks = Project.ProjectTaskCatalogTasks != null
-                        ? Project.ProjectTaskCatalogTasks.ToList()
-                        : new List<ProjectTaskCatalogTask>();
-                }
-                catch (Exception)
-                {
-                    TaskCatalogTasks = new List<ProjectTaskCatalogTask>();
-                }
-
             }
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
-            await _logger.Log(null, User, null, "Projects.RessourcePlanning<OnGetAsync>End");
+
+            await _logger.Log(null, User, null, "Projects.BudgetPlanning<OnGetAsync>End");
             return Page();
         }
 
-        // Handler zum Speichern der initialen Budgetplanung
+        // Initiale Budgetplanung speichern
         public async Task<IActionResult> OnPostSaveInitialBudgetPlanning(string? projectId)
         {
             if (string.IsNullOrEmpty(projectId))
-            {
                 return NotFound();
-            }
 
             await SetProjectBindingAsync(projectId);
             if (Project == null)
-            {
                 return NotFound();
-            }
 
             try
             {
-                // Berechne Gesamtbudget aus HRGs
                 decimal totalHRGCosts = 0;
                 foreach (var hrg in InitialHRGPlannings.Where(h => h.Amount > 0 && h.EstimatedHours > 0))
                 {
-                    decimal costPerHour = hrg.HourlyRate * hrg.Amount;
-                    decimal totalCost = costPerHour * (decimal)hrg.EstimatedHours;
-                    totalHRGCosts += totalCost;
+                    totalHRGCosts += hrg.HourlyRate * hrg.Amount * (decimal)hrg.EstimatedHours;
                 }
 
-                // Zusätzliche Kosten aus Formular addieren
-                decimal totalAdditionalCosts = 0;
-                foreach (var cost in InitialAdditionalCosts.Where(c => !string.IsNullOrWhiteSpace(c.AdditionalCostName) && c.AdditionalCostAmount > 0))
-                {
-                    totalAdditionalCosts += (decimal)cost.AdditionalCostAmount;
+                decimal totalAdditionalCosts = InitialAdditionalCosts
+                    .Where(c => !string.IsNullOrWhiteSpace(c.AdditionalCostName) && c.AdditionalCostAmount > 0)
+                    .Sum(c => (decimal)c.AdditionalCostAmount);
 
-                }
-
-                decimal totalBudget = totalHRGCosts + totalAdditionalCosts;
-
-                // ProjectBudget erstellen oder aktualisieren
                 var p = await _context.Project
                     .Include(pb => pb.ProjectBudget)
                     .FirstOrDefaultAsync(pb => pb.ProjectId == projectId);
+
                 var projectBudget = p?.ProjectBudget;
                 if (projectBudget == null)
-                {
-                    //Fehlerbehandlung, da ProjectBudget immer nach Projektanlage existieren sollte
                     return NotFound();
-                }
-                else
-                {
-                    projectBudget.InitialBudget = (double)totalBudget;
-                    //InitialPlannings und InitialAdditionalCosts aktualisieren
-                    projectBudget.InitialHRGPlannings = InitialHRGPlannings
-                        .Select(hrg => new ProjectBudget.InitialHRGPlanning
-                        {
-                            HourlyRateGroupId = hrg.HourlyRateGroupId,
-                            HourlyRateGroupName = hrg.HourlyRateGroupName,
-                            HourlyRate = hrg.HourlyRate,
-                            Amount = hrg.Amount,
-                            EstimatedHours = hrg.EstimatedHours
-                        })
-                        .ToList();
-                    projectBudget.InitialAdditionalCosts = InitialAdditionalCosts
-                        .Select(cost => new ProjectBudget.InitialAdditionalCost
-                        {
-                            AdditionalCostName = cost.AdditionalCostName,
-                            AdditionalCostAmount = cost.AdditionalCostAmount
-                        })
-                        .ToList();
 
-                    projectBudget = await new CustomObjectModifier(_context, _userManager)
-                        .AddLatestModificationAsync(User, "Initiales Budget aktualisiert", projectBudget, false);
-                    _context.ProjectBudget.Update(projectBudget);
-                }
+                projectBudget.InitialBudget = (double)(totalHRGCosts + totalAdditionalCosts);
+                projectBudget.InitialHRGPlannings = InitialHRGPlannings
+                    .Select(hrg => new ProjectBudget.InitialHRGPlanning
+                    {
+                        HourlyRateGroupId = hrg.HourlyRateGroupId,
+                        HourlyRateGroupName = hrg.HourlyRateGroupName,
+                        HourlyRate = hrg.HourlyRate,
+                        Amount = hrg.Amount,
+                        EstimatedHours = hrg.EstimatedHours
+                    }).ToList();
 
+                projectBudget.InitialAdditionalCosts = InitialAdditionalCosts
+                    .Select(cost => new ProjectBudget.InitialAdditionalCost
+                    {
+                        AdditionalCostName = cost.AdditionalCostName,
+                        AdditionalCostAmount = cost.AdditionalCostAmount
+                    }).ToList();
+
+                projectBudget = await new CustomObjectModifier(_context, _userManager)
+                    .AddLatestModificationAsync(User, "Initiales Budget aktualisiert", projectBudget, false);
+
+                _context.ProjectBudget.Update(projectBudget);
                 await _context.SaveChangesAsync();
 
                 return RedirectToPage("/Projects/Details", new { id = projectId });
@@ -244,35 +243,63 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
+        // Budget-Statistiken laden (basiert jetzt auf Zeitbuchungen)
         public async Task<IActionResult> OnGetBudgetStatistics(string? projectId)
         {
             if (projectId == null)
-            {
                 return new JsonResult(null);
-            }
+
             var statistics = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
             return new JsonResult(statistics);
         }
 
-
-
-        // Handler zum Speichern der Projektkosten
-        public async Task<IActionResult> OnPostSaveProjectCosts(string? projectId)
+        // Nachkalkulation anstoßen
+        public async Task<IActionResult> OnPostRecalculateProjectBudgetAsync(string? projectId)
         {
-            if (string.IsNullOrEmpty(projectId))
-            {
+            if (projectId == null)
                 return NotFound();
-            }
+
+            var stats = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
+            var usedBudget = stats.UsedBudget;
 
             await SetProjectBindingAsync(projectId);
             if (Project == null)
-            {
                 return NotFound();
-            }
+
+            if (Project.ProjectBudget == null)
+                return NotFound();
+
+            Project.ProjectBudget.BudgetRecalculations ??= new List<BudgetRecalculation>();
+
+            var currentEmployee = await GetEmployeeAsync();
+            var newBudgetRecalculation = new BudgetRecalculation
+            {
+                NewBudget = usedBudget,
+                CompanyId = currentEmployee.CompanyId,
+                RecalculationDateTime = DateTime.UtcNow,
+                RecalculatedBy = currentEmployee
+            };
+
+            _context.BudgetRecalculation.Add(newBudgetRecalculation);
+            Project.ProjectBudget.BudgetRecalculations.Add(newBudgetRecalculation);
+            _context.Update(Project);
+
+            await _context.SaveChangesAsync();
+            return RedirectToPage(new { id = projectId });
+        }
+
+        // Zusätzliche Projektkosten speichern
+        public async Task<IActionResult> OnPostSaveProjectCosts(string? projectId)
+        {
+            if (string.IsNullOrEmpty(projectId))
+                return NotFound();
+
+            await SetProjectBindingAsync(projectId);
+            if (Project == null)
+                return NotFound();
 
             try
             {
-                // Alle bestehenden Kosten für das Projekt laden
                 var existingCosts = await _context.ProjectAdditionalCosts
                     .Where(c => c.Project.ProjectId == projectId)
                     .ToListAsync();
@@ -283,48 +310,37 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     .Select(c => c.ProjectAdditionalCostsId)
                     .ToHashSet();
 
-                // Kosten löschen, die nicht mehr in der Submission sind
                 var costsToDelete = existingCosts
                     .Where(c => !submittedCostIds.Contains(c.ProjectAdditionalCostsId))
                     .ToList();
                 _context.ProjectAdditionalCosts.RemoveRange(costsToDelete);
 
-                // Durchlaufe alle übermittelten Kosten
                 foreach (var costDto in ProjectCosts.Where(c => !string.IsNullOrWhiteSpace(c.AdditionalCostName) && c.AdditionalCostAmount > 0))
                 {
                     if (!string.IsNullOrEmpty(costDto.ProjectAdditionalCostsId) && existingCostIds.Contains(costDto.ProjectAdditionalCostsId))
                     {
-                        // Bestehende Kosten aktualisieren
                         var existingCost = existingCosts.First(c => c.ProjectAdditionalCostsId == costDto.ProjectAdditionalCostsId);
                         existingCost.AdditionalCostName = costDto.AdditionalCostName.Trim();
                         existingCost.AdditionalCostAmount = costDto.AdditionalCostAmount;
-
-                        // Latest Modification aktualisieren
                         existingCost = await new CustomObjectModifier(_context, _userManager)
                             .AddLatestModificationAsync(User, "Projektkosten aktualisiert", existingCost, false);
-
                         _context.ProjectAdditionalCosts.Update(existingCost);
                     }
                     else
                     {
-                        // Neue Kosten erstellen
                         var newCost = new ProjectAdditionalCosts
                         {
                             AdditionalCostName = costDto.AdditionalCostName.Trim(),
                             AdditionalCostAmount = costDto.AdditionalCostAmount,
                             CompanyId = Project.CompanyId
                         };
-
-                        // Latest Modification hinzufügen
                         newCost = await new CustomObjectModifier(_context, _userManager)
                             .AddLatestModificationAsync(User, "Projektkosten erstellt", newCost, true);
-
                         Project.ProjectAdditionalCosts.Add(newCost);
                     }
                 }
 
                 await _context.SaveChangesAsync();
-
                 return RedirectToPage(new { id = projectId });
             }
             catch (Exception ex)
@@ -333,7 +349,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
         }
 
-        // Handler zum Laden der Projektkosten
+        // Projektkosten lesen
         public async Task<JsonResult> OnGetReadProjectCosts(string projectId)
         {
             var costs = await _context.ProjectAdditionalCosts
@@ -352,216 +368,140 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
             return new JsonResult(costs);
         }
-
-
-        public async Task<IActionResult> OnPostRecalculateProjectBudgetAsync(string? projectId)
-        {
-            //if (projectId == null)
-            //{
-            //    return NotFound();
-            //}
-            //// Übernimm used budget to project recalculations
-            //var stats = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
-            //var usedBudget = stats.UsedBudget;
-            //await SetProjectBindingAsync(projectId);
-            //if (Project == null)
-            //{
-            //    return NotFound();
-            //}
-            //var projectBudget = Project.ProjectBudget;
-            //if (projectBudget == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //if (projectBudget.BudgetRecalculations == null)
-            //{
-            //    projectBudget.BudgetRecalculations = new List<BudgetRecalculation>();
-            //}
-            //var currentEmployee = await GetEmployeeAsync();
-
-            //// Neue Budgetrecalculation hinzufügen
-            //var newBudgetRecalculation = new BudgetRecalculation
-            //{
-            //    NewBudget = usedBudget,
-            //    CompanyId = currentEmployee.CompanyId,
-            //    RecalculationDateTime = DateTime.UtcNow,
-            //    RecalculatedBy = currentEmployee
-            //};
-            //// Recalculatiion dem Budget anfügen
-            //projectBudget.BudgetRecalculations.Add(newBudgetRecalculation);
-            //// DB Updates
-            //_context.BudgetRecalculation.Add(newBudgetRecalculation);
-            //_context.ProjectBudget.Update(projectBudget);
-
-            //await _context.SaveChangesAsync();
-
-            //await _context.SaveChangesAsync();
-
-            //return RedirectToPage(new { id = projectId });
-            if (projectId == null)
-            {
-                return NotFound();
-            }
-            // Übernimm used budget to project recalculations
-            var stats = await _statisticsCalculator.CalculateBudgetStatisticsAsync(projectId, User);
-            var usedBudget = stats.UsedBudget;
-            await SetProjectBindingAsync(projectId);
-            if (Project == null)
-            {
-                return NotFound();
-            }
-            var projectBudget = Project.ProjectBudget;
-            if (projectBudget == null)
-            {
-                return NotFound();
-            }
-
-            if (Project.ProjectBudget?.BudgetRecalculations == null)
-            {
-                Project.ProjectBudget.BudgetRecalculations = new List<BudgetRecalculation>();
-            }
-            var currentEmployee = await GetEmployeeAsync();
-
-            // Neue Budgetrecalculation hinzufügen
-            var newBudgetRecalculation = new BudgetRecalculation
-            {
-                NewBudget = usedBudget,
-                CompanyId = currentEmployee.CompanyId,
-                RecalculationDateTime = DateTime.UtcNow,
-                RecalculatedBy = currentEmployee
-            };
-            // Recalculatiion dem Budget anfügen
-            _context.BudgetRecalculation.Add(newBudgetRecalculation);
-
-
-            Project.ProjectBudget.BudgetRecalculations.Add(newBudgetRecalculation);
-
-            _context.Update(Project);
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage(new { id = projectId });
-        }
-
-        // Handler für das Speichern der HourlyRateGroups
-        public async Task<IActionResult> OnPostSaveHRGs(string? projectId, string? ProjectTaskId)
-        {
-            if (string.IsNullOrEmpty(projectId) || string.IsNullOrEmpty(ProjectTaskId))
-            {
-                return NotFound();
-            }
-
-
-            var task = await GetProjectTaskAsync(ProjectTaskId);
-            if (task == null)
-            {
-                return NotFound();
-            }
-            // Alte Einträge löschen (oder updaten, je nach Bedarf)
-            _context.ProjectTaskHourlyRateGroup.RemoveRange(task.ProjectTaskHourlyRateGroups);
-
-            foreach (var hrg in HRGAmounts.Where(h => h.Amount > 0))
-            {
-                var hrgEntity = await _context.HourlyRateGroup.FindAsync(hrg.HourlyRateGroupId);
-                if (hrgEntity != null)
-                {
-                    task.ProjectTaskHourlyRateGroups.Add(new ProjectTaskHourlyRateGroup
-                    {
-                        ProjectTaskId = task.ProjectTaskId,
-                        HourlyRateGroupId = hrgEntity.HourlyRateGroupId,
-                        Amount = hrg.Amount
-                    });
-                }
-            }
-
-            // letzte Änderung hinzufügen
-            task = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Stundensatzgruppen gepflegt", task, false);
-
-
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage(new { id = projectId });
-        }
-
-        public async Task<JsonResult> OnGetReadTaskHRGs(string taskId)
-        {
-            var hrgs = await _context.ProjectTaskHourlyRateGroup
-                .Where(x => x.ProjectTaskId == taskId)
-                .Select(x => new
-                {
-                    hourlyRateGroupId = x.HourlyRateGroupId,
-                    hourlyRateGroupName = x.HourlyRateGroup.HourlyRateGroupName,
-                    hourlyRate = x.HourlyRateGroup.HourlyRate,
-                    amount = x.Amount
-                })
-            .ToListAsync();
-
-            return new JsonResult(hrgs);
-        }
-
-        public async Task<IActionResult> OnPostSaveFixCosts(string? ProjectTaskId, string? ProjectId)
-        {
-             if (string.IsNullOrEmpty(ProjectTaskId))
-            {
-                return NotFound();
-            }
-            //var task = await GetProjectTaskAsync(ProjectTaskId);
-            var task = await GetTaskCatalogTaskAsync(ProjectTaskId);
-            if (task == null)
-            {
-                return NotFound();
-            }
-
-            var ptFixCostExisting = await _context.ProjectTaskFixCosts
-                .Where(ptfc => ptfc.ProjectTaskFixCostsId == task.ProjectTaskFixCostsId).FirstOrDefaultAsync();
-            var updatedFixCosts = FixCosts.Select(bfc => new ProjectTaskFixCosts.FixCost
-            {
-                Description = bfc.Description,
-                Cost = bfc.Cost
-            }).ToList();
-            if (ptFixCostExisting != null)
-            {
-
-                ptFixCostExisting.FixCosts = updatedFixCosts;
-                _context.ProjectTaskFixCosts.Update(ptFixCostExisting);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToPage(new { id = ProjectId });
-
-
-        }
-        public async Task<JsonResult> OnGetReadTaskFixCosts(string taskId)
+        #region Time Tracking Handlers
+        public async Task<IActionResult> OnPostCreateTimeEntryAsync(
+            string projectId,
+            string? employeeId,
+            DateOnly workDate,
+            TimeOnly startTime,
+            TimeOnly endTime,
+            int breakMinutes,
+            string? description)
         {
             try
             {
-                var taskFixCosts = await _context.ProjectTaskFixCosts
-                    .Where(fc => fc.TaskId == taskId)
-                    .FirstOrDefaultAsync();
+                await _logger.Log(null, User, null, "Projects/Details<OnPostCreateTimeEntryAsync>Begin");
 
-                if (taskFixCosts == null || taskFixCosts.FixCosts == null || !taskFixCosts.FixCosts.Any())
+                var currentEmployee = await new CustomUserManager(_context, _userManager)
+                    .GetEmployeeAsync(_userManager.GetUserId(User));
+
+                if (currentEmployee == null) return NotFound();
+
+                // Rolle prüfen
+                var role = await _context.Roles
+                    .FirstOrDefaultAsync(r => r.Id == currentEmployee.IdentityRoleId);
+                bool isWorker = role?.Name == "Worker";
+
+                // Ziel-Mitarbeiter bestimmen
+                string targetEmployeeId;
+                if (isWorker)
                 {
-                    return new JsonResult(new List<object>());
+                    // Worker dürfen nur für sich selbst erfassen
+                    targetEmployeeId = currentEmployee.EmployeeId;
+                }
+                else
+                {
+                    // Andere Rollen: ausgewählten Mitarbeiter oder sich selbst
+                    targetEmployeeId = employeeId ?? currentEmployee.EmployeeId;
                 }
 
-                // Direkt die FixCosts-Liste zurückgeben
-                var fixCostsList = taskFixCosts.FixCosts.Select(f => new
+                // Validierung: Endzeit > Startzeit
+                if (endTime <= startTime)
                 {
-                    description = f.Description,
-                    cost = f.Cost
-                }).ToList();
+                    TempData.SetMessage("Error", "Endzeit muss nach der Startzeit liegen.");
+                    return RedirectToPage(new { id = projectId });
+                }
 
-                return new JsonResult(fixCostsList);
+                // Validierung: Netto-Arbeitszeit > 0
+                var totalMinutes = (endTime - startTime).TotalMinutes - breakMinutes;
+                if (totalMinutes <= 0)
+                {
+                    TempData.SetMessage("Error", "Die Netto-Arbeitszeit muss positiv sein.");
+                    return RedirectToPage(new { id = projectId });
+                }
+
+                // TimeEntry erstellen
+                var timeEntry = new TimeEntry
+                {
+                    CompanyId = currentEmployee.CompanyId,
+                    ProjectId = projectId,
+                    EmployeeId = targetEmployeeId,
+                    WorkDate = workDate,
+                    StartTime = startTime,
+                    EndTime = endTime,
+                    BreakMinutes = breakMinutes,
+                    Description = description
+                };
+
+                // Audit-Felder setzen (Created + LatestModification)
+                timeEntry = await new CustomObjectModifier(_context, _userManager)
+                    .AddLatestModificationAsync(User, "Zeiteintrag erstellt", timeEntry, true);
+
+                _context.TimeEntry.Add(timeEntry);
+                await _context.SaveChangesAsync();
+
+                TempData.SetMessage("Success", "Zeiteintrag erfolgreich gespeichert.");
+                await _logger.Log(null, User, null, "Projects/Details<OnPostCreateTimeEntryAsync>End");
+
+                return RedirectToPage(new { id = projectId });
             }
             catch (Exception ex)
             {
-                await _logger.Log(ex, User, null, "OnGetReadTaskFixCosts");
-                return new JsonResult(new List<object>());
+                return RedirectToPage("/Error",
+                    new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostCreateTimeEntryAsync>Error") });
             }
         }
 
+        /// <summary>
+        /// Zeiteintrag löschen.
+        /// Worker: nur eigene Einträge. Andere Rollen: alle Einträge.
+        /// </summary>
+        public async Task<IActionResult> OnPostDeleteTimeEntryAsync(
+            string timeEntryId,
+            string projectId,
+            int timeTrackingPage = 1)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/Details<OnPostDeleteTimeEntryAsync>Begin");
+
+                var currentEmployee = await new CustomUserManager(_context, _userManager)
+                    .GetEmployeeAsync(_userManager.GetUserId(User));
+
+                if (currentEmployee == null) return NotFound();
+
+                var entry = await _context.TimeEntry.FirstOrDefaultAsync(t =>
+                    t.TimeEntryId == timeEntryId &&
+                    t.CompanyId == currentEmployee.CompanyId);
+
+                if (entry == null) return NotFound();
+
+                // Berechtigungsprüfung: Worker dürfen nur eigene Einträge löschen
+                var role = await _context.Roles
+                    .FirstOrDefaultAsync(r => r.Id == currentEmployee.IdentityRoleId);
+
+                if (role?.Name == "Worker" && entry.EmployeeId != currentEmployee.EmployeeId)
+                {
+                    TempData.SetMessage("Error", "Sie können nur eigene Zeiteinträge löschen.");
+                    return RedirectToPage(new { id = projectId, timeTrackingPage });
+                }
+
+                _context.TimeEntry.Remove(entry);
+                await _context.SaveChangesAsync();
+
+                TempData.SetMessage("Success", "Zeiteintrag wurde gelöscht.");
+                await _logger.Log(null, User, null, "Projects/Details<OnPostDeleteTimeEntryAsync>End");
+
+                return RedirectToPage(new { id = projectId, timeTrackingPage });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error",
+                    new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostDeleteTimeEntryAsync>Error") });
+            }
+        }
     }
+
+    #endregion
 
 }

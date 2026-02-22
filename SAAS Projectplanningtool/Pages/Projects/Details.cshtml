@@ -4,7 +4,6 @@
 
 @{
     ViewData["Title"] = Model.Project?.ProjectName;
-    <link rel="stylesheet" href="~/css/TimeTracking.css" />
 }
 
 <div class="project-details-container">
@@ -449,10 +448,7 @@
         </section>
     </div>
 
-    <!-- Zeiterfassung -->
-    <div id="timeTracking">
-        @await Html.PartialAsync("PartialViews/_TimeTracking")
-    </div>
+
 
 </div>
 
