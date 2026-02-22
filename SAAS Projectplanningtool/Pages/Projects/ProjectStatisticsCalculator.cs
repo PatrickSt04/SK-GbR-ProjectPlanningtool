@@ -4,9 +4,8 @@ using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
-using System.Linq;
+using SAAS_Projectplanningtool.Models.TimeTracking;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
@@ -40,7 +39,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Berechnet detaillierte Budget-Statistiken für ein Projekt
+        /// Berechnet detaillierte Budget-Statistiken für ein Projekt.
+        /// Kosten basieren auf Zeitbuchungen: NetWorkingHours * Employee.HourlyRateGroup.HourlyRate
         /// </summary>
         public async Task<ProjectBudgetStatistics> CalculateBudgetStatisticsAsync(string projectId, ClaimsPrincipal user)
         {
@@ -49,7 +49,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
             var employee = await GetEmployeeAsync(user);
 
-            // Lade das vollständige Projekt mit allen Abhängigkeiten
             var project = await GetFullProjectAsync(projectId, employee.CompanyId);
             if (project?.ProjectBudget == null)
             {
@@ -61,27 +60,24 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 };
             }
 
-            // Berechne verwendetes Budget aus allen Tasks
-            var usedBudgetFromTasks = await CalculateUsedBudgetAsync(project.ProjectId, project.ProjectSections, true);
-            var usedBudgetFromAllTasks = await CalculateUsedBudgetAsync(project.ProjectId, project.ProjectSections, false);
+            // Kosten aus Zeitbuchungen berechnen
+            var usedBudgetFromTimeEntries = await CalculateUsedBudgetFromTimeEntriesAsync(projectId);
 
-            // Berechne zusätzliche Projektkosten
+            // Zusätzliche Projektkosten
             var additionalCosts = await CalculateAdditionalProjectCostsAsync(projectId);
 
-            // Gesamtverbrauch = Task-Kosten + Zusätzliche Kosten
-            var totalUsedBudget = usedBudgetFromTasks + additionalCosts.TotalAmount;
+            // Gesamtverbrauch = Zeitbuchungen + Zusätzliche Kosten
+            var totalUsedBudget = usedBudgetFromTimeEntries + additionalCosts.TotalAmount;
 
-
-            // Wenn Nachkalkulation angestoßen wurde, berücksichtige diese im verwendeten Budget
-            // sonst verwende das Initialbudget
             var remainingBudget = 0.0;
             var utilizationPercentage = 0.0;
 
-            if (project?.ProjectBudget?.BudgetRecalculations.Count > 0)
+            if (project.ProjectBudget.BudgetRecalculations?.Count > 0)
             {
                 var latestRecalculation = project.ProjectBudget.BudgetRecalculations
                     .OrderByDescending(br => br.RecalculationDateTime)
                     .FirstOrDefault();
+
                 if (latestRecalculation != null)
                 {
                     remainingBudget = latestRecalculation.NewBudget - totalUsedBudget;
@@ -94,21 +90,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 remainingBudget = project.ProjectBudget.InitialBudget - totalUsedBudget;
                 utilizationPercentage = project.ProjectBudget.InitialBudget > 0
-                ? (totalUsedBudget / project.ProjectBudget.InitialBudget) * 100
-                : 0;
+                    ? (totalUsedBudget / project.ProjectBudget.InitialBudget) * 100
+                    : 0;
             }
 
-
-
-            // Budget-Status bestimmen
             var budgetStatus = DetermineBudgetStatus(utilizationPercentage);
-
-            // Detaillierte Aufschlüsselung erstellen
-            var budgetBreakdown = CreateBudgetBreakdown(project, usedBudgetFromTasks, remainingBudget, utilizationPercentage, budgetStatus, additionalCosts);
-
-            // Task-Statistiken berechnen
+            var budgetBreakdown = CreateBudgetBreakdown(project, usedBudgetFromTimeEntries, remainingBudget, utilizationPercentage, budgetStatus, additionalCosts);
             var taskStatistics = CalculateTaskBudgetStatistics(project);
 
+            var timeTrackingBreakdown = await CalculateTimeTrackingBreakdownAsync(projectId);
             return new ProjectBudgetStatistics
             {
                 ProjectId = projectId,
@@ -117,21 +107,49 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 recalculationNeeded = budgetStatus == BudgetStatus.Exceeded,
                 InitialBudget = project.ProjectBudget.InitialBudget,
                 UsedBudget = totalUsedBudget,
-                UsedBudgetFromTasks = usedBudgetFromTasks,
-                UsedBudgetFromAllTasks = usedBudgetFromAllTasks,
+                UsedBudgetFromTimeEntries = usedBudgetFromTimeEntries,
                 AdditionalCosts = additionalCosts.TotalAmount,
                 RemainingBudget = remainingBudget,
                 UtilizationPercentage = utilizationPercentage,
                 BudgetStatus = budgetStatus,
-                TasksWithCosts = taskStatistics.TasksWithBudget,
-                TasksWithoutCosts = taskStatistics.TasksWithoutBudget,
+                TasksWithDates = taskStatistics.TasksWithDates,
+                TasksWithoutDates = taskStatistics.TasksWithoutDates,
                 TotalTasks = taskStatistics.TotalTasks,
                 SectionCount = budgetBreakdown.SectionBreakdowns.Count,
                 DetailedBreakdown = budgetBreakdown,
                 TopCostSections = GetTopCostSections(budgetBreakdown, 5),
                 CostDistribution = CalculateCostDistribution(budgetBreakdown),
-                AdditionalCostBreakdown = additionalCosts
+                AdditionalCostBreakdown = additionalCosts,
+                TimeTrackingBreakdown = timeTrackingBreakdown
             };
+        }
+
+        public async Task<List<TimeTrackingBreakdownItem>> CalculateTimeTrackingBreakdownAsync(string projectId)
+        {
+            var timeEntries = await _context.TimeEntry
+                .Where(te => te.ProjectId == projectId)
+                .Include(te => te.Employee)
+                    .ThenInclude(e => e.HourlyRateGroup)
+                .ToListAsync();
+
+            var breakdown = timeEntries
+                .GroupBy(te => te.Employee?.HourlyRateGroup?.HourlyRateGroupName ?? "Ohne Stundensatzgruppe")
+                .Select(group =>
+                {
+                    var totalHours = group.Sum(te => te.NetWorkingHours);
+                    var hourlyRate = group.First().Employee?.HourlyRateGroup?.HourlyRate ?? 0;
+
+                    return new TimeTrackingBreakdownItem
+                    {
+                        HourlyRateGroupName = group.Key,
+                        TotalWorkingHours = totalHours,
+                        TotalCosts = totalHours * hourlyRate
+                    };
+                })
+                .OrderByDescending(b => b.TotalCosts)
+                .ToList();
+
+            return breakdown;
         }
 
         /// <summary>
@@ -142,8 +160,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var basicStats = await CalculateStatisticsAsync(projectId, user);
             var budgetStats = await CalculateBudgetStatisticsAsync(projectId, user);
             var employee = await GetEmployeeAsync(user);
-
-            // Zusätzliche Zeitstatistiken
             var timeStats = await CalculateTimeStatisticsAsync(projectId, employee.CompanyId);
 
             return new ExtendedProjectStatistics
@@ -158,108 +174,29 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         #region Private Budget Calculation Methods
 
         /// <summary>
-        /// Berechnet das verwendete Budget aus allen Project Tasks rekursiv
+        /// Berechnet das verwendete Budget aus allen Zeitbuchungen des Projekts.
+        /// Formel: NetWorkingHours * Employee.HourlyRateGroup.HourlyRate
         /// </summary>
-        private async Task<double> CalculateUsedBudgetAsync(string projectId, ICollection<ProjectSection>? sections, bool onlyCompletedTasks)
+        private async Task<double> CalculateUsedBudgetFromTimeEntriesAsync(string projectId)
         {
-            if (sections == null) return 0.0;
+            var timeEntries = await _context.TimeEntry
+                .Where(te => te.ProjectId == projectId)
+                .Include(te => te.Employee)
+                    .ThenInclude(e => e.HourlyRateGroup)
+                .ToListAsync();
 
-            double totalUsedBudget = 0.0;
+            double totalCosts = 0;
 
-            foreach (var section in sections.Where(ps => ps.ParentSectionId == null))
+            foreach (var entry in timeEntries)
             {
-                totalUsedBudget += CalculateSectionCosts(section, onlyCompletedTasks);
-            }
-            var taskcatalogtaksBudget = await CalculateTaskCatalogCostsAsync(projectId, onlyCompletedTasks);
-            return totalUsedBudget + taskcatalogtaksBudget;
-        }
-
-        private async Task<double> CalculateTaskCatalogCostsAsync(string projectId, bool onlyCompletedTasks)
-        {
-            double totalUsedBudget = 0.0;
-
-            var closedState = await new StateManager(_context).getClosedState();
-            if(closedState == null)
-            {
-                return 0.0;
-            }
-            Project project; 
-                project = await _context.Project
-                    .Include(p => p.ProjectTaskCatalogTasks)
-                    .ThenInclude(ptc => ptc.State)
-                    .Include(p => p.ProjectTaskCatalogTasks)
-                    .ThenInclude(ptc => ptc.ProjectTaskFixCosts)
-                    .ThenInclude(ptfc => ptfc.FixCosts)
-                    .FirstOrDefaultAsync(p => p.ProjectId == projectId);
-            if (project == null)
-            {
-                return 0.0;
-            }
-            if (project.ProjectTaskCatalogTasks == null || project.ProjectTaskCatalogTasks.Count() == 0)
-            {
-                return 0.0;
-            }
-            var tcts = project.ProjectTaskCatalogTasks;
-            if (onlyCompletedTasks)
-            {
-                tcts = project.ProjectTaskCatalogTasks.Where(ptc => ptc.StateId == closedState.StateId).ToList();
-            }
-
-            foreach (var tct in tcts)
-            {
-                if (tct.ProjectTaskFixCosts == null)
-                {
+                var hourlyRate = entry.Employee?.HourlyRateGroup?.HourlyRate;
+                if (hourlyRate == null)
                     continue;
-                }
-                if (tct.ProjectTaskFixCosts.FixCosts == null || tct.ProjectTaskFixCosts.FixCosts.Count() == 0)
-                {
-                    continue;
-                }
-                totalUsedBudget += (double)tct.ProjectTaskFixCosts.FixCosts.Sum(fc => fc.Cost);
-            }
-            return totalUsedBudget;
-        }
 
-        /// <summary>
-        /// Berechnet Kosten für eine Section und alle ihre Sub-Sections rekursiv
-        /// </summary>
-        private double CalculateSectionCosts(ProjectSection section, bool onlyCompletedTasks)
-        {
-            double sectionCosts = 0;
-            var completedStateId = _context.State
-                .FirstOrDefault(s => s.StateName == "Abgeschlossen")?.StateId;
-            // Kosten aus direkten Tasks
-            if (section.ProjectTasks != null)
-            {
-                foreach (var task in section.ProjectTasks)
-                {
-                    if (task.TotalCosts.HasValue)
-                    {
-                        if (onlyCompletedTasks)
-                        {
-                            if (task.StateId == completedStateId)
-                            {
-                                sectionCosts += task.TotalCosts.Value;
-                            }
-                        }
-                        else
-                        {
-                            sectionCosts += task.TotalCosts.Value;
-                        }
-                    }
-                }
+                totalCosts += entry.NetWorkingHours * (double)hourlyRate;
             }
 
-            // Kosten aus Sub-Sections rekursiv
-            if (section.SubSections != null)
-            {
-                foreach (var subSection in section.SubSections)
-                {
-                    sectionCosts += CalculateSectionCosts(subSection, onlyCompletedTasks);
-                }
-            }
-
-            return sectionCosts;
+            return totalCosts;
         }
 
         /// <summary>
@@ -302,10 +239,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Erstellt die detaillierte Budget-Aufschlüsselung
+        /// Erstellt die detaillierte Budget-Aufschlüsselung auf Section-Ebene
         /// </summary>
-        private BudgetBreakdown CreateBudgetBreakdown(Project project, double usedBudgetFromTasks, double remainingBudget,
-            double utilizationPercentage, BudgetStatus status, AdditionalCostBreakdown additionalCosts)
+        private BudgetBreakdown CreateBudgetBreakdown(Project project, double usedBudgetFromTimeEntries,
+            double remainingBudget, double utilizationPercentage, BudgetStatus status,
+            AdditionalCostBreakdown additionalCosts)
         {
             var sectionBreakdowns = new List<SectionBudgetBreakdown>();
 
@@ -313,8 +251,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 foreach (var section in project.ProjectSections.Where(ps => ps.ParentSectionId == null))
                 {
-                    var sectionBreakdown = CreateSectionBudgetBreakdown(section, 0);
-                    sectionBreakdowns.Add(sectionBreakdown);
+                    sectionBreakdowns.Add(CreateSectionBudgetBreakdown(section, 0));
                 }
             }
 
@@ -323,8 +260,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 ProjectId = project.ProjectId,
                 ProjectName = project.ProjectName,
                 InitialBudget = project.ProjectBudget!.InitialBudget,
-                TotalUsedBudget = usedBudgetFromTasks + additionalCosts.TotalAmount,
-                UsedBudgetFromTasks = usedBudgetFromTasks,
+                TotalUsedBudget = usedBudgetFromTimeEntries + additionalCosts.TotalAmount,
+                UsedBudgetFromTimeEntries = usedBudgetFromTimeEntries,
                 AdditionalCosts = additionalCosts.TotalAmount,
                 RemainingBudget = remainingBudget,
                 UtilizationPercentage = utilizationPercentage,
@@ -335,22 +272,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Erstellt detaillierte Aufschlüsselung für eine Section
+        /// Erstellt die Aufschlüsselung einer Section (strukturell, ohne Einzelkosten pro Task)
         /// </summary>
         private SectionBudgetBreakdown CreateSectionBudgetBreakdown(ProjectSection section, int level)
         {
             var taskBreakdowns = new List<TaskBudgetBreakdown>();
             var subSectionBreakdowns = new List<SectionBudgetBreakdown>();
-            double sectionTotalCosts = 0.0;
 
-            // Tasks in dieser Section verarbeiten
             if (section.ProjectTasks != null)
             {
                 foreach (var task in section.ProjectTasks)
                 {
-                    var taskCosts = task.TotalCosts ?? 0.0;
-                    sectionTotalCosts += taskCosts;
-
                     taskBreakdowns.Add(new TaskBudgetBreakdown
                     {
                         TaskId = task.ProjectTaskId,
@@ -358,30 +290,16 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         StartDate = task.StartDate,
                         EndDate = task.EndDate,
                         DurationInDays = task.DurationInDays,
-                        DurationInHours = task.DurationInHours,
-                        TotalCosts = taskCosts,
-                        WorkerCount = task.ProjectTaskHourlyRateGroups?.Sum(hrg => hrg.Amount) ?? 0,
-                        AverageHourlyCost = task.AverageHourlyCost,
-                        HasCompleteData = task.IsCalculationDataComplete,
-                        HourlyRateGroups = task.ProjectTaskHourlyRateGroups?.Select(hrg => new HRGBreakdown
-                        {
-                            GroupName = hrg.HourlyRateGroup?.HourlyRateGroupName ?? "Unknown",
-                            HourlyRate = (decimal)(hrg.HourlyRateGroup?.HourlyRate ?? 0),
-                            WorkerCount = hrg.Amount,
-                            GroupCosts = (decimal)(hrg.Amount * (hrg.HourlyRateGroup?.HourlyRate ?? 0))
-                        }).ToList() ?? new List<HRGBreakdown>()
+                        DurationInHours = task.DurationInHours
                     });
                 }
             }
 
-            // Sub-Sections rekursiv verarbeiten
             if (section.SubSections != null)
             {
                 foreach (var subSection in section.SubSections)
                 {
-                    var subSectionBreakdown = CreateSectionBudgetBreakdown(subSection, level + 1);
-                    subSectionBreakdowns.Add(subSectionBreakdown);
-                    sectionTotalCosts += subSectionBreakdown.TotalCosts;
+                    subSectionBreakdowns.Add(CreateSectionBudgetBreakdown(subSection, level + 1));
                 }
             }
 
@@ -390,7 +308,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 SectionId = section.ProjectSectionId,
                 SectionName = section.ProjectSectionName,
                 Level = level,
-                TotalCosts = sectionTotalCosts,
                 TaskCount = taskBreakdowns.Count,
                 SubSectionCount = subSectionBreakdowns.Count,
                 TaskBreakdowns = taskBreakdowns,
@@ -424,87 +341,61 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return state.StateId;
         }
 
-        private async Task<int> GetTaskCountAsync(
-            List<string> sectionIds,
-            string companyId,
-            string? stateId = null)
+        private async Task<int> GetTaskCountAsync(List<string> sectionIds, string companyId, string? stateId = null)
         {
             var query = _context.ProjectTask
                 .Where(pt => sectionIds.Contains(pt.ProjectSectionId))
                 .Where(pt => pt.CompanyId == companyId);
 
             if (!string.IsNullOrEmpty(stateId))
-            {
                 query = query.Where(pt => pt.StateId == stateId);
-            }
 
             return await query.CountAsync();
         }
 
         /// <summary>
-        /// Lädt das vollständige Projekt mit allen Budget-relevanten Daten
+        /// Lädt das vollständige Projekt mit allen Budget-relevanten Daten.
+        /// TimeEntries werden separat geladen, da sie projektbezogen sind.
         /// </summary>
         private async Task<Project?> GetFullProjectAsync(string projectId, string companyId)
         {
             return await _context.Project
                 .Include(p => p.ProjectBudget)
-                 .ThenInclude(pb => pb.BudgetRecalculations)
+                    .ThenInclude(pb => pb.BudgetRecalculations)
                 .Include(p => p.ProjectAdditionalCosts)
                 .Include(p => p.ProjectSections.Where(ps => ps.CompanyId == companyId))
                     .ThenInclude(ps => ps.ProjectTasks)
-                        .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-                            .ThenInclude(hrg => hrg.HourlyRateGroup)
                 .Include(p => p.ProjectSections)
                     .ThenInclude(ps => ps.SubSections)
                         .ThenInclude(ss => ss.ProjectTasks)
-                            .ThenInclude(pt => pt.ProjectTaskHourlyRateGroups)
-                                .ThenInclude(hrg => hrg.HourlyRateGroup)
-                        //pt fixCosts laden
-                        .Include(ss => ss.ProjectTaskCatalogTasks)
-                            .ThenInclude(pt => pt.ProjectTaskFixCosts)
-                                .ThenInclude(hrg => hrg.FixCosts)
                 .FirstOrDefaultAsync(p => p.ProjectId == projectId && p.CompanyId == companyId);
-
         }
 
         /// <summary>
-        /// Berechnet Task-spezifische Budget-Statistiken
+        /// Berechnet Task-spezifische Statistiken (nur noch Datumsbasiert, keine Kosten mehr auf Taskebene)
         /// </summary>
         private TaskBudgetStatistics CalculateTaskBudgetStatistics(Project project)
         {
             var allTasks = GetAllProjectTasks(project.ProjectSections ?? new List<ProjectSection>());
-            var completedStateId = _context.State
-                .FirstOrDefault(s => s.StateName == "Abgeschlossen")?.StateId;
-            var tasksWithValidBudget = allTasks
-                .Where(t => t.StateId == completedStateId && t.TotalCosts.HasValue && t.TotalCosts > 0)
+
+            var tasksWithDates = allTasks
+                .Where(t => t.StartDate.HasValue && t.EndDate.HasValue)
                 .ToList();
 
             return new TaskBudgetStatistics
             {
                 TotalTasks = allTasks.Count,
-                TasksWithBudget = tasksWithValidBudget.Count,
-                TasksWithoutBudget = allTasks.Count - tasksWithValidBudget.Count,
-                AverageCostPerTask = tasksWithValidBudget.Any()
-                    ? tasksWithValidBudget.Average(t => t.TotalCosts!.Value)
-                    : 0,
-                HighestTaskCost = tasksWithValidBudget.Any()
-                    ? tasksWithValidBudget.Max(t => t.TotalCosts!.Value)
-                    : 0,
-                LowestTaskCost = tasksWithValidBudget.Any()
-                    ? tasksWithValidBudget.Min(t => t.TotalCosts!.Value)
-                    : 0,
-                TotalWorkingDays = tasksWithValidBudget
+                TasksWithDates = tasksWithDates.Count,
+                TasksWithoutDates = allTasks.Count - tasksWithDates.Count,
+                TotalWorkingDays = tasksWithDates
                     .Where(t => t.DurationInDays.HasValue)
                     .Sum(t => t.DurationInDays!.Value),
-                TotalWorkingHours = tasksWithValidBudget
+                TotalWorkingHours = tasksWithDates
                     .Where(t => t.DurationInHours.HasValue)
                     .Sum(t => t.DurationInHours!.Value)
             };
         }
 
-        /// <summary>
-        /// Berechnet Zeit-basierte Statistiken
-        /// </summary>
         private async Task<ProjectTimeStatistics> CalculateTimeStatisticsAsync(string projectId, string companyId)
         {
             var tasks = await _context.ProjectTask
@@ -514,9 +405,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .ToListAsync();
 
             if (!tasks.Any())
-            {
                 return new ProjectTimeStatistics();
-            }
 
             var earliestStart = tasks.Min(t => t.StartDate!.Value);
             var latestEnd = tasks.Max(t => t.EndDate!.Value);
@@ -531,9 +420,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             };
         }
 
-        /// <summary>
-        /// Holt alle Tasks aus allen Sections rekursiv
-        /// </summary>
         private List<ProjectTask> GetAllProjectTasks(ICollection<ProjectSection> sections)
         {
             var allTasks = new List<ProjectTask>();
@@ -541,109 +427,42 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             foreach (var section in sections)
             {
                 if (section.ProjectTasks != null)
-                {
                     allTasks.AddRange(section.ProjectTasks);
-                }
 
                 if (section.SubSections != null)
-                {
                     allTasks.AddRange(GetAllProjectTasks(section.SubSections));
-                }
             }
 
             return allTasks;
         }
 
-        /// <summary>
-        /// Ermittelt die kostenintensivsten Sections
-        /// </summary>
         private List<TopCostSection> GetTopCostSections(BudgetBreakdown breakdown, int topCount)
         {
             return breakdown.SectionBreakdowns
-                .OrderByDescending(sb => sb.TotalCosts)
+                .OrderByDescending(sb => sb.TaskCount)
                 .Take(topCount)
                 .Select(sb => new TopCostSection
                 {
                     SectionName = sb.SectionName,
-                    TotalCosts = sb.TotalCosts,
-                    TaskCount = sb.TaskCount,
-                    PercentageOfTotal = breakdown.UsedBudgetFromTasks > 0
-                        ? (double)(sb.TotalCosts / breakdown.UsedBudgetFromTasks) * 100
-                        : 0
+                    TaskCount = sb.TaskCount
                 })
                 .ToList();
         }
 
-        /// <summary>
-        /// Berechnet die Kostenverteilung
-        /// </summary>
         private CostDistribution CalculateCostDistribution(BudgetBreakdown breakdown)
         {
-            var taskCosts = GetAllTaskCostsFromBreakdown(breakdown.SectionBreakdowns);
-
-            if (!taskCosts.Any())
-            {
-                return new CostDistribution();
-            }
-
-            taskCosts.Sort();
-            var totalCosts = taskCosts.Sum();
-            var taskCount = taskCosts.Count;
-
-            return new CostDistribution
-            {
-                MinCost = taskCosts.Min(),
-                MaxCost = taskCosts.Max(),
-                AverageCost = totalCosts / taskCount,
-                MedianCost = taskCount % 2 == 0
-                    ? (taskCosts[taskCount / 2 - 1] + taskCosts[taskCount / 2]) / 2
-                    : taskCosts[taskCount / 2],
-                StandardDeviation = CalculateStandardDeviation(taskCosts, totalCosts / taskCount)
-            };
-        }
-
-        /// <summary>
-        /// Extrahiert alle Task-Kosten aus dem Breakdown
-        /// </summary>
-        private List<double> GetAllTaskCostsFromBreakdown(List<SectionBudgetBreakdown> sections)
-        {
-            var costs = new List<double>();
-
-            foreach (var section in sections)
-            {
-                costs.AddRange(section.TaskBreakdowns.Select(tb => tb.TotalCosts));
-                costs.AddRange(GetAllTaskCostsFromBreakdown(section.SubSectionBreakdowns));
-            }
-
-            return costs.Where(c => c > 0).ToList();
-        }
-
-        /// <summary>
-        /// Berechnet die Standardabweichung
-        /// </summary>
-        private double CalculateStandardDeviation(List<double> values, double mean)
-        {
-            if (values.Count <= 1) return 0;
-
-            var sumOfSquares = values.Sum(v => (v - mean) * (v - mean));
-            var variance = sumOfSquares / (values.Count - 1);
-            return Math.Sqrt(variance);
+            // Kostenverteilung auf Task-Ebene entfällt, da Kosten nur noch projektbezogen erfasst werden
+            return new CostDistribution();
         }
 
         #endregion
     }
 
-    /// <summary>
-    /// Dient als Rückgabemodell für berechnete Projektstatistiken.
-    /// </summary>
     public record ProjectStatistics(int TotalTasks, int CompletedTasks)
     {
         public double Progress => TotalTasks == 0 ? 0 : (double)CompletedTasks / TotalTasks;
     }
 
-    /// <summary>
-    /// Erweiterte Budget-Statistiken für ein Projekt
-    /// </summary>
     public class ProjectBudgetStatistics
     {
         public string ProjectId { get; set; } = string.Empty;
@@ -652,32 +471,34 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public bool recalculationNeeded { get; set; }
         public string? ErrorMessage { get; set; }
 
-        // Budget-Übersicht
         public double InitialBudget { get; set; }
         public double UsedBudget { get; set; }
-        public double UsedBudgetFromTasks { get; set; }
-        public double UsedBudgetFromAllTasks { get; set; }
+
+        /// <summary>Kosten aus Zeitbuchungen (NetWorkingHours * HourlyRate)</summary>
+        public double UsedBudgetFromTimeEntries { get; set; }
         public double AdditionalCosts { get; set; }
         public double RemainingBudget { get; set; }
         public double UtilizationPercentage { get; set; }
         public BudgetStatus BudgetStatus { get; set; }
 
-        // Task-Statistiken
-        public int TasksWithCosts { get; set; }
-        public int TasksWithoutCosts { get; set; }
+        public int TasksWithDates { get; set; }
+        public int TasksWithoutDates { get; set; }
         public int TotalTasks { get; set; }
         public int SectionCount { get; set; }
 
-        // Detaillierte Aufschlüsselung
         public BudgetBreakdown? DetailedBreakdown { get; set; }
         public List<TopCostSection> TopCostSections { get; set; } = new();
         public CostDistribution CostDistribution { get; set; } = new();
         public AdditionalCostBreakdown AdditionalCostBreakdown { get; set; } = new();
-    }
 
-    /// <summary>
-    /// Zusätzliche Projektkosten-Aufschlüsselung
-    /// </summary>
+        public List<TimeTrackingBreakdownItem> TimeTrackingBreakdown { get; set; } = new();
+    }
+    public class TimeTrackingBreakdownItem
+    {
+        public string HourlyRateGroupName { get; set; } = string.Empty;
+        public double TotalWorkingHours { get; set; }
+        public double TotalCosts { get; set; }
+    }
     public class AdditionalCostBreakdown
     {
         public double TotalAmount { get; set; }
@@ -685,9 +506,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<AdditionalCostItem> Items { get; set; } = new();
     }
 
-    /// <summary>
-    /// Einzelner zusätzlicher Kostenposten
-    /// </summary>
     public class AdditionalCostItem
     {
         public string CostId { get; set; } = string.Empty;
@@ -696,9 +514,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public DateTime? CreatedTimestamp { get; set; }
     }
 
-    /// <summary>
-    /// Kombinierte erweiterte Projekt-Statistiken
-    /// </summary>
     public class ExtendedProjectStatistics
     {
         public ProjectStatistics BasicStatistics { get; set; } = new(0, 0);
@@ -707,24 +522,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public DateTime CalculatedAt { get; set; }
     }
 
-    /// <summary>
-    /// Task-spezifische Budget-Statistiken
-    /// </summary>
     public class TaskBudgetStatistics
     {
         public int TotalTasks { get; set; }
-        public int TasksWithBudget { get; set; }
-        public int TasksWithoutBudget { get; set; }
-        public double AverageCostPerTask { get; set; }
-        public double HighestTaskCost { get; set; }
-        public double LowestTaskCost { get; set; }
+        public int TasksWithDates { get; set; }
+        public int TasksWithoutDates { get; set; }
         public double TotalWorkingDays { get; set; }
         public double TotalWorkingHours { get; set; }
     }
 
-    /// <summary>
-    /// Zeit-basierte Projekt-Statistiken
-    /// </summary>
     public class ProjectTimeStatistics
     {
         public DateOnly? EarliestTaskStart { get; set; }
@@ -733,20 +539,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public int TasksWithDates { get; set; }
     }
 
-    /// <summary>
-    /// Top-Kosten-Section für Ranking
-    /// </summary>
     public class TopCostSection
     {
         public string SectionName { get; set; } = string.Empty;
-        public double TotalCosts { get; set; }
         public int TaskCount { get; set; }
-        public double PercentageOfTotal { get; set; }
     }
 
-    /// <summary>
-    /// Kostenverteilungs-Statistiken
-    /// </summary>
     public class CostDistribution
     {
         public double MinCost { get; set; }
@@ -756,15 +554,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public double StandardDeviation { get; set; }
     }
 
-    // ---------- Supporting Classes for Budget Analysis ----------
-
     public enum BudgetStatus
     {
         Unknown,
-        OnTrack,     // <= 75%
-        Warning,     // 76-90%
-        Critical,    // 91-100%
-        Exceeded     // > 100%
+        OnTrack,
+        Warning,
+        Critical,
+        Exceeded
     }
 
     public class BudgetBreakdown
@@ -773,7 +569,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public string ProjectName { get; set; } = string.Empty;
         public double InitialBudget { get; set; }
         public double TotalUsedBudget { get; set; }
-        public double UsedBudgetFromTasks { get; set; }
+        public double UsedBudgetFromTimeEntries { get; set; }
         public double AdditionalCosts { get; set; }
         public double RemainingBudget { get; set; }
         public double UtilizationPercentage { get; set; }
@@ -787,7 +583,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public string SectionId { get; set; } = string.Empty;
         public string SectionName { get; set; } = string.Empty;
         public int Level { get; set; }
-        public double TotalCosts { get; set; }
         public int TaskCount { get; set; }
         public int SubSectionCount { get; set; }
         public List<TaskBudgetBreakdown> TaskBreakdowns { get; set; } = new();
@@ -802,18 +597,5 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public DateOnly? EndDate { get; set; }
         public double? DurationInDays { get; set; }
         public double? DurationInHours { get; set; }
-        public double TotalCosts { get; set; }
-        public int WorkerCount { get; set; }
-        public decimal? AverageHourlyCost { get; set; }
-        public bool HasCompleteData { get; set; }
-        public List<HRGBreakdown> HourlyRateGroups { get; set; } = new();
-    }
-
-    public class HRGBreakdown
-    {
-        public string GroupName { get; set; } = string.Empty;
-        public decimal HourlyRate { get; set; }
-        public int WorkerCount { get; set; }
-        public decimal GroupCosts { get; set; }
     }
 }

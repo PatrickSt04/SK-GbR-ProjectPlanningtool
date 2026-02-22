@@ -25,7 +25,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         protected async Task<ProjectTask?> GetProjectTaskAsync(string projectTaskId)
         {
             var existing = await _context.ProjectTask
-                .Include(pt => pt.ProjectTaskHourlyRateGroups)
                 .Include(pt => pt.State)
                 .FirstOrDefaultAsync(x => x.ProjectTaskId == projectTaskId);
             return existing;
@@ -33,7 +32,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         protected async Task<ProjectTaskCatalogTask?> GetTaskCatalogTaskAsync(string projectTaskId)
         {
             var existing = await _context.ProjectTaskCatalogTask
-                .Include(pt => pt.ProjectTaskFixCosts)
                 .Include(pt => pt.State)
                 .FirstOrDefaultAsync(x => x.ProjectTaskCatalogTaskId == projectTaskId);
             return existing;

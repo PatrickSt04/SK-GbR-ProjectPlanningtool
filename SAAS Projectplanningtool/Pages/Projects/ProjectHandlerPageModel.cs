@@ -123,23 +123,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 pt.State = await new StateManager(_context).getOpenState();
                 pt = await _customObjectModifier.AddLatestModificationAsync(User, "Aufgabe angelegt", pt, true);
 
-                var ptFixCosts = new ProjectTaskFixCosts
-                {
-                    ProjectTaskCatalogTask = pt,
-                    FixCosts = new List<ProjectTaskFixCosts.FixCost>(),
-                };
                 //Erst task zur DB hinzufügen
                 _context.ProjectTaskCatalogTask.Add(pt);
                 await _context.SaveChangesAsync();
-
-                _context.ProjectTaskFixCosts.Add(ptFixCosts);
-                await _context.SaveChangesAsync();
-
-                //Dann fixcosts zum Task hinzuladen und updaten
-                pt.ProjectTaskFixCosts = ptFixCosts;
-                _context.ProjectTaskCatalogTask.Update(pt);
-                await _context.SaveChangesAsync();
-
                 //TaskCataLog Tagst zur Nav in Project hinzufügen
                 var project = await _context.Project.FirstOrDefaultAsync(p => p.ProjectId == projectId);
                 if (project == null)
@@ -620,14 +606,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     return RedirectToPage(new { id = Project.ProjectId });
                 }
             }
-            //Selected HRGS for Task delete
-            var hrgs = await _context.ProjectTaskHourlyRateGroup.Where(hrg => hrg.ProjectTaskId == taskId).ToListAsync();
-            if (hrgs.Any())
-            {
-                _context.ProjectTaskHourlyRateGroup.RemoveRange(hrgs);
-            }
-
-
             _context.ProjectTask.Remove(task);
             await _context.SaveChangesAsync();
             TempData.SetMessage("Success", "Aufgabe erfolgreich gelöscht.");
@@ -664,15 +642,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     return RedirectToPage(new { id = Project.ProjectId });
                 }
             }
-
-            var tfc = await _context.ProjectTaskFixCosts.Where(hrg => hrg.TaskId == taskId).FirstOrDefaultAsync();
-
-            if (tfc != null)
-            {
-                _context.ProjectTaskFixCosts.Remove(tfc);
-                await _context.SaveChangesAsync();
-            }
-
             _context.ProjectTaskCatalogTask.Remove(task);
 
             await _context.SaveChangesAsync();
