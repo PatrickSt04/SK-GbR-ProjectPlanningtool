@@ -24,85 +24,91 @@
                     </span>
                 </div>
             </div>
-            <div class="header-actions">
-                @{
-                    bool isArchived = Model.Project.IsArchived == true;
-                }
-                @if (!isArchived)
-                {
-                    <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
-                        <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-archive me-2"></i>Archivieren
-                        </button>
-                    </form>
-                }
-                else
-                {
-                    <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-box-open me-2"></i>Wiederherstellen
-                        </button>
-                    </form>
-                }
-                <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
-                    <i class="fas fa-plus me-2"></i>Abschnitt hinzufügen
-                </button>
-            </div>
+            @if (!Model.IsWorkerRole)
+            {
+                <div class="header-actions">
+                    @{
+                        bool isArchived = Model.Project.IsArchived == true;
+                    }
+                    @if (!isArchived)
+                    {
+                        <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-archive me-2"></i>Archivieren
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-box-open me-2"></i>Wiederherstellen
+                            </button>
+                        </form>
+                    }
+                    <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
+                        <i class="fas fa-plus me-2"></i>Abschnitt hinzufügen
+                    </button>
+                </div>
+            }
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="statistics-section mb-4">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <div class="stat-card stat-tasks">
-                    <div class="stat-icon">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>@Model.CompletetedTasks / @Model.TotalTasks</h3>
-                        <p>Aufgaben abgeschlossen</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card stat-progress">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <div class="stat-content">
-                        @{
-                            double progressPercentage = Model.ProgressInDecimals * 100;
-                        }
-                        <h3>@((int)progressPercentage)%</h3>
-                        <p>Fortschritt</p>
+    @if (!Model.IsWorkerRole)
+    {
+        <!-- Statistics Cards -->
+        <div class="statistics-section mb-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="stat-card stat-tasks">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>@Model.CompletetedTasks / @Model.TotalTasks</h3>
+                            <p>Aufgaben abgeschlossen</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card stat-timeline">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>@Model.Project.StartDate?.ToString("dd.MM")</h3>
-                        <p>Startdatum</p>
+                <div class="col-md-3">
+                    <div class="stat-card stat-progress">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="stat-content">
+                            @{
+                                double progressPercentage = Model.ProgressInDecimals * 100;
+                            }
+                            <h3>@((int)progressPercentage)%</h3>
+                            <p>Fortschritt</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card stat-deadline">
-                    <div class="stat-icon">
-                        <i class="fas fa-flag-checkered"></i>
+                <div class="col-md-3">
+                    <div class="stat-card stat-timeline">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>@Model.Project.StartDate?.ToString("dd.MM")</h3>
+                            <p>Startdatum</p>
+                        </div>
                     </div>
-                    <div class="stat-content">
-                        <h3>@Model.Project.EndDate?.ToString("dd.MM")</h3>
-                        <p>Enddatum</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card stat-deadline">
+                        <div class="stat-icon">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>@Model.Project.EndDate?.ToString("dd.MM")</h3>
+                            <p>Enddatum</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    }
 
     <!-- Two Column Layout -->
     <div class="two-column-layout">

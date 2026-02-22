@@ -34,3 +34,559 @@ footer {
     text-decoration: none;
         border:none
 }
+
+/* Navigation Styles */
+.main-navigation {
+    background: #2c3e50;
+    min-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    padding: 20px 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+    .main-navigation.collapsed {
+        transform: translateX(-250px);
+    }
+
+.nav-brand {
+    padding: 0 20px 30px;
+    border-bottom: 1px solid #34495e;
+    margin-bottom: 20px;
+}
+
+    .nav-brand h2 {
+        color: #ecf0f1;
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    margin-bottom: 5px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+    .nav-link:hover,
+    .nav-link.active {
+        background: #34495e;
+        color: #ecf0f1;
+        border-left-color: #3498db;
+    }
+
+    .nav-link i {
+        width: 20px;
+        margin-right: 12px;
+    }
+
+.nav-submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: #34495e;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-item.has-submenu.active .nav-submenu {
+    max-height: 300px;
+}
+
+.nav-submenu .nav-link {
+    padding-left: 52px;
+    font-size: 0.9rem;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 250px;
+    min-height: 100vh;
+    background: #f8f9fa;
+    transition: margin-left 0.3s ease;
+}
+
+    .main-content.expanded {
+        margin-left: 0;
+    }
+
+.top-header {
+    background: white;
+    padding: 15px 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #495057;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.notification-icon {
+    position: relative;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+}
+
+    .user-dropdown:hover {
+        background: #f8f9fa;
+    }
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #007bff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 500;
+}
+
+.page-content {
+    padding: 30px;
+}
+
+
+
+/* Utility Classes */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.bg-white {
+    background-color: #ffffff !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+}
+
+.rounded {
+    border-radius: .375rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+.p-4 {
+    padding: 1.5rem !important;
+}
+
+/* ============================================================
+   RESPONSIVE FIXES - Layout & Dashboard
+   Datei: wwwroot/css/responsive.css
+   Einbinden in _Layout.cshtml nach site.css:
+   <link rel="stylesheet" href="~/css/responsive.css" asp-append-version="true" />
+   ============================================================ */
+
+/* ============================================================
+   1. LAYOUT - Navigation & Main Content (Mobile)
+   ============================================================ */
+
+/* Nav-Overlay Grundstil */
+.nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+@media (max-width: 768px) {
+
+    /* 1) Sidebar: standardmäßig AUSGEBLENDET auf Mobile */
+    .main-navigation {
+        transform: translateX(-250px) !important;
+    }
+
+        /* 2) Sidebar EINBLENDEN wenn Hamburger geklickt -> mobile-open */
+        .main-navigation.mobile-open {
+            transform: translateX(0) !important;
+        }
+
+    /* 3) Main Content: volle Breite auf Mobile */
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    /* 4) Top Header kompakter */
+    .top-header {
+        padding: 10px 15px !important;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .header-left {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .header-right {
+        gap: 10px !important;
+    }
+
+    .user-dropdown {
+        padding: 6px 8px !important;
+    }
+
+    .user-info .user-name {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.85rem;
+    }
+
+    .user-info .user-role {
+        display: none;
+    }
+
+    .breadcrumb-nav {
+        font-size: 0.8rem !important;
+    }
+
+        .breadcrumb-nav span:last-child {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .page-content {
+        padding: 15px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-header {
+        padding: 8px 10px !important;
+    }
+
+    .user-dropdown .fa-chevron-down {
+        display: none;
+    }
+
+    .notification-icon {
+        font-size: 1rem !important;
+    }
+
+    .page-content {
+        padding: 10px !important;
+    }
+}
+
+
+/* ============================================================
+   2. DASHBOARD (Index.cshtml) - Responsive
+   ============================================================ */
+
+@media (max-width: 992px) {
+    .dashboard-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+
+    .search-container,
+    .search-box {
+        width: 100%;
+    }
+
+    .search-input {
+        width: 100% !important;
+    }
+
+    .welcome-title {
+        font-size: 1.4rem !important;
+    }
+
+    /* col-4 / col-8 -> volle Breite */
+    .dashboard-grid .col-4,
+    .dashboard-grid .col-8 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .budget-comparison-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+
+    .budget-filter {
+        width: 100%;
+    }
+
+    .multi-select-toggle {
+        width: 100%;
+    }
+
+    .chart-row,
+    .chart-grid {
+        grid-template-columns: 1fr !important;
+        flex-direction: column !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .stat-card .card-header h3 {
+        font-size: 0.85rem !important;
+    }
+
+    .stat-card .card-value {
+        font-size: 1.8rem !important;
+    }
+
+    .welcome-title {
+        font-size: 1.1rem !important;
+    }
+
+    .company-name {
+        font-size: 0.85rem !important;
+    }
+
+    .role-badge {
+        font-size: 0.75rem !important;
+    }
+
+    .budget-comparison-section {
+        padding: 10px !important;
+    }
+
+        .budget-comparison-section canvas {
+            max-height: 250px !important;
+        }
+}
+
+@media (max-width: 768px) {
+    .overview-card {
+        padding: 15px !important;
+    }
+
+        .overview-card h2 {
+            font-size: 1.1rem !important;
+        }
+
+    .budget-item {
+        padding: 10px !important;
+    }
+
+    .budget-header {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .budget-details span {
+        font-size: 0.8rem !important;
+    }
+
+    .workload-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .event-item {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+
+/* ============================================================
+   3. ALLGEMEINE RESPONSIVE HELPERS
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .page-header {
+        padding: 20px !important;
+        border-radius: 8px !important;
+    }
+
+        .page-header h1 {
+            font-size: 1.3rem !important;
+        }
+
+    .header-content {
+        flex-direction: column !important;
+        gap: 15px;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+        .header-actions .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+    .table th,
+    .table td {
+        padding: 8px 10px !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header {
+        padding: 15px !important;
+        margin-bottom: 15px !important;
+    }
+
+        .page-header h1 {
+            font-size: 1.1rem !important;
+        }
+
+    .modal-dialog {
+        margin: 10px !important;
+        max-width: calc(100% - 20px) !important;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+        .modal-footer .btn {
+            width: 100%;
+        }
+
+    .action-buttons {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .action-btn {
+        width: 100% !important;
+        text-align: center !important;
+    }
+}
+
+/* Horizontales Scrollen verhindern */
+html, body {
+    overflow-x: hidden;
+}
+
+.main-content {
+    overflow-x: hidden;
+}

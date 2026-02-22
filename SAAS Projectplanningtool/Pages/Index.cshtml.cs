@@ -71,6 +71,10 @@ namespace SAAS_Projectplanningtool.Pages
 
         // System Info
         public int ActiveUsersCount { get; set; }
+        public List<Project> WorkerActiveProjects { get; set; } = new();
+
+        //UserInfo
+        public bool IsWorkerRole { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -101,6 +105,22 @@ namespace SAAS_Projectplanningtool.Pages
                 if (CurrentCompany == null)
                 {
                     return RedirectToPage("/Setup/CompanySetup");
+                }
+
+                // Worker-Rolle prüfen
+                IsWorkerRole = CurrentEmployee?.IdentityRole?.Name == "Worker";
+
+                // Wenn Worker: aktive Projekte der Firma laden
+                if (IsWorkerRole)
+                {
+                    WorkerActiveProjects = await _context.Project
+                        .Include(p => p.Customer)
+                        .Include(p => p.State)
+                        .Include(p => p.ResponsiblePerson)
+                        .Where(p => p.CompanyId == CurrentCompany.CompanyId)
+                        .Where(p => p.IsArchived != true)
+                        .OrderBy(p => p.ProjectName)
+                        .ToListAsync();
                 }
 
                 // Load all dashboard data
