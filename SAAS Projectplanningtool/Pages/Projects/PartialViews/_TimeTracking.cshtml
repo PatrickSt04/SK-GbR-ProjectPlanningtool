@@ -1,0 +1,301 @@
+@using SAAS_Projectplanningtool.Models.TimeTracking
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+<!-- Zeiterfassung Section -->
+<div class="time-tracking-section mt-4">
+    <div class="section-card">
+        <div class="section-header-gradient">
+            <h2><i class="fas fa-clock me-2"></i>Zeiterfassung</h2>
+            <button type="button" class="btn btn-light btn-sm" onclick="toggleTimeEntryForm()">
+                <i class="fas fa-plus me-1"></i>Zeit erfassen
+            </button>
+        </div>
+
+        <!-- Time Entry Form (hidden by default) -->
+        <div id="timeEntryForm" style="display: none;" class="time-entry-form p-4">
+            <form method="post" asp-page-handler="CreateTimeEntry">
+                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+
+                <div class="row g-3">
+                    @* Show employee dropdown only for non-Worker roles *@
+                    @if (!Model.IsWorkerRole)
+                    {
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-user me-1"></i>Mitarbeiter
+                            </label>
+                            <select name="employeeId" class="form-select" required>
+                                <option value="">-- Mitarbeiter wählen --</option>
+                                @foreach (var emp in Model.CompanyEmployees)
+                                {
+                                    <option value="@emp.EmployeeId">@emp.EmployeeDisplayName</option>
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    <div class="col-md-@(Model.IsWorkerRole ? "6" : "3")">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-calendar-day me-1"></i>Datum
+                        </label>
+                        <input type="date" name="workDate" class="form-control"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-play me-1"></i>Von
+                        </label>
+                        <input type="time" name="startTime" id="startTime" class="form-control"
+                               value="08:00" required onchange="calculateWorkingHours()" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-stop me-1"></i>Bis
+                        </label>
+                        <input type="time" name="endTime" id="endTime" class="form-control"
+                               value="17:00" required onchange="calculateWorkingHours()" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-coffee me-1"></i>Pause (Min.)
+                        </label>
+                        <input type="number" name="breakMinutes" id="breakMinutes" class="form-control"
+                               value="30" min="0" max="480" required onchange="calculateWorkingHours()" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-hourglass-half me-1"></i>Netto-Arbeitszeit
+                        </label>
+                        <input type="text" id="netWorkingHours" class="form-control" readonly
+                               style="background-color: #f0f4ff; font-weight: 600; color: #667eea;" />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-pen me-1"></i>Tätigkeitsbeschreibung
+                        </label>
+                        <textarea name="description" class="form-control" rows="3"
+                                  placeholder="Beschreiben Sie Ihre Tätigkeit..." maxlength="1000"></textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="button" class="btn btn-outline-secondary" onclick="toggleTimeEntryForm()">
+                        <i class="fas fa-times me-1"></i>Abbrechen
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Summary Bar -->
+        @if (Model.TimeEntries.Any())
+        {
+            <div class="time-summary-bar p-3">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="summary-item">
+                            <span class="summary-label">Einträge gesamt</span>
+                            <span class="summary-value">@Model.TotalTimeEntryCount</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item">
+                            <span class="summary-label">Stunden gesamt</span>
+                            <span class="summary-value">@Model.TotalProjectHours.ToString("F1") h</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item">
+                            <span class="summary-label">Mitarbeiter</span>
+                            <span class="summary-value">@Model.TimeEntries.Select(t => t.EmployeeId).Distinct().Count()</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="summary-item">
+                            <span class="summary-label">⌀ Stunden/Eintrag</span>
+                            <span class="summary-value">
+                                @((Model.TotalProjectHours / Math.Max(1, Model.TotalTimeEntryCount)).ToString("F1")) h
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Time Entries Table -->
+        <div class="time-entries-table p-3">
+            @if (Model.TimeEntries.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar me-1"></i>Datum</th>
+                                <th><i class="fas fa-user me-1"></i>Mitarbeiter</th>
+                                <th><i class="fas fa-play me-1"></i>Von</th>
+                                <th><i class="fas fa-stop me-1"></i>Bis</th>
+                                <th><i class="fas fa-coffee me-1"></i>Pause</th>
+                                <th><i class="fas fa-hourglass-half me-1"></i>Netto</th>
+                                <th><i class="fas fa-pen me-1"></i>Tätigkeit</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model.TimeEntries)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold">@entry.WorkDate.ToString("dd.MM.yyyy")</span>
+                                        <br />
+                                        <small class="text-muted">
+                                            @(entry.WorkDate.DayOfWeek switch
+                                            {
+                                                DayOfWeek.Monday => "Montag",
+                                                DayOfWeek.Tuesday => "Dienstag",
+                                                DayOfWeek.Wednesday => "Mittwoch",
+                                                DayOfWeek.Thursday => "Donnerstag",
+                                                DayOfWeek.Friday => "Freitag",
+                                                DayOfWeek.Saturday => "Samstag",
+                                                DayOfWeek.Sunday => "Sonntag",
+                                                _ => ""
+                                            })
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="employee-badge">
+                                            @entry.Employee?.EmployeeDisplayName
+                                        </span>
+                                    </td>
+                                    <td>@entry.StartTime.ToString("HH:mm")</td>
+                                    <td>@entry.EndTime.ToString("HH:mm")</td>
+                                    <td>@entry.BreakMinutes Min.</td>
+                                    <td>
+                                        <span class="hours-badge">
+                                            @entry.NetWorkingHours.ToString("F1") h
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="description-text" title="@entry.Description">
+                                            @(entry.Description?.Length > 60
+                                                ? entry.Description.Substring(0, 60) + "..."
+                                                : entry.Description ?? "-")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @* Workers can only delete their own entries, non-Workers can delete any *@
+                                        @if (!Model.IsWorkerRole || entry.EmployeeId == Model.CurrentEmployeeId)
+                                        {
+                                            <form method="post" asp-page-handler="DeleteTimeEntry" style="display:inline;"
+                                                  onsubmit="return confirm('Eintrag wirklich löschen?');">
+                                                <input type="hidden" name="timeEntryId" value="@entry.TimeEntryId" />
+                                                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                                                <input type="hidden" name="timeTrackingPage" value="@Model.TimeTrackingPage" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TimeTrackingTotalPages > 1)
+                {
+                    <nav aria-label="Zeiterfassung Navigation" class="d-flex justify-content-center mt-3">
+                        <ul class="pagination">
+                            <li class="page-item @(Model.TimeTrackingPage <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-page="Details"
+                                   asp-route-id="@Model.Project.ProjectId"
+                                   asp-route-timeTrackingPage="@(Model.TimeTrackingPage - 1)"
+                                   asp-fragment="timeTracking">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            @for (int i = 1; i <= Model.TimeTrackingTotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.TimeTrackingPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-page="Details"
+                                       asp-route-id="@Model.Project.ProjectId"
+                                       asp-route-timeTrackingPage="@i"
+                                       asp-fragment="timeTracking">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.TimeTrackingPage >= Model.TimeTrackingTotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-page="Details"
+                                   asp-route-id="@Model.Project.ProjectId"
+                                   asp-route-timeTrackingPage="@(Model.TimeTrackingPage + 1)"
+                                   asp-fragment="timeTracking">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-clock fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                    <p class="text-muted">Noch keine Zeiten erfasst.</p>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="toggleTimeEntryForm()">
+                        <i class="fas fa-plus me-1"></i>Erste Zeit erfassen
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleTimeEntryForm() {
+        var form = document.getElementById('timeEntryForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (form.style.display === 'block') {
+            calculateWorkingHours();
+        }
+    }
+
+    function calculateWorkingHours() {
+        var startTime = document.getElementById('startTime').value;
+        var endTime = document.getElementById('endTime').value;
+        var breakMinutes = parseInt(document.getElementById('breakMinutes').value) || 0;
+        var display = document.getElementById('netWorkingHours');
+
+        if (startTime && endTime) {
+            var start = startTime.split(':');
+            var end = endTime.split(':');
+            var startMinutes = parseInt(start[0]) * 60 + parseInt(start[1]);
+            var endMinutes = parseInt(end[0]) * 60 + parseInt(end[1]);
+            var netMinutes = endMinutes - startMinutes - breakMinutes;
+
+            if (netMinutes > 0) {
+                var hours = Math.floor(netMinutes / 60);
+                var mins = netMinutes % 60;
+                display.value = hours + ' Std. ' + mins + ' Min. (' + (netMinutes / 60).toFixed(1) + ' h)';
+                display.style.color = '#667eea';
+            } else {
+                display.value = 'Ungültig';
+                display.style.color = '#dc3545';
+            }
+        }
+    }
+
+    // Calculate on page load
+    document.addEventListener('DOMContentLoaded', calculateWorkingHours);
+</script>
