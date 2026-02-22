@@ -253,6 +253,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return new JsonResult(statistics);
         }
 
+
+        public async Task<JsonResult> OnGetTimeTrackingBreakdown(string projectId)
+        {
+            var breakdown = await _statisticsCalculator.CalculateTimeTrackingBreakdownAsync(projectId);
+            return new JsonResult(breakdown);
+        }
         // Nachkalkulation anstoﬂen
         public async Task<IActionResult> OnPostRecalculateProjectBudgetAsync(string? projectId)
         {

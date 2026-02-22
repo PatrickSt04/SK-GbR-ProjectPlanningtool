@@ -98,6 +98,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var budgetBreakdown = CreateBudgetBreakdown(project, usedBudgetFromTimeEntries, remainingBudget, utilizationPercentage, budgetStatus, additionalCosts);
             var taskStatistics = CalculateTaskBudgetStatistics(project);
 
+            var timeTrackingBreakdown = await CalculateTimeTrackingBreakdownAsync(projectId);
             return new ProjectBudgetStatistics
             {
                 ProjectId = projectId,
@@ -118,8 +119,37 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 DetailedBreakdown = budgetBreakdown,
                 TopCostSections = GetTopCostSections(budgetBreakdown, 5),
                 CostDistribution = CalculateCostDistribution(budgetBreakdown),
-                AdditionalCostBreakdown = additionalCosts
+                AdditionalCostBreakdown = additionalCosts,
+                TimeTrackingBreakdown = timeTrackingBreakdown
             };
+        }
+
+        public async Task<List<TimeTrackingBreakdownItem>> CalculateTimeTrackingBreakdownAsync(string projectId)
+        {
+            var timeEntries = await _context.TimeEntry
+                .Where(te => te.ProjectId == projectId)
+                .Include(te => te.Employee)
+                    .ThenInclude(e => e.HourlyRateGroup)
+                .ToListAsync();
+
+            var breakdown = timeEntries
+                .GroupBy(te => te.Employee?.HourlyRateGroup?.HourlyRateGroupName ?? "Ohne Stundensatzgruppe")
+                .Select(group =>
+                {
+                    var totalHours = group.Sum(te => te.NetWorkingHours);
+                    var hourlyRate = group.First().Employee?.HourlyRateGroup?.HourlyRate ?? 0;
+
+                    return new TimeTrackingBreakdownItem
+                    {
+                        HourlyRateGroupName = group.Key,
+                        TotalWorkingHours = totalHours,
+                        TotalCosts = totalHours * hourlyRate
+                    };
+                })
+                .OrderByDescending(b => b.TotalCosts)
+                .ToList();
+
+            return breakdown;
         }
 
         /// <summary>
@@ -460,8 +490,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<TopCostSection> TopCostSections { get; set; } = new();
         public CostDistribution CostDistribution { get; set; } = new();
         public AdditionalCostBreakdown AdditionalCostBreakdown { get; set; } = new();
-    }
 
+        public List<TimeTrackingBreakdownItem> TimeTrackingBreakdown { get; set; } = new();
+    }
+    public class TimeTrackingBreakdownItem
+    {
+        public string HourlyRateGroupName { get; set; } = string.Empty;
+        public double TotalWorkingHours { get; set; }
+        public double TotalCosts { get; set; }
+    }
     public class AdditionalCostBreakdown
     {
         public double TotalAmount { get; set; }
