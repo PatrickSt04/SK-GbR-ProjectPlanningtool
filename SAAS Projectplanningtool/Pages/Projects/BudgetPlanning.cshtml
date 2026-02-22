@@ -318,7 +318,7 @@
                     <!-- Aufschlüsselung je Stundensatzgruppe -->
                     <div id="timeEntryBreakdownList" style="margin-top: 1rem; display: none;">
                         <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
-                                text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
                             <i class="fas fa-layer-group me-1"></i> Nach Stundensatzgruppe
                         </div>
                         <div id="timeEntryBreakdownItems"></div>
@@ -339,8 +339,8 @@
                         <div class="budget-progress-bar" id="additionalCostsProgressBar"
                              style="width: 0%; background: var(--info-color);"></div>
                     </div>
-                </div> 
-               
+                </div>
+
 
                 <!-- Nachkalkulationen -->
                 <div class="budget-card" style="border-top: 4px solid var(--info-color);">
@@ -434,15 +434,15 @@
     <div class="main-container">
 
 
-        @* <div class="expenses-header">
-        <h2 class="expenses-title">
-            <i class="fas fa-receipt"></i>
-            Zeitbuchungen
-        </h2>
-        <!-- Zeiterfassung -->
-        <div id="timeTracking">
-            @await Html.PartialAsync("PartialViews/_TimeTracking")
-        </div>
+        @* <div class="expenses-header"> *@
+            <h2 class="expenses-title">
+                <i class="fas fa-receipt"></i>
+                Zeitbuchungen
+            </h2>
+            <!-- Zeiterfassung -->
+            <div id="timeTracking">
+                @await Html.PartialAsync("PartialViews/_TimeTracking")
+            </div>
         @* </div> *@
         <div class="expenses-section">
             <div class="expenses-header">
