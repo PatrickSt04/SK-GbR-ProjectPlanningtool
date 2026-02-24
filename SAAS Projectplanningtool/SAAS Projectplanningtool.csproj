@@ -36,4 +36,9 @@
 	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration" Version="8.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="CustomManagers\AuthorizationManagement\DetailedAuthorizationManagement\DashboardAuthorizationManagement\" />
+	  <Folder Include="CustomManagers\AuthorizationManagement\DetailedAuthorizationManagement\NavbarAuthorizationManagement\" />
+	</ItemGroup>
+
 </Project>

@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using SAAS_Projectplanningtool.CustomManagers;
+using SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
@@ -13,11 +15,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
 
-        public ProjectsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public ProjectsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
+            _roleManager = roleManager;
             _userManager = userManager;
             _projectStatisticsCalculator = new ProjectStatisticsCalculator(_context, _userManager);
         }
@@ -210,13 +214,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             var companyId = CurrentCompany!.CompanyId;
 
-            // Start with base query
+            // Get accessible project IDs for current user
+            var projectAuthManager = new ProjectAuthManager(_userManager, _roleManager, _context, User, new CustomUserManager(_context, _userManager));
+            var accessibleProjectIds = await projectAuthManager.GetAccessibleProjectIds(companyId);
+
+            // Start with base query filtered by accessible projects
             var query = _context.Project
                 .Include(p => p.Customer)
                 .Include(p => p.State)
                 .Include(p => p.ResponsiblePerson)
                 .Include(p => p.ProjectBudget)
-                .Where(p => p.CompanyId == companyId);
+                .Where(p => p.CompanyId == companyId && accessibleProjectIds.Contains(p.ProjectId));
 
             // Apply filters
             query = ApplyFilters(query);
