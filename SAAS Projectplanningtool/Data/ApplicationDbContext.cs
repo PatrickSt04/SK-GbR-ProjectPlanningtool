@@ -33,6 +33,7 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskCatalogTask> ProjectTaskCatalogTask { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.HolidayCalendarEntry> HolidayCalendarEntry { get; set; } = default!;
 
+        public DbSet<SAAS_Projectplanningtool.Models.ProjectEmployeeViewerShare> ProjectEmployeeViewerShare { get; set; } = default!;
         public DbSet<TimeEntry> TimeEntry { get; set; } = default!;
 
 
