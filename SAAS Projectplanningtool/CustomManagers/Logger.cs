@@ -7,22 +7,13 @@ using System.Text.Json;
 
 namespace SAAS_Projectplanningtool.CustomManagers
 {
-    public class Logger
+    public class Logger(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
-        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly CustomUserManager customUserManager;
-
-        public Logger(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-            customUserManager = new CustomUserManager(context, userManager);
-        }
+        private readonly CustomUserManager customUserManager = new(context, userManager);
 
         public async Task<string> Log(Exception? exception, ClaimsPrincipal ExcecutingUserTable, object? UsedModelObject, string? custommessage)
         {
-            var excecutingEmployee = await customUserManager.GetEmployeeAsync(_userManager.GetUserId(ExcecutingUserTable));
+            var excecutingEmployee = await customUserManager.GetEmployeeAsync(userManager.GetUserId(ExcecutingUserTable));
             var log = new Logfile
             {
                 ExceptionName = exception == null ? "null" : exception.GetType().FullName,
@@ -34,8 +25,8 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
             };
 
-            await _context.Logfile.AddAsync(log);
-            await _context.SaveChangesAsync();
+            await context.Logfile.AddAsync(log);
+            await context.SaveChangesAsync();
 
             return log.LogfileId;
         }
@@ -55,8 +46,8 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
             };
 
-            await _context.Logfile.AddAsync(log);
-            await _context.SaveChangesAsync();
+            await context.Logfile.AddAsync(log);
+            await context.SaveChangesAsync();
 
             return log.LogfileId;
         }

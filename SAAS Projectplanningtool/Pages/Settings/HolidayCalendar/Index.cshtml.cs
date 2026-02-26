@@ -6,13 +6,9 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.Settings.HolidayCalendar
 {
-    public class IndexModel : HolidayCalendarPageModel
+    public class IndexModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        : HolidayCalendarPageModel(context, userManager)
     {
-        public IndexModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-            : base(context, userManager)
-        {
-        }
-
         public IList<HolidayCalendarEntry> HolidayEntries { get; set; } = new List<HolidayCalendarEntry>();
         public string CompanyName { get; set; } = string.Empty;
 

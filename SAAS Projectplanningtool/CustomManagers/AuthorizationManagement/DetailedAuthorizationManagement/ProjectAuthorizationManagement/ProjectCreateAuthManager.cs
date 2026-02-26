@@ -4,16 +4,16 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class ProjectCreateAuthManager : AuthorizationManager
+    public class ProjectCreateAuthManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user)
+        : AuthorizationManager(userManager, roleManager, context, user)
     {
-        public ProjectCreateAuthManager(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, ClaimsPrincipal user)
-            : base(userManager, roleManager, context, user)
-        {
-        }
-
         public virtual async Task<bool> CanCreateProject()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
     }
 }

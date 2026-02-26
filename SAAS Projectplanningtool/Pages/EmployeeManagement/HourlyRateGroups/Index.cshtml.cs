@@ -10,20 +10,13 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
 {
-    public class IndexModel : PageModel
+    public class IndexModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context) : PageModel
     {
-        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
-
-        public IndexModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public IList<HourlyRateGroup> HourlyRateGroup { get;set; } = default!;
 
         public async Task OnGetAsync()
         {
-            HourlyRateGroup = await _context.HourlyRateGroup
+            HourlyRateGroup = await context.HourlyRateGroup
                 .Include(h => h.Company)
                 .Include(h => h.LatestModifier).ToListAsync();
         }

@@ -12,18 +12,12 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.CustomerManagement
 {
-    public class CreateModel : PageModel
+    public class CreateModel(
+        SAAS_Projectplanningtool.Data.ApplicationDbContext context,
+        UserManager<IdentityUser> userManager)
+        : PageModel
     {
-        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly Logger _logger;
-
-        public CreateModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-            _logger = new Logger(context, userManager);
-        }
+        private readonly Logger _logger = new(context, userManager);
 
         [BindProperty]
         public Customer Customer { get; set; } = default!;
@@ -37,7 +31,7 @@ namespace SAAS_Projectplanningtool.Pages.CustomerManagement
             {
                 await _logger.Log(null, User, null, "CustomerManagement/Create<OnGet>Begin");
 
-                var employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                var employee = await new CustomUserManager(context, userManager).GetEmployeeAsync(userManager.GetUserId(User));
                 Address = new Address { CompanyId = employee.CompanyId };
                 Customer = new Customer { CustomerName = "", CompanyId = employee.CompanyId };
 
@@ -58,12 +52,12 @@ namespace SAAS_Projectplanningtool.Pages.CustomerManagement
                     return Page();
                 }
                 //Address wurde in der HTML Page gefüllt
-                _context.Address.Add(Address);
-                await _context.SaveChangesAsync();
-                Customer = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Kunde wurde angelegt", Customer, true);
+                context.Address.Add(Address);
+                await context.SaveChangesAsync();
+                Customer = await new CustomObjectModifier(context, userManager).AddLatestModificationAsync(User, "Kunde wurde angelegt", Customer, true);
                 Customer.Address = Address;
-                _context.Customer.Add(Customer);
-                await _context.SaveChangesAsync();
+                context.Customer.Add(Customer);
+                await context.SaveChangesAsync();
 
                 await _logger.Log(null, User, Customer, "CustomerManagement/Create<OnPostAsync>End");
 

@@ -1,27 +1,30 @@
 ﻿using System;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using SAAS_Projectplanningtool.Data;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class DashboardAuthManager : AuthorizationManager
+    public class DashboardAuthManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user)
+        : AuthorizationManager(userManager, roleManager, context, user)
     {
-        public DashboardAuthManager(object userManager, object roleManager, object context)
-            : base(userManager, roleManager, context)
+        public virtual async Task<bool> ViewerDashboard()
         {
+            return await IsViewerLicense();
         }
 
-        public virtual bool ViewerDashboard()
+        public virtual async Task<bool> PlannerDashboard()
         {
-            throw new NotImplementedException();
+            return await IsPlannerLicense();
         }
 
-        public virtual bool PlannerDashboard()
+        public virtual async Task<bool> AdminDashboard()
         {
-            throw new NotImplementedException();
-        }
-
-        public virtual bool AdminDashboard()
-        {
-            throw new NotImplementedException();
+            return await IsAdminLicense();
         }
     }
 }

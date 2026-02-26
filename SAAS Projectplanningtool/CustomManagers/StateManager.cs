@@ -4,25 +4,18 @@ using SAAS_Projectplanningtool.Models.IndependentTables;
 
 namespace SAAS_Projectplanningtool.CustomManagers
 {
-    public class StateManager
+    public class StateManager(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-
-        public StateManager(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<State> GetProjectState(string projectId)
         {
             if (projectId != null)
             {
-                var totaltasks = await _context.ProjectTask
+                var totaltasks = await context.ProjectTask
                     .Include(ps => ps.ProjectSection)
                     .Where(task => task.ProjectSection.ProjectId == projectId)
                     .CountAsync();
 
-                var delayedTasks = await _context.ProjectTask
+                var delayedTasks = await context.ProjectTask
                     .Include(ps => ps.ProjectSection)
                     .Where(task => task.ProjectSection.ProjectId == projectId)
                     .Include(s => s.State)
@@ -35,7 +28,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 }
                 else
                 {
-                    var openTasks = await _context.ProjectTask
+                    var openTasks = await context.ProjectTask
                         .Include(ps => ps.ProjectSection)
                         .Where(task => task.ProjectSection.ProjectId == projectId)
                         .Include(s => s.State)
@@ -48,7 +41,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                     }
                     else
                     {
-                        var closedTasks = await _context.ProjectTask
+                        var closedTasks = await context.ProjectTask
                             .Include(ps => ps.ProjectSection)
                             .Where(task => task.ProjectSection.ProjectId == projectId)
                             .Include(s => s.State)
@@ -78,7 +71,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
             {
                 async Task<List<string>> GetAllSubSectionIdsAsync(string sectionId)
                 {
-                    var subSectionIds = await _context.ProjectSection
+                    var subSectionIds = await context.ProjectSection
                         .Where(section => section.ParentSectionId == sectionId)
                         .Select(section => section.ProjectSectionId)
                         .ToListAsync();
@@ -95,11 +88,11 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 var allSectionIds = await GetAllSubSectionIdsAsync(sectionId);
                 allSectionIds.Add(sectionId);
 
-                var totaltasks = await _context.ProjectTask
+                var totaltasks = await context.ProjectTask
                     .Where(task => allSectionIds.Contains(task.ProjectSectionId))
                     .CountAsync();
 
-                var delayedTasks = await _context.ProjectTask
+                var delayedTasks = await context.ProjectTask
                     .Where(task => allSectionIds.Contains(task.ProjectSectionId))
                     .Include(s => s.State)
                     .Where(task => task.State.StateName == "In Verzug")
@@ -111,7 +104,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 }
                 else
                 {
-                    var openTasks = await _context.ProjectTask
+                    var openTasks = await context.ProjectTask
                         .Where(task => allSectionIds.Contains(task.ProjectSectionId))
                         .Include(s => s.State)
                         .Where(task => task.State.StateName == "Offen")
@@ -123,7 +116,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                     }
                     else
                     {
-                        var closedTasks = await _context.ProjectTask
+                        var closedTasks = await context.ProjectTask
                             .Where(task => allSectionIds.Contains(task.ProjectSectionId))
                             .Include(s => s.State)
                             .Where(task => task.State.StateName == "Abgeschlossen")
@@ -148,7 +141,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
 
         private async Task<State> getState(string name)
         {
-            return await _context.State
+            return await context.State
                 .Where(s => s.StateName.Equals(name))
                 .FirstOrDefaultAsync();
         }

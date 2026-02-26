@@ -9,23 +9,16 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.CustomManagers
 {
-    public class CustomObjectModifier
+    public class CustomObjectModifier(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly CustomUserManager _customUserManager;
+        private readonly ApplicationDbContext _context = context;
+        private readonly CustomUserManager _customUserManager = new(context, userManager);
 
-        public CustomObjectModifier(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-            _customUserManager = new CustomUserManager(context, userManager);
-        }
         // Diese Methode fügt dem Objekt werte für LatestModification Attribute hinzu
         // Es können exceptions geworfen werden. Diese müssen in der aufrufenden Methode behandelt werden ( Logger -> Logfile )
         public async Task<TObject> AddLatestModificationAsync<TObject>(ClaimsPrincipal ExcecutingUserTable, string ModificationText, TObject ModifiedObject, bool isFirtCreateOfObject)
         {
-            var employee = await _customUserManager.GetEmployeeAsync(_userManager.GetUserId(ExcecutingUserTable));
+            var employee = await _customUserManager.GetEmployeeAsync(userManager.GetUserId(ExcecutingUserTable));
             //LatestModifier Attribut holen
             PropertyInfo property = ModifiedObject.GetType().GetProperty("LatestModifier");
             //LatestModifier Attribut setzen

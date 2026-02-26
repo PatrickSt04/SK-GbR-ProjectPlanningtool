@@ -5,13 +5,9 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.Settings.HolidayCalendar
 {
-    public class DetailsModel : HolidayCalendarPageModel
+    public class DetailsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        : HolidayCalendarPageModel(context, userManager)
     {
-        public DetailsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-            : base(context, userManager)
-        {
-        }
-
         public HolidayCalendarEntry HolidayCalendarEntry { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(string id)

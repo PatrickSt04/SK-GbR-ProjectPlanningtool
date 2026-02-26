@@ -1,32 +1,35 @@
 ﻿using System;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using SAAS_Projectplanningtool.Data;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class NavbarAuthManager : AuthorizationManager
+    public class NavbarAuthManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user)
+        : AuthorizationManager(userManager, roleManager, context, user)
     {
-        public NavbarAuthManager(object userManager, object roleManager, object context)
-            : base(userManager, roleManager, context)
-        {
-        }
-
         public virtual bool DisplayProjectsNav()
         {
             throw new NotImplementedException();
         }
 
-        public virtual bool DisplayResourceNav()
+        public virtual async Task<bool> DisplayResourceNav()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
-        public virtual bool DisplayCustomerNav()
+        public virtual async Task<bool> DisplayCustomerNav()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
-        public virtual bool DisplaySettingsNav()
+        public virtual async Task<bool> DisplaySettingsNav()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
     }
 }
