@@ -4,20 +4,16 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class AuthorizationManager
+    public class AuthorizationManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user)
     {
-        protected readonly UserManager<IdentityUser> _userManager;
-        protected readonly RoleManager<IdentityRole> _roleManager;
-        protected readonly ApplicationDbContext _context;
-        protected readonly ClaimsPrincipal _user;
-
-        public AuthorizationManager(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, ClaimsPrincipal user)
-        {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _context = context;
-            _user = user;
-        }
+        protected readonly UserManager<IdentityUser> _userManager = userManager;
+        protected readonly RoleManager<IdentityRole> _roleManager = roleManager;
+        protected readonly ApplicationDbContext _context = context;
+        protected readonly ClaimsPrincipal _user = user;
 
         private async Task<IdentityUser?> GetCurrentUserAsync()
         {

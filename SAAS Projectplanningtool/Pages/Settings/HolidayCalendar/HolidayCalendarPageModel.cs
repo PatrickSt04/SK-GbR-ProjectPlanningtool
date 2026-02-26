@@ -7,22 +7,14 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.Settings.HolidayCalendar
 {
-    public abstract class HolidayCalendarPageModel : PageModel
+    public abstract class HolidayCalendarPageModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        : PageModel
     {
-        protected readonly ApplicationDbContext Context;
-        protected readonly UserManager<IdentityUser> UserManager;
-        protected readonly Logger Logger;
-        protected readonly CustomObjectModifier ObjectModifier;
-        private readonly CustomUserManager _customUserManager;
-
-        protected HolidayCalendarPageModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            Context = context;
-            UserManager = userManager;
-            Logger = new Logger(context, userManager);
-            ObjectModifier = new CustomObjectModifier(context, userManager);
-            _customUserManager = new CustomUserManager(context, userManager);
-        }
+        protected readonly ApplicationDbContext Context = context;
+        protected readonly UserManager<IdentityUser> UserManager = userManager;
+        protected readonly Logger Logger = new(context, userManager);
+        protected readonly CustomObjectModifier ObjectModifier = new(context, userManager);
+        private readonly CustomUserManager _customUserManager = new(context, userManager);
 
         protected async Task<Employee?> GetCurrentEmployeeAsync()
         {

@@ -10,15 +10,8 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
 {
-    public class DeleteModel : PageModel
+    public class DeleteModel(ApplicationDbContext context) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public DeleteModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         [BindProperty]
         public Employee Employee { get; set; } = default!;
 
@@ -29,7 +22,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 return NotFound();
             }
 
-            var employee = await _context.Employee.FirstOrDefaultAsync(m => m.EmployeeId == id);
+            var employee = await context.Employee.FirstOrDefaultAsync(m => m.EmployeeId == id);
 
             if (employee == null)
             {
@@ -49,12 +42,12 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 return NotFound();
             }
 
-            var employee = await _context.Employee.FindAsync(id);
+            var employee = await context.Employee.FindAsync(id);
             if (employee != null)
             {
                 Employee = employee;
-                _context.Employee.Remove(Employee);
-                await _context.SaveChangesAsync();
+                context.Employee.Remove(Employee);
+                await context.SaveChangesAsync();
             }
 
             return RedirectToPage("./Index");

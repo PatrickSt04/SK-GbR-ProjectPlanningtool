@@ -9,16 +9,10 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
-    public class ProjectStatisticsCalculator
+    public class ProjectStatisticsCalculator(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-
-        public ProjectStatisticsCalculator(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-        }
+        private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
+        private readonly UserManager<IdentityUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
 
         /// <summary>
         /// Berechnet alle relevanten Statistik-Werte für ein Projekt.

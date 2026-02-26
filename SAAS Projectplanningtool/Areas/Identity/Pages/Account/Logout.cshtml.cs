@@ -14,22 +14,17 @@ using SAAS_Projectplanningtool.Data;
 
 namespace software.Areas.Identity.Pages.Account
 {
-    public class LogoutModel : PageModel
+    public class LogoutModel(SignInManager<IdentityUser> signInManager, ApplicationDbContext context)
+        : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly Logger _logger;
+        private readonly Logger _logger = new(context, signInManager.UserManager);
         // Custom changes: REMOVED ILogger<LogoutModel> _logger; ADDED: Context && CustomLogger
-        public LogoutModel(SignInManager<IdentityUser> signInManager, ApplicationDbContext context)
-        {
-            _signInManager = signInManager;
-            _logger = new Logger(context, signInManager.UserManager);
-        }
 
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
-            await _signInManager.SignOutAsync();
+            await signInManager.SignOutAsync();
             //_logger.LogInformation("User logged out.");
-            var userId = _signInManager.UserManager.GetUserId(User);
+            var userId = signInManager.UserManager.GetUserId(User);
             await _logger.LogByUserId(userId, "SUCCESS: User logged out.", null);
             if (returnUrl != null)
             {

@@ -10,15 +10,8 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
 {
-    public class DeleteModel : PageModel
+    public class DeleteModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context) : PageModel
     {
-        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
-
-        public DeleteModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         [BindProperty]
         public HourlyRateGroup HourlyRateGroup { get; set; } = default!;
 
@@ -29,7 +22,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                 return NotFound();
             }
 
-            var hourlyrategroup = await _context.HourlyRateGroup.FirstOrDefaultAsync(m => m.HourlyRateGroupId == id);
+            var hourlyrategroup = await context.HourlyRateGroup.FirstOrDefaultAsync(m => m.HourlyRateGroupId == id);
 
             if (hourlyrategroup == null)
             {
@@ -49,12 +42,12 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                 return NotFound();
             }
 
-            var hourlyrategroup = await _context.HourlyRateGroup.FindAsync(id);
+            var hourlyrategroup = await context.HourlyRateGroup.FindAsync(id);
             if (hourlyrategroup != null)
             {
                 HourlyRateGroup = hourlyrategroup;
-                _context.HourlyRateGroup.Remove(HourlyRateGroup);
-                await _context.SaveChangesAsync();
+                context.HourlyRateGroup.Remove(HourlyRateGroup);
+                await context.SaveChangesAsync();
             }
 
             return RedirectToPage("./Index");

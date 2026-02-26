@@ -10,23 +10,15 @@ using Project = SAAS_Projectplanningtool.Models.Budgetplanning.Project;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
-    public class BudgetPlanningModel : BudgetPlannerPageModel
+    public class BudgetPlanningModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        : BudgetPlannerPageModel(context, userManager)
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly Logger _logger;
-        private readonly ProjectStatisticsCalculator _statisticsCalculator;
+        private readonly ApplicationDbContext _context = context;
+        private readonly UserManager<IdentityUser> _userManager = userManager;
+        private readonly Logger _logger = new(context, userManager);
+        private readonly ProjectStatisticsCalculator _statisticsCalculator = new(context, userManager);
 
-        public BudgetPlanningModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-            : base(context, userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-            _logger = new Logger(context, userManager);
-            _statisticsCalculator = new ProjectStatisticsCalculator(context, userManager);
-        }
-
-        // DTO für zusätzliche Projektkosten
+        // DTO fï¿½r zusï¿½tzliche Projektkosten
         public class ProjectCostAssignment
         {
             public string? ProjectAdditionalCostsId { get; set; }
@@ -113,7 +105,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     .ToList() ?? new List<InitialAdditionalCost>();
 
 
-                #region Time Tracking: Mitarbeiter- und Zeiteinträge laden
+                #region Time Tracking: Mitarbeiter- und Zeiteintrï¿½ge laden
                 var employee = await GetEmployeeAsync();
                 if (employee != null && employee.CompanyId != null)
                 {
@@ -132,7 +124,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         IsWorkerRole = role?.Name == "Worker";
                     }
 
-                    // Mitarbeiter-Liste laden (nur für Nicht-Worker, für das Dropdown)
+                    // Mitarbeiter-Liste laden (nur fï¿½r Nicht-Worker, fï¿½r das Dropdown)
                     if (!IsWorkerRole && employee?.CompanyId != null)
                     {
                         CompanyEmployees = await _context.Employee
@@ -142,7 +134,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                             .ToListAsync();
                     }
 
-                    // Zeiteinträge mit Pagination laden
+                    // Zeiteintrï¿½ge mit Pagination laden
                     if (TimeTrackingPage < 1) TimeTrackingPage = 1;
 
                     var timeEntryQuery = _context.TimeEntry
@@ -160,7 +152,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         .Take(TimeTrackingPageSize)
                         .ToListAsync();
 
-                    // Gesamtstunden berechnen (über ALLE Einträge, nicht nur aktuelle Seite)
+                    // Gesamtstunden berechnen (ï¿½ber ALLE Eintrï¿½ge, nicht nur aktuelle Seite)
                     var allTimeEntries = await _context.TimeEntry
                         .Where(t => t.ProjectId == id)
                         .Where(t => t.CompanyId == employee.CompanyId)
@@ -259,7 +251,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var breakdown = await _statisticsCalculator.CalculateTimeTrackingBreakdownAsync(projectId);
             return new JsonResult(breakdown);
         }
-        // Nachkalkulation anstoßen
+        // Nachkalkulation anstoï¿½en
         public async Task<IActionResult> OnPostRecalculateProjectBudgetAsync(string? projectId)
         {
             if (projectId == null)
@@ -294,7 +286,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             return RedirectToPage(new { id = projectId });
         }
 
-        // Zusätzliche Projektkosten speichern
+        // Zusï¿½tzliche Projektkosten speichern
         public async Task<IActionResult> OnPostSaveProjectCosts(string? projectId)
         {
             if (string.IsNullOrEmpty(projectId))
@@ -393,7 +385,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 if (currentEmployee == null) return NotFound();
 
-                // Rolle prüfen
+                // Rolle prï¿½fen
                 var role = await _context.Roles
                     .FirstOrDefaultAsync(r => r.Id == currentEmployee.IdentityRoleId);
                 bool isWorker = role?.Name == "Worker";
@@ -402,12 +394,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 string targetEmployeeId;
                 if (isWorker)
                 {
-                    // Worker dürfen nur für sich selbst erfassen
+                    // Worker dï¿½rfen nur fï¿½r sich selbst erfassen
                     targetEmployeeId = currentEmployee.EmployeeId;
                 }
                 else
                 {
-                    // Andere Rollen: ausgewählten Mitarbeiter oder sich selbst
+                    // Andere Rollen: ausgewï¿½hlten Mitarbeiter oder sich selbst
                     targetEmployeeId = employeeId ?? currentEmployee.EmployeeId;
                 }
 
@@ -459,8 +451,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Zeiteintrag löschen.
-        /// Worker: nur eigene Einträge. Andere Rollen: alle Einträge.
+        /// Zeiteintrag lï¿½schen.
+        /// Worker: nur eigene Eintrï¿½ge. Andere Rollen: alle Eintrï¿½ge.
         /// </summary>
         public async Task<IActionResult> OnPostDeleteTimeEntryAsync(
             string timeEntryId,
@@ -482,20 +474,20 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 if (entry == null) return NotFound();
 
-                // Berechtigungsprüfung: Worker dürfen nur eigene Einträge löschen
+                // Berechtigungsprï¿½fung: Worker dï¿½rfen nur eigene Eintrï¿½ge lï¿½schen
                 var role = await _context.Roles
                     .FirstOrDefaultAsync(r => r.Id == currentEmployee.IdentityRoleId);
 
                 if (role?.Name == "Worker" && entry.EmployeeId != currentEmployee.EmployeeId)
                 {
-                    TempData.SetMessage("Error", "Sie können nur eigene Zeiteinträge löschen.");
+                    TempData.SetMessage("Error", "Sie kï¿½nnen nur eigene Zeiteintrï¿½ge lï¿½schen.");
                     return RedirectToPage(new { id = projectId, timeTrackingPage });
                 }
 
                 _context.TimeEntry.Remove(entry);
                 await _context.SaveChangesAsync();
 
-                TempData.SetMessage("Success", "Zeiteintrag wurde gelöscht.");
+                TempData.SetMessage("Success", "Zeiteintrag wurde gelï¿½scht.");
                 await _logger.Log(null, User, null, "Projects/Details<OnPostDeleteTimeEntryAsync>End");
 
                 return RedirectToPage(new { id = projectId, timeTrackingPage });

@@ -12,18 +12,14 @@ using SAAS_Projectplanningtool.Models.Budgetplanning;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
-    public class IndexModel : ProjectPageModel
+    public class IndexModel(
+        SAAS_Projectplanningtool.Data.ApplicationDbContext context,
+        UserManager<IdentityUser> userManager)
+        : ProjectPageModel(context, userManager)
     {
-        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;    
-        private readonly Logger _logger;
-
-        public IndexModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-            _logger = new Logger(context, userManager);
-        }
+        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context = context;
+        private readonly UserManager<IdentityUser> _userManager = userManager;    
+        private readonly Logger _logger = new(context, userManager);
 
         public IList<Project> Projects { get;set; } = default!;
 

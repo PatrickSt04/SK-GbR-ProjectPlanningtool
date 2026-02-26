@@ -10,15 +10,8 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.CustomerManagement
 {
-    public class DeleteModel : PageModel
+    public class DeleteModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context) : PageModel
     {
-        private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
-
-        public DeleteModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         [BindProperty]
         public Customer Customer { get; set; } = default!;
 
@@ -29,7 +22,7 @@ namespace SAAS_Projectplanningtool.Pages.CustomerManagement
                 return NotFound();
             }
 
-            var customer = await _context.Customer.FirstOrDefaultAsync(m => m.CustomerId == id);
+            var customer = await context.Customer.FirstOrDefaultAsync(m => m.CustomerId == id);
 
             if (customer == null)
             {
@@ -49,12 +42,12 @@ namespace SAAS_Projectplanningtool.Pages.CustomerManagement
                 return NotFound();
             }
 
-            var customer = await _context.Customer.FindAsync(id);
+            var customer = await context.Customer.FindAsync(id);
             if (customer != null)
             {
                 Customer = customer;
-                _context.Customer.Remove(Customer);
-                await _context.SaveChangesAsync();
+                context.Customer.Remove(Customer);
+                await context.SaveChangesAsync();
             }
 
             return RedirectToPage("./Index");

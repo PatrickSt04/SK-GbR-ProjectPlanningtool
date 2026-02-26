@@ -4,46 +4,42 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class ProjectIndexAuthManager : AuthorizationManager
+    public class ProjectIndexAuthManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user)
+        : AuthorizationManager(userManager, roleManager, context, user)
     {
-        public ProjectIndexAuthManager(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, ClaimsPrincipal user)
-            : base(userManager, roleManager, context, user)
-        {
-        }
-
-        public virtual async Task<List<string>> CanProjectsToView()
-        {
-            throw new NotImplementedException();
-        }
 
         public virtual async Task<bool> CanViewProjectBudgetInformation()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
         public virtual async Task<bool> CanViewProjectInformation()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense() || await IsViewerLicense();
         }
 
         public virtual async Task<bool> CanViewActiveProjects()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense()  || await IsViewerLicense(); 
         }
 
         public virtual async Task<bool> CanViewArchivedProjects()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
         public virtual async Task<bool> CanViewPlannedProjects()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
         public virtual async Task<bool> CanViewDueProjects()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
     }
 }
