@@ -5,13 +5,9 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.Pages.Settings.HolidayCalendar
 {
-    public class CreateModel : HolidayCalendarPageModel
+    public class CreateModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        : HolidayCalendarPageModel(context, userManager)
     {
-        public CreateModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-            : base(context, userManager)
-        {
-        }
-
         [BindProperty]
         public HolidayCalendarEntry HolidayCalendarEntry { get; set; } = default!;
 

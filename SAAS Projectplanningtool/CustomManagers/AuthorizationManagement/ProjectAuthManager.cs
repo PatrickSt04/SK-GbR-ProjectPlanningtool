@@ -6,30 +6,22 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class ProjectAuthManager : AuthorizationManager
+    public class ProjectAuthManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user,
+        CustomUserManager customUserManager)
+        : AuthorizationManager(userManager, roleManager, context, user)
     {
-        private readonly CustomUserManager _customUserManager;
+        public ProjectCreateAuthManager ProjectCreateAuthManager { get; } = new(userManager, roleManager, context, user);
+        public ProjectIndexAuthManager ProjectIndexAuthManager { get; } = new(userManager, roleManager, context, user);
+        public ProjectDetailsAuthManager ProjectDetailsAuthManager { get; } = new(userManager, roleManager, context, user);
+        public ProjectTaskCatalogAuthManager ProjectTaskCatalogAuthManager { get; } = new(userManager, roleManager, context, user);
+        public ProjectStructureAuthManager ProjectStructureAuthManager { get; } = new(userManager, roleManager, context, user);
+        public ProjectBudgetAuthManager ProjectBudgetAuthManager { get; } = new(userManager, roleManager, context, user);
+        public ProjectArchiveAuthManager ProjectArchiveAuthManager { get; } = new(userManager, roleManager, context, user);
 
-        public ProjectCreateAuthManager ProjectCreateAuthManager { get; }
-        public ProjectIndexAuthManager ProjectIndexAuthManager { get; }
-        public ProjectDetailsAuthManager ProjectDetailsAuthManager { get; }
-        public ProjectTaskCatalogAuthManager ProjectTaskCatalogAuthManager { get; }
-        public ProjectStructureAuthManager ProjectStructureAuthManager { get; }
-        public ProjectBudgetAuthManager ProjectBudgetAuthManager { get; }
-        public ProjectArchiveAuthManager ProjectArchiveAuthManager { get; }
-
-        public ProjectAuthManager(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, ClaimsPrincipal user, CustomUserManager customUserManager)
-            : base(userManager, roleManager, context, user)
-        {
-            _customUserManager = customUserManager;
-            ProjectCreateAuthManager = new ProjectCreateAuthManager(userManager, roleManager, context, user);
-            ProjectIndexAuthManager = new ProjectIndexAuthManager(userManager, roleManager, context, user);
-            ProjectDetailsAuthManager = new ProjectDetailsAuthManager(userManager, roleManager, context, user);
-            ProjectTaskCatalogAuthManager = new ProjectTaskCatalogAuthManager(userManager, roleManager, context, user);
-            ProjectStructureAuthManager = new ProjectStructureAuthManager(userManager, roleManager, context, user);
-            ProjectBudgetAuthManager = new ProjectBudgetAuthManager(userManager, roleManager, context, user);
-            ProjectArchiveAuthManager = new ProjectArchiveAuthManager(userManager, roleManager, context, user);
-        }
         /// <summary>
         /// Prüft, ob der aktuelle Benutzer Zugriff auf ein bestimmtes Projekt hat.
         /// - Planner/Admin: Alle Projekt-IDs der Company
@@ -94,7 +86,7 @@ namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.Projec
             var userId = _userManager.GetUserId(_user);
             if (userId is null)
                 return null;
-            return await _customUserManager.GetEmployeeAsync(userId);
+            return await customUserManager.GetEmployeeAsync(userId);
         }
     }
 }

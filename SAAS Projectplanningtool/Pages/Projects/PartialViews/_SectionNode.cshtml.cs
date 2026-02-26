@@ -11,17 +11,13 @@ using System.Threading.Tasks;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
-    public class _SectionNodeModel : PageModel
+    public class _SectionNodeModel(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        : PageModel
     {
-        private UserManager<IdentityUser> _userManager;
-        private ApplicationDbContext _context;
-        private Logger _logger;
-        public _SectionNodeModel(UserManager<IdentityUser> userManager, ApplicationDbContext context)
-        {
-            _userManager = userManager;
-            _context = context;
-            _logger = new Logger(context, userManager);
-        }
+        private UserManager<IdentityUser> _userManager = userManager;
+        private ApplicationDbContext _context = context;
+        private Logger _logger = new(context, userManager);
+
         public async Task OnGet()
         {
 

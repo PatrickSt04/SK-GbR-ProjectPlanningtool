@@ -13,21 +13,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SAAS_Projectplanningtool.Pages.Settings
 {
-    public class EditModel : PageModel
+    public class EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        : PageModel
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly Logger _logger;
-
-
-        public EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            _context = context;
-
-            _userManager = userManager;
-            _logger = new Logger(context, userManager);
-
-        }
+        private readonly Logger _logger = new(context, userManager);
 
 
         [BindProperty]
@@ -45,7 +34,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
             await _logger.Log(null, User, null, "Companies/Edit<OnGet>Beginn");
             if (id == null)
             {
-                var loggedInEmployee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                var loggedInEmployee = await new CustomUserManager(context, userManager).GetEmployeeAsync(userManager.GetUserId(User));
                 id = loggedInEmployee?.CompanyId;
                 if (id == null)
                 {
@@ -53,7 +42,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
                 }
             }
 
-            var company = await _context.Company
+            var company = await context.Company
                 .Include(c => c.License)
                 .Include(c => c.Sector)
                 .Include(c => c.Address)
@@ -103,7 +92,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
 
             try
             {
-                var existingCompany = await _context.Company
+                var existingCompany = await context.Company
                     .Include(c => c.Address)
                     .FirstOrDefaultAsync(c => c.CompanyId == Company.CompanyId);
 
@@ -139,14 +128,14 @@ namespace SAAS_Projectplanningtool.Pages.Settings
 
                 try
                 {
-                    existingCompany = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Unternehmensdaten wurden bearbeitet", existingCompany, false);
+                    existingCompany = await new CustomObjectModifier(context, userManager).AddLatestModificationAsync(User, "Unternehmensdaten wurden bearbeitet", existingCompany, false);
                 }
                 catch (Exception ex)
                 {
                     return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Company, null) });
                 }
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException ex)
             {

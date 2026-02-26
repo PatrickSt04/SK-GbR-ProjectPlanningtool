@@ -4,21 +4,21 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class ProjectArchiveAuthManager : AuthorizationManager
+    public class ProjectArchiveAuthManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user)
+        : AuthorizationManager(userManager, roleManager, context, user)
     {
-        public ProjectArchiveAuthManager(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, ClaimsPrincipal user)
-            : base(userManager, roleManager, context, user)
-        {
-        }
-
         public virtual async Task<bool> CanArchiveProject()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
-
+        
         public virtual async Task<bool> CanUnarchiveProject()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense();
         }
     }
 }

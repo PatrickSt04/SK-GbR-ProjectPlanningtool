@@ -4,31 +4,31 @@ using System.Security.Claims;
 
 namespace SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement
 {
-    public class ProjectTaskCatalogAuthManager : AuthorizationManager
+    public class ProjectTaskCatalogAuthManager(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        ClaimsPrincipal user)
+        : AuthorizationManager(userManager, roleManager, context, user)
     {
-        public ProjectTaskCatalogAuthManager(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context, ClaimsPrincipal user)
-            : base(userManager, roleManager, context, user)
-        {
-        }
-
         public virtual async Task<bool> CanViewTaskCatalog()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
         public virtual async Task<bool> CanCreateTaskCatalog()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
         public virtual async Task<bool> CanUpdateTaskCatalog()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
 
         public virtual async Task<bool> CanDeleteTaskCatalog()
         {
-            throw new NotImplementedException();
+            return await IsAdminLicense() || await IsPlannerLicense();
         }
     }
 }

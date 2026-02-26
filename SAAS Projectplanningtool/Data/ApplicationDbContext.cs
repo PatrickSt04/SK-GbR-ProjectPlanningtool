@@ -8,12 +8,8 @@ using SAAS_Projectplanningtool.Models.TimeTracking;
 
 namespace SAAS_Projectplanningtool.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
         public DbSet<SAAS_Projectplanningtool.Models.Company> Company { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Address> Address { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Customer> Customer { get; set; } = default!;

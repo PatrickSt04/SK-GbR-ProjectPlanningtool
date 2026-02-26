@@ -11,17 +11,9 @@ using SAAS_Projectplanningtool.Models;
 
 namespace SAAS_Projectplanningtool.CustomManagers
 {
-    public class CustomUserManager
+    public class CustomUserManager(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-
-        public CustomUserManager(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-        }
 
         public async Task<Employee?> GetEmployeeAsync(string userId)
         {
@@ -34,7 +26,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
             await _semaphore.WaitAsync(); // Verhindert parallele Zugriffe
             try
             {
-                await using var transaction = await _context.Database.BeginTransactionAsync();
+                await using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
                     await EnsureEmailIsUniqueAsync(email);
@@ -42,7 +34,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                     var initialPassword = await CreateNewIdentityUserAsync(email, roleId, roleManager);
 
                     await transaction.CommitAsync();
-                    return await _userManager.FindByEmailAsync(email);
+                    return await userManager.FindByEmailAsync(email);
                 }
                 catch
                 {
@@ -67,7 +59,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
 
         private async Task<bool> EmailAlreadyExistsAsync(string email)
         {
-            return await _context.Users.AnyAsync(u => u.Email == email);
+            return await context.Users.AnyAsync(u => u.Email == email);
         }
 
         private async Task<string> CreateNewIdentityUserAsync(string email, string roleId, RoleManager<IdentityRole> roleManager)
@@ -75,7 +67,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
             var initialPassword = "Password123!";
             var userToBeCreated = new IdentityUser { UserName = email, Email = email };
 
-            var result = await _userManager.CreateAsync(userToBeCreated, initialPassword);
+            var result = await userManager.CreateAsync(userToBeCreated, initialPassword);
             if (!result.Succeeded)
             {
                 throw new Exception("Fehler beim Schreiben in die Datenbank");
@@ -92,7 +84,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
             {
                 throw new Exception("Fehler bei der Rollenzuweisung");
             }
-            await _userManager.AddToRoleAsync(userWithoutRole, roleToAddToUser.Name);
+            await userManager.AddToRoleAsync(userWithoutRole, roleToAddToUser.Name);
         }
 
         private async Task<Employee?> GetEmployeeAsync(IdentityUser user)
@@ -102,7 +94,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 throw new Exception("Benutzer konnte nicht gefunden werden");
             }
 
-            var employee = await _context.Employee
+            var employee = await context.Employee
                 .Include(cu => cu.Company)
                 .FirstOrDefaultAsync(cu => cu.IdentityUserId == user.Id);
 
@@ -111,7 +103,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
 
         private async Task<IdentityUser?> FindUserByIdAsync(string userId)
         {
-            return await _userManager.FindByIdAsync(userId);
+            return await userManager.FindByIdAsync(userId);
         }
     }
 }
