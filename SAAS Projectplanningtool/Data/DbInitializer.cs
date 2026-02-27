@@ -25,27 +25,32 @@ public static class DbInitializer
         context.Add(waitingState);
 
         // Rollen erstellen
-        if (!roleManager.RoleExistsAsync("Admin").Result)
-        {
-            roleManager.CreateAsync(new IdentityRole("Admin")).Wait();
-        }
-        if (!roleManager.RoleExistsAsync("Viewer").Result)
-        {
-            roleManager.CreateAsync(new IdentityRole("Viewer")).Wait();
-        }
-        if (!roleManager.RoleExistsAsync("Planner").Result)
-        {
-            roleManager.CreateAsync(new IdentityRole("Planner")).Wait();
-        }
+        if (!await roleManager.RoleExistsAsync("Admin"))
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+        if (!await roleManager.RoleExistsAsync("Viewer"))
+            await roleManager.CreateAsync(new IdentityRole("Viewer"));
+
+        if (!await roleManager.RoleExistsAsync("Planner"))
+            await roleManager.CreateAsync(new IdentityRole("Planner"));
+
         var adminUser = new IdentityUser { UserName = "admin@company.com", Email = "admin@company.com", EmailConfirmed = true };
-        userManager.CreateAsync(adminUser, "Password123!").Wait();
-        userManager.AddToRoleAsync(adminUser, "Admin").Wait();
+        var result = await userManager.CreateAsync(adminUser, "Password123!");
+        if (!result.Succeeded)
+            throw new Exception($"Admin creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        await userManager.AddToRoleAsync(adminUser, "Admin");
+
         var plannerUser = new IdentityUser { UserName = "planner@company.com", Email = "planner@company.com", EmailConfirmed = true };
-        userManager.CreateAsync(plannerUser, "Password123!").Wait();
-        userManager.AddToRoleAsync(plannerUser, "Planner").Wait();        
+        result = await userManager.CreateAsync(plannerUser, "Password123!");
+        if (!result.Succeeded)
+            throw new Exception($"Planner creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        await userManager.AddToRoleAsync(plannerUser, "Planner");
+
         var viewerUser = new IdentityUser { UserName = "viewer@company.com", Email = "viewer@company.com", EmailConfirmed = true };
-        userManager.CreateAsync(plannerUser, "Password123!").Wait();
-        userManager.AddToRoleAsync(plannerUser, "Viewer").Wait();
+        result = await userManager.CreateAsync(viewerUser, "Password123!");
+        if (!result.Succeeded)
+            throw new Exception($"Viewer creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        await userManager.AddToRoleAsync(viewerUser, "Viewer");
 
         var company = new Company { CompanyName = "Innovatec UG" };
         await context.Company.AddAsync(company);
@@ -59,6 +64,10 @@ public static class DbInitializer
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
         employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now };
+        await context.Employee.AddAsync(employee);
+        await context.SaveChangesAsync();
+
+        employee = new Employee { IdentityUser = viewerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Viewer", CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
 
