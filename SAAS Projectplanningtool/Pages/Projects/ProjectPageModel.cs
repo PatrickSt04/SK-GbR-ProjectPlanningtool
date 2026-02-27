@@ -15,13 +15,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
+        private readonly RoleManager<IdentityRole> _roleManager;
         //Diese Klasse wird in den Razor Pages verwendet, um die SelectLists für Kunden und Projektleiter zu erstellen.
         //Zudem kapselt sie Methoden, um Redundanz zu vermeiden (Beispiel: Archivieren und Ent-Archivieren).
-        public ProjectPageModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public ProjectPageModel(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
+            _roleManager = roleManager;
         }
 
         [BindProperty]
@@ -143,8 +145,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             try
             {
                 await _logger.Log(null, User, null, "Projects/ProjectPageModel<PublishProjectLeadsAsync>Beginn");
-                var plannerRole = await _context.Roles
-                    .FirstOrDefaultAsync(r => r.Name == "Planner");
+                //var plannerRole = await _context.Roles
+                   // .FirstOrDefaultAsync(r => r.Name == "Planner");
+                   var plannerRole = await _roleManager.FindByNameAsync("Planner");
 
                 if (plannerRole == null)
                 {
@@ -155,9 +158,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 }
                 var employee = await GetEmployeeAsync();
 
-                var projectLeads = _context.Employee
-                    .Where(e => e.IdentityRoleId == plannerRole.Id) // Hier wird die Rolle "Planner" gefiltert
-                    .Where(e => e.CompanyId == employee.CompanyId) // Hier wird die CompanyId gefiltert
+                // Alle User-IDs mit der Rolle "Planner" holen
+                var usersInRole = await _userManager.GetUsersInRoleAsync("Planner");
+                var userIdsInRole = usersInRole.Select(u => u.Id).ToList();
+
+// Employees anhand der User-IDs filtern
+                var projectLeads = await _context.Employee
+                    .Where(e => userIdsInRole.Contains(e.IdentityUserId))
+                    .Where(e => e.CompanyId == employee.CompanyId)
                     .Where(e => e.DeleteFlag == false)
                     .Select(u => new
                     {
@@ -165,7 +173,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         Name = u.EmployeeDisplayName
                     })
                     .OrderBy(u => u.Name)
-                    .ToList();
+                    .ToListAsync();
 
                 ProjectLeads = new SelectList(projectLeads, "Id", "Name");
                 await _logger.Log(null, User, null, "Projects/ProjectPageModel<PublishProjectLeadsAsync>End");

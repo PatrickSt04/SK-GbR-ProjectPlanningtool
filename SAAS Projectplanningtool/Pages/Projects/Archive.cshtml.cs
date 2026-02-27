@@ -14,8 +14,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 {
     public class IndexModel(
         SAAS_Projectplanningtool.Data.ApplicationDbContext context,
-        UserManager<IdentityUser> userManager)
-        : ProjectPageModel(context, userManager)
+        UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        : ProjectPageModel(context, userManager,  roleManager)
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context = context;
         private readonly UserManager<IdentityUser> _userManager = userManager;    

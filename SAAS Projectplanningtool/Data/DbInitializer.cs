@@ -29,24 +29,23 @@ public static class DbInitializer
         {
             roleManager.CreateAsync(new IdentityRole("Admin")).Wait();
         }
-        if (!roleManager.RoleExistsAsync("Worker").Result)
+        if (!roleManager.RoleExistsAsync("Viewer").Result)
         {
-            roleManager.CreateAsync(new IdentityRole("Worker")).Wait();
+            roleManager.CreateAsync(new IdentityRole("Viewer")).Wait();
         }
         if (!roleManager.RoleExistsAsync("Planner").Result)
         {
             roleManager.CreateAsync(new IdentityRole("Planner")).Wait();
-        }
-        if (!roleManager.RoleExistsAsync("Analyzer").Result)
-        {
-            roleManager.CreateAsync(new IdentityRole("Analyzer")).Wait();
         }
         var adminUser = new IdentityUser { UserName = "admin@company.com", Email = "admin@company.com", EmailConfirmed = true };
         userManager.CreateAsync(adminUser, "Password123!").Wait();
         userManager.AddToRoleAsync(adminUser, "Admin").Wait();
         var plannerUser = new IdentityUser { UserName = "planner@company.com", Email = "planner@company.com", EmailConfirmed = true };
         userManager.CreateAsync(plannerUser, "Password123!").Wait();
-        userManager.AddToRoleAsync(plannerUser, "Planner").Wait();
+        userManager.AddToRoleAsync(plannerUser, "Planner").Wait();        
+        var viewerUser = new IdentityUser { UserName = "viewer@company.com", Email = "viewer@company.com", EmailConfirmed = true };
+        userManager.CreateAsync(plannerUser, "Password123!").Wait();
+        userManager.AddToRoleAsync(plannerUser, "Viewer").Wait();
 
         var company = new Company { CompanyName = "Innovatec UG" };
         await context.Company.AddAsync(company);
@@ -56,10 +55,10 @@ public static class DbInitializer
         await context.HourlyRateGroup.AddAsync(hourlyRateGroup);
         await context.SaveChangesAsync();
 
-        var employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Admin", IdentityRoleId = await roleManager.GetRoleIdAsync(await roleManager.FindByNameAsync("Admin")) };
+        var employee = new Employee { IdentityUser = adminUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Admin" };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
-        employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", IdentityRoleId = await roleManager.GetRoleIdAsync(await roleManager.FindByNameAsync("Planner")), CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now };
+        employee = new Employee { IdentityUser = plannerUser, Company = company, HourlyRateGroup = hourlyRateGroup, EmployeeDisplayName = "Planner", CreatedByEmployee = employee, CreatedTimestamp = DateTime.Now };
         await context.Employee.AddAsync(employee);
         await context.SaveChangesAsync();
 

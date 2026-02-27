@@ -21,8 +21,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         public Customer? customer;
 
-        public CreateModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-            : base(context, userManager)
+        public CreateModel(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+            : base(context, userManager, roleManager)
 
         {
             _context = context;

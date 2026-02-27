@@ -17,6 +17,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
+        private readonly CustomUserManager  _customUserManager;
+        public ProjectAuthManager _projectAuthManager; 
 
         public ProjectsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
@@ -24,12 +26,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             _roleManager = roleManager;
             _userManager = userManager;
             _projectStatisticsCalculator = new ProjectStatisticsCalculator(_context, _userManager);
+            _customUserManager = new CustomUserManager(_context, _userManager);
         }
 
         // Current User Data
         public Employee? CurrentEmployee { get; set; }
         public Company? CurrentCompany { get; set; }
-        public string? CurrentUserRole { get; set; }
+        public IList<string>? CurrentUserRoles { get; set; }
 
         // Projects Data
         public class ProjectWithBudget
@@ -96,6 +99,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             try
             {
+                _projectAuthManager = new ProjectAuthManager(_userManager, _roleManager, _context, User, _customUserManager );
                 // Get current user and employee
                 var currentUser = await _userManager.GetUserAsync(User);
                 if (currentUser == null)
@@ -105,7 +109,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 CurrentEmployee = await _context.Employee
                     .Include(e => e.Company)
-                    .Include(e => e.IdentityRole)
                     .FirstOrDefaultAsync(e => e.IdentityUserId == currentUser.Id);
 
                 if (CurrentEmployee == null)
@@ -114,7 +117,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 }
 
                 CurrentCompany = CurrentEmployee.Company;
-                CurrentUserRole = CurrentEmployee.IdentityRole?.Name;
+                if (CurrentEmployee.IdentityUser != null)
+                    CurrentUserRoles = await _userManager.GetRolesAsync(CurrentEmployee.IdentityUser);
+                
 
                 if (CurrentCompany == null)
                 {
@@ -145,11 +150,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         private async Task LoadPermissions()
         {
-            var userRole = CurrentEmployee?.IdentityRole?.Name;
+            
+            var userRole = CurrentUserRoles;
 
-            CanCreateProjects = userRole == "Admin" || userRole == "ProjectManager" || userRole == "Projektleiter";
-            CanEditProjects = userRole == "Admin" || userRole == "ProjectManager" || userRole == "Projektleiter";
-            CanDeleteProjects = userRole == "Admin";
+            // Set permissions based on role
+            CanCreateProjects = await _projectAuthManager.ProjectCreateAuthManager.CanCreateProject();
+            CanEditProjects = true;
+            CanDeleteProjects = true;
         }
 
         private async Task LoadFilterData()
@@ -168,13 +175,16 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .ToListAsync();
 
             // Load available project managers
-            AvailableProjectManagers = await _context.Employee
-                .Where(e => e.CompanyId == companyId &&
-                           e.DeleteFlag == false &&
-                           (e.IdentityRole!.Name == "Admin" ||
-                            e.IdentityRole.Name == "ProjectManager" ||
-                            e.IdentityRole.Name == "Projektleiter"))
-                .OrderBy(e => e.EmployeeDisplayName)
+            // Alle User-IDs mit der Rolle "Planner" holen
+            var usersInRole = await _userManager.GetUsersInRoleAsync("Planner");
+            var userIdsInRole = usersInRole.Select(u => u.Id).ToList();
+
+// Employees anhand der User-IDs filtern
+            var AvailableProjectManagers = await _context.Employee
+                .Where(e => userIdsInRole.Contains(e.IdentityUserId))
+                .Where(e => e.CompanyId == companyId)
+                .Where(e => e.DeleteFlag == false)
+                .OrderBy(u => u.EmployeeDisplayName)
                 .ToListAsync();
         }
 

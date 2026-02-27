@@ -27,7 +27,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly Logger _logger;
 
 
-        public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
+        public EditModel(SAAS_Projectplanningtool.Data.ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager) : base(context, userManager, roleManager)
         {
             _context = context;
             _userManager = userManager;

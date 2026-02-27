@@ -27,6 +27,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
         [BindProperty]
 
         public Employee Employee { get; set; } = default!;
+        public IList<string> EmployeeRoles { get; set; } = new List<string>();
 
         public async Task<IActionResult> OnGetAsync(string? id)
         {
@@ -39,7 +40,6 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 }
 
                 var employee = await _context.Employee
-                    .Include(e => e.IdentityRole)
                     .Include(employee => employee.Company)
                     .Include(employee => employee.HourlyRateGroup)
                     .Include(employee => employee.CreatedByEmployee)
@@ -53,6 +53,8 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 else
                 {
                     Employee = employee;
+                    if (employee.IdentityUser != null)
+                        EmployeeRoles = await _userManager.GetRolesAsync(employee.IdentityUser);
                 }
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Details<OnGetAsync>End");
                 return Page();

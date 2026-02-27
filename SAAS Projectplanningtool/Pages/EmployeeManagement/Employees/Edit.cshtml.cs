@@ -19,43 +19,50 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
         private readonly UserManager<IdentityUser> _userManager;
         private readonly Logger _logger;
 
-        public EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context, userManager)
+        public EditModel(ApplicationDbContext context, UserManager<IdentityUser> userManager) : base(context,
+            userManager)
         {
             _context = context;
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
         }
 
+        [BindProperty] public Employee Employee { get; set; } = default!;
+
         [BindProperty]
-        public Employee Employee { get; set; } = default!;
+        public string? SelectedRole { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string? id)
         {
             try
             {
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Edit<OnGetAsync>Begin");
-                if (id == null)
-                {
-                    return NotFound();
-                }
+                if (id == null) return NotFound();
 
-                var employee = await _context.Employee.FirstOrDefaultAsync(m => m.EmployeeId == id);
-                if (employee == null)
-                {
-                    return NotFound();
-                }
+                var employee = await _context.Employee
+                    .Include(e => e.IdentityUser)
+                    .FirstOrDefaultAsync(m => m.EmployeeId == id);
+
+                if (employee == null) return NotFound();
+
                 Employee = employee;
 
+                // Aktuelle Rolle des Users laden
+                if (employee.IdentityUser != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(employee.IdentityUser);
+                    SelectedRole = roles.FirstOrDefault();
+                }
 
                 await PublishHourlyRateGroupsAsync();
-                ViewData["IdentityRoleId"] = new SelectList(_context.Roles, "Id", "Name");
+                ViewData["IdentityRoleId"] = new SelectList(_context.Roles, "Name", "Name", SelectedRole);
+
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Edit<OnGetAsync>End");
                 return Page();
             }
             catch (Exception ex)
             {
                 return RedirectToPage("/Error", new { id = await _logger.Log(ex, User, Employee, null) });
-
             }
         }
 
@@ -63,25 +70,35 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid) return Page();
+
+                // Rolle aktualisieren
+                var employeeWithUser = await _context.Employee
+                    .Include(e => e.IdentityUser)
+                    .FirstOrDefaultAsync(e => e.EmployeeId == Employee.EmployeeId);
+
+                if (employeeWithUser?.IdentityUser != null)
                 {
-                    return Page();
+                    var currentRoles = await _userManager.GetRolesAsync(employeeWithUser.IdentityUser);
+                    await _userManager.RemoveFromRolesAsync(employeeWithUser.IdentityUser, currentRoles);
+
+                    if (!string.IsNullOrEmpty(SelectedRole))
+                        await _userManager.AddToRoleAsync(employeeWithUser.IdentityUser, SelectedRole);
                 }
 
-                var executingEmployee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                var executingEmployee =
+                    await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
                 bool selfmodification = executingEmployee.EmployeeId == Employee.EmployeeId;
-                var trackedEmployees = _context.ChangeTracker.Entries<Employee>().ToList();
                 _context.Attach(executingEmployee).State = EntityState.Detached;
+
                 if (!selfmodification)
                 {
-
-                    Employee = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Mitarbeiter geändert", Employee, false);
+                    Employee = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User,
+                        "Mitarbeiter geändert", Employee, false);
                     _context.Attach(Employee).State = EntityState.Modified;
                 }
                 else
                 {
-                    // Bei einer Selbstmodifikation darf Latestmodifier nicht = der EmployeeId sein, da sonst ein System Failure kommt aufgrund von doppeltem Tracking
-                    // Deshalb verwenden wir nur Text und Timestamp
                     Employee.LatestModificationText = "Selbstmodifikation";
                     Employee.LatestModificationTimestamp = DateTime.Now;
                     _context.Attach(Employee).State = EntityState.Modified;
@@ -94,13 +111,9 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!EmployeeExists(Employee.EmployeeId))
-                    {
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
 
                 return RedirectToPage("./Details", new { id = Employee.EmployeeId });

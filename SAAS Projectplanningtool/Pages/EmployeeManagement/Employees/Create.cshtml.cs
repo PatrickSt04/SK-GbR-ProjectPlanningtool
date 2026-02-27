@@ -29,6 +29,9 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
         public Employee Employee { get; set; } = default!;
         [BindProperty]
         public string Email { get; set; } = string.Empty;
+        
+        [BindProperty]
+        public string IdentityRoleId { get; set; } = string.Empty;
         public async Task<IActionResult> OnGet()
         {
             try
@@ -72,7 +75,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 // and the user will be redirected to the create page with the error message
                 try
                 {
-                    var newIdentityUser = await customUserManager.CreateIdentityUser(Email, Employee.IdentityRoleId, _roleManager);
+                    var newIdentityUser = await customUserManager.CreateIdentityUser(Email, IdentityRoleId, _roleManager);
                     Employee.IdentityUserId = newIdentityUser.Id;
                 }
                 catch (Exception ex)
