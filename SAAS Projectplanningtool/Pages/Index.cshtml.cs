@@ -116,8 +116,8 @@ namespace SAAS_Projectplanningtool.Pages
                     return RedirectToPage("/Setup/CompanySetup");
                 }
 
-                // Worker-Rolle prüfen
-                IsWorkerRole = CurrentEmployee?.IdentityRole?.Name == "Worker";
+                // Worker-Rolle prï¿½fen
+                IsWorkerRole = await _projectAuthManager.IsViewerLicense();
 
                 // Wenn Worker: aktive Projekte der Firma laden
                 if (IsWorkerRole)

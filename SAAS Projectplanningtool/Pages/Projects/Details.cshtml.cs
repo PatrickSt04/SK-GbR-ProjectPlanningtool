@@ -35,6 +35,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public int TotalTasks { get; set; } = 0;
         public int CompletetedTasks { get; set; } = 0;
 
+        public bool IsWorkerRole { get; set; } = false;
         public double ProgressInDecimals { get; set; } = 0.0;
 
         // showCompleted refers to the task catalog (include or exclude completed tasks)
