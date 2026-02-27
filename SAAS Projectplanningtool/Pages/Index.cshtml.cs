@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using SAAS_Projectplanningtool.CustomManagers;
+using SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
@@ -14,18 +16,24 @@ namespace SAAS_Projectplanningtool.Pages
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly CustomUserManager  _customUserManager;
+        public ProjectAuthManager _projectAuthManager; 
 
-        public Index1Model(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public Index1Model(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _userManager = userManager;
             _projectStatisticsCalculator = new ProjectStatisticsCalculator(_context, _userManager);
+            _roleManager = roleManager;
+            _customUserManager = new CustomUserManager(_context, _userManager);
+
         }
 
         // Current User Data
         public Employee? CurrentEmployee { get; set; }
         public Company? CurrentCompany { get; set; }
-        public string? CurrentUserRole { get; set; }
+        public IList<string> CurrentUserRoles { get; set; }
 
         // Project Statistics
         public int ActiveProjectsCount { get; set; }
@@ -76,6 +84,7 @@ namespace SAAS_Projectplanningtool.Pages
         {
             try
             {
+                _projectAuthManager = new ProjectAuthManager(_userManager, _roleManager, _context, User, _customUserManager );
                 // Get current user and employee
                 var currentUser = await _userManager.GetUserAsync(User);
                 if (currentUser == null)
@@ -86,7 +95,6 @@ namespace SAAS_Projectplanningtool.Pages
                 // Korrigierte DbSet-Namen (singular)
                 CurrentEmployee = await _context.Employee
                     .Include(e => e.Company)
-                    .Include(e => e.IdentityRole)
                     .Include(e => e.HourlyRateGroup)
                     .FirstOrDefaultAsync(e => e.IdentityUserId == currentUser.Id);
 
@@ -94,9 +102,10 @@ namespace SAAS_Projectplanningtool.Pages
                 {
                     return RedirectToPage("/Setup/EmployeeSetup");
                 }
-
+                if (CurrentEmployee.IdentityUser != null)
+                    CurrentUserRoles = await _userManager.GetRolesAsync(CurrentEmployee.IdentityUser);
+                
                 CurrentCompany = CurrentEmployee.Company;
-                CurrentUserRole = CurrentEmployee.IdentityRole?.Name;
 
                 if (CurrentCompany == null)
                 {
@@ -121,8 +130,8 @@ namespace SAAS_Projectplanningtool.Pages
                 // Log error - in Production sollten Sie ein echtes Logging-Framework verwenden
                 Console.WriteLine($"Dashboard Error: {ex.Message}");
 
-                // Optional: ViewData für Fehlermeldung setzen
-                ViewData["ErrorMessage"] = "Fehler beim Laden des Dashboards. Bitte versuchen Sie es später erneut.";
+                // Optional: ViewData fï¿½r Fehlermeldung setzen
+                ViewData["ErrorMessage"] = "Fehler beim Laden des Dashboards. Bitte versuchen Sie es spï¿½ter erneut.";
 
                 return Page(); // Show page with empty data
             }
@@ -340,7 +349,7 @@ namespace SAAS_Projectplanningtool.Pages
             {
                 activities.Add(new ActivityDto
                 {
-                    Description = $"Neuer Kunde '{customer.CustomerName}' wurde hinzugefügt",
+                    Description = $"Neuer Kunde '{customer.CustomerName}' wurde hinzugefï¿½gt",
                     ModifierName = customer.CreatedByEmployee?.EmployeeDisplayName ?? "System",
                     Timestamp = customer.CreatedTimestamp ?? DateTime.Now,
                     Icon = "fa-user-plus",
@@ -354,18 +363,7 @@ namespace SAAS_Projectplanningtool.Pages
                 .ToList();
         }
 
-        private async Task LoadPermissions()
-        {
-            var userRole = CurrentEmployee?.IdentityRole?.Name;
-
-            // Set permissions based on role
-            CanCreateProjects = userRole == "Admin" || userRole == "ProjectManager" || userRole == "Projektleiter";
-            CanCreateTasks = userRole == "Admin" || userRole == "ProjectManager" || userRole == "Projektleiter" || userRole == "TeamLead";
-            CanCreateCustomers = userRole == "Admin" || userRole == "ProjectManager" || userRole == "Projektleiter" || userRole == "Sales";
-            CanCreateEmployees = userRole == "Admin" || userRole == "HR";
-
-            await Task.CompletedTask; // Async placeholder
-        }
+        
 
         private async Task LoadCalendarEvents()
         {
@@ -429,13 +427,25 @@ namespace SAAS_Projectplanningtool.Pages
                     events.Add(new CalendarEventDto
                     {
                         Date = task.EndDate.Value.ToDateTime(TimeOnly.MinValue),
-                        Title = $"Aufgabe fällig: {task.ProjectTaskName}",
+                        Title = $"Aufgabe fï¿½llig: {task.ProjectTaskName}",
                         Type = "Aufgabe"
                     });
                 }
             }
 
             ThisWeekEvents = events.OrderBy(e => e.Date).ToList();
+        }
+        private async Task LoadPermissions()
+        {
+            var userRole = CurrentUserRoles;
+
+            // Set permissions based on role
+            CanCreateProjects = await _projectAuthManager.ProjectCreateAuthManager.CanCreateProject();
+            CanCreateTasks = await _projectAuthManager.ProjectStructureAuthManager.CanCreateTask();
+            CanCreateCustomers = true;
+            CanCreateEmployees = true;
+
+            await Task.CompletedTask; // Async placeholder
         }
 
         private async Task LoadRecentCustomers()

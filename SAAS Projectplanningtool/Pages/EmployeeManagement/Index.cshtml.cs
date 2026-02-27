@@ -28,27 +28,40 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement
         public IList<Employee> Employee { get; set; } = default!;
         public IList<HourlyRateGroup> HourlyRateGroup { get; set; } = default!;
 
+        public IDictionary<string, IList<string>> EmployeeRoles { get; set; } = new Dictionary<string, IList<string>>();
+
         public async Task OnGetAsync()
         {
             await _logger.Log(null, User, null, "Employees/Index<OnGet>Beginn");
             try
             {
                 var employee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+        
                 Employee = await _context.Employee
-                .Include(e => e.Company)
-                .Include(e => e.HourlyRateGroup)
-                .Include(e => e.IdentityRole)
-                .Include(e => e.IdentityUser)
-                .Include(e => e.LatestModifier)
-                .Where(e => e.CompanyId == employee.CompanyId)
-                .OrderBy(e => e.DeleteFlag)
-                .ToListAsync();
+                    .Include(e => e.Company)
+                    .Include(e => e.HourlyRateGroup)
+                    .Include(e => e.IdentityUser)
+                    .Include(e => e.LatestModifier)
+                    .Where(e => e.CompanyId == employee.CompanyId)
+                    .OrderBy(e => e.DeleteFlag)
+                    .ToListAsync();
+
+                // Rollen für jeden Mitarbeiter laden
+                foreach (var emp in Employee)
+                {
+                    if (emp.IdentityUser != null)
+                    {
+                        var roles = await _userManager.GetRolesAsync(emp.IdentityUser);
+                        EmployeeRoles[emp.IdentityUser.Id] = roles;
+                    }
+                }
 
                 HourlyRateGroup = await _context.HourlyRateGroup
                     .Include(e => e.Company)
                     .Where(e => e.CompanyId == employee.CompanyId)
                     .OrderBy(e => e.DeleteFlag)
                     .ToListAsync();
+
                 await _logger.Log(null, User, null, "Employees/Index<OnGet>End");
             }
             catch (Exception ex)
@@ -56,7 +69,6 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement
                 await _logger.Log(ex, User, Employee, "ERROR:Employees/Index<OnGet>End");
                 Employee = new List<Employee>();
             }
-
         }
     }
 }

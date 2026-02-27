@@ -10,7 +10,7 @@
         <div class="welcome-section">
             <h1 class="welcome-title">Willkommen, @Model.CurrentEmployee?.EmployeeDisplayName</h1>
             <p class="company-name">@Model.CurrentCompany?.CompanyName</p>
-            <span class="role-badge">@Model.CurrentEmployee?.IdentityRole?.Name Dashboard</span>
+            <span class="role-badge">@string.Join(", ", Model.CurrentUserRoles ?? []) Dashboard</span>
         </div>
         
         <!-- Global Search -->

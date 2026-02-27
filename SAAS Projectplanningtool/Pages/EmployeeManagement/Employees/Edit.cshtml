@@ -16,6 +16,7 @@
             <input type="hidden" asp-for="Employee.EmployeeId" />
             <input type="hidden" asp-for="Employee.IdentityUserId" />
             <input type="hidden" asp-for="Employee.CompanyId" />
+
             <div class="form-group">
                 <label asp-for="Employee.EmployeeDisplayName" class="control-label">Anzeigename</label>
                 <input asp-for="Employee.EmployeeDisplayName" class="form-control" />
@@ -26,14 +27,16 @@
                 <select asp-for="Employee.HourlyRateGroupId" class="form-control" asp-items="Model.HourlyRateGroups"></select>
                 <span asp-validation-for="Employee.HourlyRateGroupId" class="text-danger"></span>
             </div>
+
+            {{!-- Rolle wird jetzt über SelectedRole + UserManager gesteuert --}}
             <div class="form-group">
-                <label asp-for="Employee.IdentityRoleId" class="control-label">Rolle</label>
-                <select asp-for="Employee.IdentityRoleId" class="form-control" asp-items="ViewBag.IdentityRoleId"></select>
-                <span asp-validation-for="Employee.IdentityRoleId" class="text-danger"></span>
+                <label asp-for="SelectedRole" class="control-label">Rolle</label>
+                <select asp-for="SelectedRole" class="form-control" asp-items="@(ViewData["IdentityRoleId"] as SelectList)">
+                    <option value="">-- Keine Rolle --</option>
+                </select>
             </div>
-       
- 
-            <div class="form-group">
+
+            <div class="form-group mt-3">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>

@@ -17,10 +17,6 @@ namespace SAAS_Projectplanningtool.Models
         public string? IdentityUserId { get; set; }
         [ForeignKey(nameof(IdentityUserId))]
         public IdentityUser? IdentityUser { get; set; }
-        // Reference to the ASP.NET Identity Role table
-        public required string IdentityRoleId { get; set; }
-        [ForeignKey(nameof(IdentityRoleId))]
-        public IdentityRole? IdentityRole { get; set; }
         // Reference to the HourlyRateGroup
         public string? HourlyRateGroupId { get; set; }
         [ForeignKey(nameof(HourlyRateGroupId))]
