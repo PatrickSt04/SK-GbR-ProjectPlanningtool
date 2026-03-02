@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
-using SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
@@ -16,17 +15,14 @@ namespace SAAS_Projectplanningtool.Pages
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly CustomUserManager  _customUserManager;
-        public ProjectAuthManager _projectAuthManager; 
+     
+ 
 
-        public Index1Model(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        public Index1Model(ApplicationDbContext context, UserManager<IdentityUser> userManager )
         {
             _context = context;
             _userManager = userManager;
             _projectStatisticsCalculator = new ProjectStatisticsCalculator(_context, _userManager);
-            _roleManager = roleManager;
-            _customUserManager = new CustomUserManager(_context, _userManager);
 
         }
 
@@ -88,7 +84,6 @@ namespace SAAS_Projectplanningtool.Pages
         {
             try
             {
-                _projectAuthManager = new ProjectAuthManager(_userManager, _roleManager, _context, User, _customUserManager );
                 // Get current user and employee
                 var currentUser = await _userManager.GetUserAsync(User);
                 if (currentUser == null)
@@ -116,10 +111,9 @@ namespace SAAS_Projectplanningtool.Pages
                     return RedirectToPage("/Setup/CompanySetup");
                 }
 
-                // Worker-Rolle pr�fen
-                IsWorkerRole = await _projectAuthManager.IsViewerLicense();
 
                 // Wenn Worker: aktive Projekte der Firma laden
+                IsWorkerRole = CurrentUserRoles.Contains("Viewer");
                 if (IsWorkerRole)
                 {
                     WorkerActiveProjects = await _context.Project
@@ -460,8 +454,8 @@ namespace SAAS_Projectplanningtool.Pages
             var userRole = CurrentUserRoles;
 
             // Set permissions based on role
-            CanCreateProjects = await _projectAuthManager.ProjectCreateAuthManager.CanCreateProject();
-            CanCreateTasks = await _projectAuthManager.ProjectStructureAuthManager.CanCreateTask();
+            CanCreateProjects = true;
+            CanCreateTasks = true;
             CanCreateCustomers = true;
             CanCreateEmployees = true;
 

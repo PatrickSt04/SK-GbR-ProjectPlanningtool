@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
-using SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
@@ -22,7 +21,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
     {
         private readonly SAAS_Projectplanningtool.Data.ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
-        public ProjectAuthManager _projectAuthManager;
         private readonly CustomUserManager _customUserManager;
         private readonly Logger _logger;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -68,7 +66,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             try
             {
-                _projectAuthManager = new ProjectAuthManager(_userManager, _roleManager, _context, User, _customUserManager);
                 await _logger.Log(null, User, null, "Projects/Details<OnGet>Beginn");
                 if (id == null)
                 {
@@ -322,7 +319,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 if (entry == null) return NotFound();
 
-                if (await _projectAuthManager.IsViewerLicense() && entry.EmployeeId != currentEmployee.EmployeeId)
+                if (User.IsInRole("Viewer") && entry.EmployeeId != currentEmployee.EmployeeId)
                 {
                     TempData.SetMessage("Error", "Sie k�nnen nur eigene Zeiteintr�ge l�schen.");
                     return RedirectToPage(new { id = projectId, timeTrackingPage });
