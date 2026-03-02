@@ -63,10 +63,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         #endregion
 
 
-
-
-
-
         public bool ScheduleAlreadyExists { get; set; } = false;
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -219,9 +215,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
             return RedirectToPage(new { id = projectId });
         }
-
-    
-    #region Time Tracking Handlers
+        #region Time Tracking Handlers
         public async Task<IActionResult> OnPostCreateTimeEntryAsync(
             string projectId,
             string? employeeId,
@@ -240,8 +234,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 if (currentEmployee == null) return NotFound();
 
+                //TODO: Berechtigungscheck: Wer darf f�r welchen Mitarbeiter Eintr�ge erfassen?
                 // Rolle pr�fen
-                bool isWorker = await _projectAuthManager.IsViewerLicense();
+                bool isWorker = User.IsInRole("Viewer");
 
                 // Ziel-Mitarbeiter bestimmen
                 string targetEmployeeId;
@@ -347,8 +342,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostDeleteTimeEntryAsync>Error") });
             }
         }
-    }
-
         #endregion
-
+    }
 }
