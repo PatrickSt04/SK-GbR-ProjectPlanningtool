@@ -1,5 +1,5 @@
 @using SAAS_Projectplanningtool.Models.TimeTracking
-@model SAAS_Projectplanningtool.Pages.Projects.BudgetPlanningModel
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
 
 <!-- Zeiterfassung Section -->
 <div class="time-tracking-section mt-4">
@@ -18,7 +18,7 @@
 
                 <div class="row g-3">
                     @* Show employee dropdown only for non-Worker roles *@
-                    @if (!Model.IsWorkerRole)
+                    @if (!User.IsInRole("Viewer"))
                     {
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">
@@ -34,7 +34,7 @@
                         </div>
                     }
 
-                    <div class="col-md-@(Model.IsWorkerRole ? "6" : "3")">
+                    <div class="col-md-@(User.IsInRole("Viewer") ? "6" : "3")">
                         <label class="form-label fw-semibold">
                             <i class="fas fa-calendar-day me-1"></i>Datum
                         </label>

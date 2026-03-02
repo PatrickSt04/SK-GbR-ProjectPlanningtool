@@ -32,43 +32,46 @@
                     </a>
                 </li>
 
-                <li class="nav-item has-submenu">
-                    <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
-                        <i class="fas fa-project-diagram"></i>
-                        Projekte
-                        <i class="fas fa-chevron-down ms-auto"></i>
-                    </a>
-                    <ul class="nav-submenu">
-                        <li><a href="/Projects" class="nav-link">Alle Projekte</a></li>
-                        <li><a href="/Projects/Create" class="nav-link">Neues Projekt</a></li>
-                        <li><a href="/Projects/Archive" class="nav-link">Archivierte Projekte</a></li>
-                        <li><a href="/Projects/Calendar" class="nav-link">Projekt-Kalender</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item has-submenu">
-                    <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
-                        <i class="fas fa-users"></i>
-                        Ressourcen
-                        <i class="fas fa-chevron-down ms-auto"></i>
-                    </a>
-                    <ul class="nav-submenu">
-                        <li><a href="/EmployeeManagement/Index" class="nav-link">Ressourcen - Übersicht</a></li>
-                        @* <li><a href="/EmployeeManagement/HourlyRateGroups/Index" class="nav-link">Stundensatz-Gruppen</a></li> *@
-                        @* <li><a href="/Resources/Planning" class="nav-link">Ressourcenplanung</a></li> *@
-                    </ul>
-                </li>
+                @if (!User.IsInRole("Viewer"))
+                {
+                    <li class="nav-item has-submenu">
+                        <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                            <i class="fas fa-project-diagram"></i>
+                            Projekte
+                            <i class="fas fa-chevron-down ms-auto"></i>
+                        </a>
+                        <ul class="nav-submenu">
+                            <li><a href="/Projects" class="nav-link">Alle Projekte</a></li>
+                            <li><a href="/Projects/Create" class="nav-link">Neues Projekt</a></li>
+                            <li><a href="/Projects/Archive" class="nav-link">Archivierte Projekte</a></li>
+                            <li><a href="/Projects/Calendar" class="nav-link">Projekt-Kalender</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item has-submenu">
+                        <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                            <i class="fas fa-users"></i>
+                            Ressourcen
+                            <i class="fas fa-chevron-down ms-auto"></i>
+                        </a>
+                        <ul class="nav-submenu">
+                            <li><a href="/EmployeeManagement/Index" class="nav-link">Ressourcen - Übersicht</a></li>
+                            @* <li><a href="/EmployeeManagement/HourlyRateGroups/Index" class="nav-link">Stundensatz-Gruppen</a></li> *@
+                            @* <li><a href="/Resources/Planning" class="nav-link">Ressourcenplanung</a></li> *@
+                        </ul>
+                    </li>
 
-                <li class="nav-item has-submenu">
-                    <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
-                        <i class="fas fa-handshake"></i>
-                        Kunden
-                        <i class="fas fa-chevron-down ms-auto"></i>
-                    </a>
-                    <ul class="nav-submenu">
-                        <li><a href="/CustomerManagement/Index" class="nav-link">Alle Kunden</a></li>
-                        <li><a href="/CustomerManagement/Create" class="nav-link">Neuer Kunde</a></li>
-                    </ul>
-                </li>
+                    <li class="nav-item has-submenu">
+                        <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                            <i class="fas fa-handshake"></i>
+                            Kunden
+                            <i class="fas fa-chevron-down ms-auto"></i>
+                        </a>
+                        <ul class="nav-submenu">
+                            <li><a href="/CustomerManagement/Index" class="nav-link">Alle Kunden</a></li>
+                            <li><a href="/CustomerManagement/Create" class="nav-link">Neuer Kunde</a></li>
+                        </ul>
+                    </li>
+                }
 
                 <li class="nav-item has-submenu">
                     <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
@@ -91,19 +94,26 @@
                         <i class="fas fa-chevron-down ms-auto"></i>
                     </a>
                     <ul class="nav-submenu">
-                        <li>
-                            <a href="/Settings/CompanySettings" class="nav-link">
-                                Firmen-Einstellungen
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/Settings/HolidayCalendar/Index" class="nav-link">
-                                Feiertagskalender
-                            </a>
-                        </li>
-                        <li><a href="/EmployeeManagement/Index" class="nav-link">Mitarbeiter-Verwaltung</a></li>
-                        <li><a href="/Settings/LicenseSettings" class="nav-link">Lizenz-Verwaltung</a></li>
-                        <li><a href="/Settings/Backup" class="nav-link">Backup & Export</a></li>
+                        @if (!User.IsInRole("Viewer"))
+                        {
+                            <li>
+                                <a href="/Settings/CompanySettings" class="nav-link">
+                                    Firmen-Einstellungen
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/Settings/HolidayCalendar/Index" class="nav-link">
+                                    Feiertagskalender
+                                </a>
+                            </li>
+                            <li><a href="/EmployeeManagement/Index" class="nav-link">Mitarbeiter-Verwaltung</a></li>
+                            <li><a href="/Settings/LicenseSettings" class="nav-link">Lizenz-Verwaltung</a></li>
+                            <li><a href="/Settings/Backup" class="nav-link">Backup & Export</a></li>
+                        }
+                        else
+                        {
+                            <li><a href="/Identity/Account/Manage/Index" class="nav-link">Meine Einstellungen</a></li>
+                        }
                     </ul>
                 </li>
             </ul>
@@ -147,7 +157,7 @@
                 </li>
 
                 <hr style="border-color: #34495e; margin: 20px 15px;">
-@* 
+                @* 
                 <li class="nav-item">
                     <a href="/Identity/Account/Login" class="nav-link" style="background: #3498db; color: white; margin: 0 15px; border-radius: 6px;">
                         <i class="fas fa-sign-in-alt"></i>

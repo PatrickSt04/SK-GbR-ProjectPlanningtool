@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = Model.Project?.ProjectName;
+    <link rel="stylesheet" href="~/css/TimeTracking.css" />
 }
 
 <div class="project-details-container">
@@ -23,7 +24,7 @@
                     </span>
                 </div>
             </div>
-            @if (!Model.IsWorkerRole)
+            @if (!User.IsInRole("Viewer"))
             {
                 <div class="header-actions">
                     @{
@@ -53,7 +54,7 @@
         </div>
     </div>
 
-    @if (!Model.IsWorkerRole)
+    @if (!User.IsInRole("Viewer"))
     {
         <!-- Statistics Cards -->
         <div class="statistics-section mb-4">
@@ -169,290 +170,307 @@
                 </div>
             </section>
         </div>
+        <!-- Tasks Section -->
+        @if (!User.IsInRole("Viewer"))
+        {
+            <!-- Right Column -->
+            <div class="right-column">
+                <!-- Tasks Section -->
+                <section class="tasks-section">
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- Aufgabenkatalog Header -->
+                            <div class="task-catalog-header">
+                                <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
+                            </div>
 
-        <!-- Right Column -->
-        <div class="right-column">
-            <!-- Tasks Section -->
-            <section class="tasks-section">
-                <div class="card">
-                    <div class="card-body">
-                        <!-- Aufgabenkatalog Header -->
-                        <div class="task-catalog-header">
-                            <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="task-catalog-actions">
-                            @{
-                                bool showCompleted = Model.showCompleted;
-                            }
-                            <form method="get" class="d-inline">
-                                <input type="hidden" name="id" value="@Model.Project.ProjectId" />
-                                <input type="hidden" asp-for="showCompleted" value="@(!Model.showCompleted)" />
-                                <button type="submit" class="btn btn-outline-primary">
-                                    <i class="fas @(showCompleted ? "fa-eye-slash" : "fa-eye") me-1"></i>
-                                    Abgeschlossene
+                            <!-- Action Buttons -->
+                            <div class="task-catalog-actions">
+                                @{
+                                    bool showCompleted = Model.showCompleted;
+                                }
+                                <form method="get" class="d-inline">
+                                    <input type="hidden" name="id" value="@Model.Project.ProjectId" />
+                                    <input type="hidden" asp-for="showCompleted" value="@(!Model.showCompleted)" />
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="fas @(showCompleted ? "fa-eye-slash" : "fa-eye") me-1"></i>
+                                        Abgeschlossene
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-primary" onclick="showAddTaskCatalogModal()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Aufgabe hinzufügen
                                 </button>
-                            </form>
-                            <button type="button" class="btn btn-primary" onclick="showAddTaskCatalogModal()">
-                                <i class="fas fa-plus me-1"></i>
-                                Aufgabe hinzufügen
-                            </button>
-                        </div>
+                            </div>
 
-                        <!-- Tasks Container -->
-                        <div class="tasks-main-container">
-                            <!-- Task List -->
-                            <div class="task-list-container">
-                                <div class="task-list" id="taskList">
-                                    @{
-                                        var allFilteredTasks = Model.TaskCatalog.Where(task =>
-                                        {
-                                            bool isCompleted = task.State?.StateName == "Abgeschlossen";
-                                            return !isCompleted || showCompleted;
-                                        }).ToList();
-
-                                        var visibleTasks = allFilteredTasks.Take(5).ToList();
-                                        var hiddenTasksCount = allFilteredTasks.Count() - 5;
-                                    }
-
-                                    @foreach (var task in visibleTasks)
-                                    {
-                                        bool isCompleted = task.State?.StateName == "Abgeschlossen";
-
-                                        <div class="task-item @(isCompleted ? "completed" : "")">
-                                            <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
-                                                <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
-                                                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                                                <input type="hidden" name="StateId" value="@task.StateId" />
-
-                                                <div class="task-checkbox">
-                                                    <input class="form-check-input" type="checkbox"
-                                                           onchange="this.form.submit();"
-                                                           @(isCompleted ? "checked" : "") />
-                                                </div>
-                                                <div class="task-content">
-                                                    <div class="task-name">@task.TaskName</div>
-                                                    <div class="task-details">
-                                                        <span class="status-badge @(isCompleted ? "completed" : "pending")">
-                                                            @task.State?.StateName
-                                                        </span>
-                                                        @if (task.StartDate.HasValue || task.EndDate.HasValue)
-                                                        {
-                                                            <span class="task-dates">
-                                                                @if (task.StartDate.HasValue)
-                                                                {
-                                                                    <span>@task.StartDate.Value.ToString("dd.MM")</span>
-                                                                }
-                                                                @if (task.StartDate.HasValue && task.EndDate.HasValue)
-                                                                {
-                                                                    <span> - </span>
-                                                                }
-                                                                @if (task.EndDate.HasValue)
-                                                                {
-                                                                    <span>@task.EndDate.Value.ToString("dd.MM")</span>
-                                                                }
-                                                            </span>
-                                                        }
-                                                    </div>
-                                                </div>
-                                                <div class="task-actions">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary"
-                                                            onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")' )">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                                            onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'taskCatalog', '@task.TaskName')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    }
-
-                                    <!-- Hidden tasks container -->
-                                    @if (hiddenTasksCount > 0)
-                                    {
-                                        <div id="hiddenTasks" style="display: none;">
-                                            @foreach (var task in allFilteredTasks.Skip(5))
+                            <!-- Tasks Container -->
+                            <div class="tasks-main-container">
+                                <!-- Task List -->
+                                <div class="task-list-container">
+                                    <div class="task-list" id="taskList">
+                                        @{
+                                            var allFilteredTasks = Model.TaskCatalog.Where(task =>
                                             {
                                                 bool isCompleted = task.State?.StateName == "Abgeschlossen";
+                                                return !isCompleted || showCompleted;
+                                            }).ToList();
 
-                                                <div class="task-item @(isCompleted ? "completed" : "")">
-                                                    <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
-                                                        <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
-                                                        <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                                                        <input type="hidden" name="StateId" value="@task.StateId" />
+                                            var visibleTasks = allFilteredTasks.Take(5).ToList();
+                                            var hiddenTasksCount = allFilteredTasks.Count() - 5;
+                                        }
 
-                                                        <div class="task-checkbox">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                   onchange="this.form.submit();"
-                                                                   @(isCompleted ? "checked" : "") />
-                                                        </div>
-                                                        <div class="task-content">
-                                                            <div class="task-name">@task.TaskName</div>
-                                                            <div class="task-details">
-                                                                <span class="status-badge @(isCompleted ? "completed" : "pending")">
-                                                                    @task.State?.StateName
+                                        @foreach (var task in visibleTasks)
+                                        {
+                                            bool isCompleted = task.State?.StateName == "Abgeschlossen";
+
+                                            <div class="task-item @(isCompleted ? "completed" : "")">
+                                                <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
+                                                    <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
+                                                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                                                    <input type="hidden" name="StateId" value="@task.StateId" />
+
+                                                    <div class="task-checkbox">
+                                                        <input class="form-check-input" type="checkbox"
+                                                               onchange="this.form.submit();"
+                                                               @(isCompleted ? "checked" : "") />
+                                                    </div>
+                                                    <div class="task-content">
+                                                        <div class="task-name">@task.TaskName</div>
+                                                        <div class="task-details">
+                                                            <span class="status-badge @(isCompleted ? "completed" : "pending")">
+                                                                @task.State?.StateName
+                                                            </span>
+                                                            @if (task.StartDate.HasValue || task.EndDate.HasValue)
+                                                            {
+                                                                <span class="task-dates">
+                                                                    @if (task.StartDate.HasValue)
+                                                                    {
+                                                                        <span>@task.StartDate.Value.ToString("dd.MM")</span>
+                                                                    }
+                                                                    @if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                                                    {
+                                                                        <span> - </span>
+                                                                    }
+                                                                    @if (task.EndDate.HasValue)
+                                                                    {
+                                                                        <span>@task.EndDate.Value.ToString("dd.MM")</span>
+                                                                    }
                                                                 </span>
-                                                                @if (task.StartDate.HasValue || task.EndDate.HasValue)
-                                                                {
-                                                                    <span class="task-dates">
-                                                                        @if (task.StartDate.HasValue)
-                                                                        {
-                                                                            <span>@task.StartDate.Value.ToString("dd.MM")</span>
-                                                                        }
-                                                                        @if (task.StartDate.HasValue && task.EndDate.HasValue)
-                                                                        {
-                                                                            <span> - </span>
-                                                                        }
-                                                                        @if (task.EndDate.HasValue)
-                                                                        {
-                                                                            <span>@task.EndDate.Value.ToString("dd.MM")</span>
-                                                                        }
-                                                                    </span>
-                                                                }
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div class="task-actions">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")' )">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'taskCatalog', '@task.TaskName')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        }
+
+                                        <!-- Hidden tasks container -->
+                                        @if (hiddenTasksCount > 0)
+                                        {
+                                            <div id="hiddenTasks" style="display: none;">
+                                                @foreach (var task in allFilteredTasks.Skip(5))
+                                                {
+                                                    bool isCompleted = task.State?.StateName == "Abgeschlossen";
+
+                                                    <div class="task-item @(isCompleted ? "completed" : "")">
+                                                        <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
+                                                            <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
+                                                            <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+                                                            <input type="hidden" name="StateId" value="@task.StateId" />
+
+                                                            <div class="task-checkbox">
+                                                                <input class="form-check-input" type="checkbox"
+                                                                       onchange="this.form.submit();"
+                                                                       @(isCompleted ? "checked" : "") />
                                                             </div>
-                                                        </div>
-                                                        <div class="task-actions">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                                                    onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
-                                                                <i class="fas fa-edit"></i>
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger"
-                                                                    onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'task', '@task.TaskName')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            }
+                                                            <div class="task-content">
+                                                                <div class="task-name">@task.TaskName</div>
+                                                                <div class="task-details">
+                                                                    <span class="status-badge @(isCompleted ? "completed" : "pending")">
+                                                                        @task.State?.StateName
+                                                                    </span>
+                                                                    @if (task.StartDate.HasValue || task.EndDate.HasValue)
+                                                                    {
+                                                                        <span class="task-dates">
+                                                                            @if (task.StartDate.HasValue)
+                                                                            {
+                                                                                <span>@task.StartDate.Value.ToString("dd.MM")</span>
+                                                                            }
+                                                                            @if (task.StartDate.HasValue && task.EndDate.HasValue)
+                                                                            {
+                                                                                <span> - </span>
+                                                                            }
+                                                                            @if (task.EndDate.HasValue)
+                                                                            {
+                                                                                <span>@task.EndDate.Value.ToString("dd.MM")</span>
+                                                                            }
+                                                                        </span>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                            <div class="task-actions">
+                                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                        onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                        onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'task', '@task.TaskName')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Show More Button -->
+                                    @if (hiddenTasksCount > 0)
+                                    {
+                                        <div class="show-more-container">
+                                            <button type="button" class="btn btn-outline-secondary" id="showMoreBtn" onclick="toggleMoreTasks()">
+                                                <i class="fas fa-chevron-down me-1"></i>
+                                                <span id="showMoreText">@hiddenTasksCount weitere Aufgaben anzeigen</span>
+                                            </button>
                                         </div>
                                     }
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        }
+    </div>
+    @if(!User.IsInRole("Viewer"))
+    {
 
-                                <!-- Show More Button -->
-                                @if (hiddenTasksCount > 0)
+        <!-- Full Width Sections Below -->
+        <div class="full-width-sections">
+            <!-- Project Structure Section -->
+            <section class="structure-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-sitemap me-2"></i>Projektstruktur</h2>
+                        <div class="card-actions">
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")"
+                                    @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")
+                                    style="@(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "pointer-events: none;" : "")">
+                                @if (Model.Project?.ProjectBudget?.InitialBudget != null && Model.Project?.ProjectBudget?.InitialBudget > 0)
                                 {
-                                    <div class="show-more-container">
-                                        <button type="button" class="btn btn-outline-secondary" id="showMoreBtn" onclick="toggleMoreTasks()">
-                                            <i class="fas fa-chevron-down me-1"></i>
-                                            <span id="showMoreText">@hiddenTasksCount weitere Aufgaben anzeigen</span>
-                                        </button>
+                                    <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                        <i class="fas fa-calendar me-1"></i>Terminplanung
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>
+                                        <i class="fas fa-calendar me-1"></i>Terminplanung
+                                    </span>
+                                }
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm">
+                                <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
+                                    <i class="fas fa-users me-1"></i>Budgetplanung
+                                </a>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Project?.ProjectSections != null && Model.Project.ProjectSections.Any())
+                        {
+                            <div class="project-structure-tree">
+                                <!-- Project Root -->
+                                <div class="structure-item structure-project">
+                                    <div class="structure-header">
+                                        <div class="structure-toggle">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div class="structure-content">
+                                            <span class="structure-name">@Model.Project.ProjectName</span>
+                                            <span class="structure-meta">@Model.Project.ProjectSections.Count Section(s)</span>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <!-- Project Sections -->
+                                @foreach (var section in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
+                                {
+                                    @await Html.PartialAsync("~/Pages/Projects/PartialViews/_ProjectSectionTreeItem.cshtml", section)
                                 }
                             </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+                                <p class="text-muted">Noch keine Projektstruktur vorhanden</p>
+                                <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
+                                    <i class="fas fa-plus me-2"></i>Ersten Abschnitt hinzufügen
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section class="quick-actions-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-bolt me-2"></i>Schnelle Aktionen</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-buttons">
+                            <button type="button" class="action-btn primary" onclick="showAddSectionModal()">
+                                <i class="fas fa-plus"></i>
+                                Abschnitt hinzufügen
+                            </button>
+                            <button type="button" class="action-btn secondary" onclick="showAddTaskModal()">
+                                <i class="fas fa-tasks"></i>
+                                Aufgabe hinzufügen
+                            </button>
+                            <button type="button" class="action-btn secondary" onclick="showAddMileStoneModal()">
+                                <i class="fas fa-tasks"></i>
+                                Meilenstein hinzufügen
+                            </button>
+
+                            <a asp-page="Edit" asp-route-id="@Model.Project.ProjectId" class="action-btn secondary">
+                                <i class="fas fa-edit"></i>
+                                Projekt bearbeiten
+                            </a>
+                            <a asp-page="Index" class="action-btn secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Zurück zur Übersicht
+                            </a>
                         </div>
                     </div>
                 </div>
             </section>
         </div>
-    </div>
-
-    <!-- Full Width Sections Below -->
-    <div class="full-width-sections">
-        <!-- Project Structure Section -->
-        <section class="structure-section">
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-sitemap me-2"></i>Projektstruktur</h2>
-                    <div class="card-actions">
-                        <button type="button"
-                                class="btn btn-outline-secondary btn-sm @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")"
-                                @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")
-                                style="@(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "pointer-events: none;" : "")">
-                            @if (Model.Project?.ProjectBudget?.InitialBudget != null && Model.Project?.ProjectBudget?.InitialBudget > 0)
-                            {
-                                <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
-                                    <i class="fas fa-calendar me-1"></i>Terminplanung
-                                </a>
-                            }
-                            else
-                            {
-                                <span>
-                                    <i class="fas fa-calendar me-1"></i>Terminplanung
-                                </span>
-                            }
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm">
-                            <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project.ProjectId" class="text-decoration-none">
-                                <i class="fas fa-users me-1"></i>Budgetplanung
-                            </a>
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if (Model.Project?.ProjectSections != null && Model.Project.ProjectSections.Any())
-                    {
-                        <div class="project-structure-tree">
-                            <!-- Project Root -->
-                            <div class="structure-item structure-project">
-                                <div class="structure-header">
-                                    <div class="structure-toggle">
-                                        <i class="fas fa-project-diagram"></i>
-                                    </div>
-                                    <div class="structure-content">
-                                        <span class="structure-name">@Model.Project.ProjectName</span>
-                                        <span class="structure-meta">@Model.Project.ProjectSections.Count Section(s)</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Project Sections -->
-                            @foreach (var section in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
-                            {
-                                @await Html.PartialAsync("~/Pages/Projects/PartialViews/_ProjectSectionTreeItem.cshtml", section)
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="empty-state">
-                            <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
-                            <p class="text-muted">Noch keine Projektstruktur vorhanden</p>
-                            <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
-                                <i class="fas fa-plus me-2"></i>Ersten Abschnitt hinzufügen
-                            </button>
-                        </div>
-                    }
-                </div>
-            </div>
-        </section>
-
-        <!-- Quick Actions Section -->
-        <section class="quick-actions-section">
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-bolt me-2"></i>Schnelle Aktionen</h2>
-                </div>
-                <div class="card-body">
-                    <div class="action-buttons">
-                        <button type="button" class="action-btn primary" onclick="showAddSectionModal()">
-                            <i class="fas fa-plus"></i>
-                            Abschnitt hinzufügen
-                        </button>
-                        <button type="button" class="action-btn secondary" onclick="showAddTaskModal()">
-                            <i class="fas fa-tasks"></i>
-                            Aufgabe hinzufügen
-                        </button>
-                        <button type="button" class="action-btn secondary" onclick="showAddMileStoneModal()">
-                            <i class="fas fa-tasks"></i>
-                            Meilenstein hinzufügen
-                        </button>
-
-                        <a asp-page="Edit" asp-route-id="@Model.Project.ProjectId" class="action-btn secondary">
-                            <i class="fas fa-edit"></i>
-                            Projekt bearbeiten
-                        </a>
-                        <a asp-page="Index" class="action-btn secondary">
-                            <i class="fas fa-arrow-left"></i>
-                            Zurück zur Übersicht
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
+    }
+    else
+    {
+        <h2 class="expenses-title">
+            <i class="fas fa-receipt"></i>
+            Zeitbuchungen
+        </h2>
+        <!-- Zeiterfassung -->
+        <div id="timeTracking">
+            @await Html.PartialAsync("PartialViews/_TimeTracking")
+        </div>
+    }
 
 
 
