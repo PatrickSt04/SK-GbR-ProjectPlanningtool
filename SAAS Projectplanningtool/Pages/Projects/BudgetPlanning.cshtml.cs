@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
-using SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
@@ -18,8 +17,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly UserManager<IdentityUser> _userManager = userManager;
         private readonly Logger _logger = new(context, userManager);
         private readonly ProjectStatisticsCalculator _statisticsCalculator = new(context, userManager);
-        public ProjectAuthManager _projectAuthManager;
-        private readonly CustomUserManager _customUserManager;
         private readonly RoleManager<IdentityRole> _roleManager = roleManager;
 
         // DTO f�r zus�tzliche Projektkosten
@@ -76,8 +73,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 
                 await _logger.Log(null, User, null, "Projects.BudgetPlanning<OnGetAsync>Begin");
-                _projectAuthManager =
-                    new ProjectAuthManager(_userManager, _roleManager, _context, User, _customUserManager);
                 if (id == null)
                     return NotFound();
 
@@ -120,7 +115,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                     // Rolle ermitteln
                     
-                        IsWorkerRole = await _projectAuthManager.IsViewerLicense();
+                        IsWorkerRole = User.IsInRole("Viewer");
 
                     // Mitarbeiter-Liste laden (nur f�r Nicht-Worker, f�r das Dropdown)
                     if (!IsWorkerRole && employee?.CompanyId != null)
@@ -384,7 +379,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 if (currentEmployee == null) return NotFound();
 
                 // Rolle pr�fen
-                bool isWorker = await _projectAuthManager.IsViewerLicense();
+                bool isWorker = User.IsInRole("Viewer");
 
                 // Ziel-Mitarbeiter bestimmen
                 string targetEmployeeId;
@@ -470,7 +465,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 if (entry == null) return NotFound();
 
-                if (await _projectAuthManager.IsViewerLicense() && entry.EmployeeId != currentEmployee.EmployeeId)
+                if (User.IsInRole("Viewer") && entry.EmployeeId != currentEmployee.EmployeeId)
                 {
                     TempData.SetMessage("Error", "Sie k�nnen nur eigene Zeiteintr�ge l�schen.");
                     return RedirectToPage(new { id = projectId, timeTrackingPage });

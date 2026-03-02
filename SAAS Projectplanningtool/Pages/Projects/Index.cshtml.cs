@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
-using SAAS_Projectplanningtool.CustomManagers.AuthorizationManagement.ProjectAuthorizationManagement;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
@@ -18,7 +17,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
         private readonly CustomUserManager  _customUserManager;
-        public ProjectAuthManager _projectAuthManager; 
 
         public ProjectsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
@@ -99,7 +97,6 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             try
             {
-                _projectAuthManager = new ProjectAuthManager(_userManager, _roleManager, _context, User, _customUserManager );
                 // Get current user and employee
                 var currentUser = await _userManager.GetUserAsync(User);
                 if (currentUser == null)
@@ -154,7 +151,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var userRole = CurrentUserRoles;
 
             // Set permissions based on role
-            CanCreateProjects = await _projectAuthManager.ProjectCreateAuthManager.CanCreateProject();
+            CanCreateProjects = true;
             CanEditProjects = true;
             CanDeleteProjects = true;
         }
@@ -223,18 +220,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private async Task LoadProjects()
         {
             var companyId = CurrentCompany!.CompanyId;
-
-            // Get accessible project IDs for current user
-            var projectAuthManager = new ProjectAuthManager(_userManager, _roleManager, _context, User, new CustomUserManager(_context, _userManager));
-            var accessibleProjectIds = await projectAuthManager.GetAccessibleProjectIds(companyId);
-
             // Start with base query filtered by accessible projects
             var query = _context.Project
                 .Include(p => p.Customer)
                 .Include(p => p.State)
                 .Include(p => p.ResponsiblePerson)
                 .Include(p => p.ProjectBudget)
-                .Where(p => p.CompanyId == companyId && accessibleProjectIds.Contains(p.ProjectId));
+                .Where(p => p.CompanyId == companyId);
 
             // Apply filters
             query = ApplyFilters(query);
