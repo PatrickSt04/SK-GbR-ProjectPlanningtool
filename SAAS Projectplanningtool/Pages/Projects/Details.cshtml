@@ -11,19 +11,27 @@
     <!-- Header Section -->
     <div class="project-header">
         <div class="header-content">
-            <div class="header-left">
-                <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
-                <div class="project-meta">
-                    <span class="creator-info">
-                        <i class="fas fa-user me-1"></i>
-                        Erstellt von @Model.Project.CreatedByEmployee.EmployeeDisplayName
-                    </span>
-                    <span class="creation-date">
-                        <i class="fas fa-calendar me-1"></i>
-                        @Model.Project.CreatedTimestamp?.ToString("dd.MM.yyyy")
-                    </span>
+            @if(!User.IsInRole("Viewer"))
+            {
+                <div class="header-left">
+                    <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
+                    <div class="project-meta">
+                        <span class="creator-info">
+                            <i class="fas fa-user me-1"></i>
+                            Erstellt von @Model.Project.CreatedByEmployee.EmployeeDisplayName
+                        </span>
+                        <span class="creation-date">
+                            <i class="fas fa-calendar me-1"></i>
+                            @Model.Project.CreatedTimestamp?.ToString("dd.MM.yyyy")
+                        </span>
+                    </div>
                 </div>
-            </div>
+            }
+            else
+            {
+                <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
+            }
+           
             @if (!User.IsInRole("Viewer"))
             {
                 <div class="header-actions">
@@ -143,34 +151,37 @@
                 </div>
             </section>
 
-            <!-- Last Modification Section -->
-            <section class="modification-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-history me-2"></i>Letzte Änderung</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="modification-info">
-                            <div class="modifier-details">
-                                <div class="modifier-name">
-                                    <i class="fas fa-user me-2"></i>
-                                    @Model.Project.LatestModifier?.EmployeeDisplayName
+            @if (!User.IsInRole("Viewer"))
+            {
+                <!-- Last Modification Section -->
+                <section class="modification-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-history me-2"></i>Letzte Änderung</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="modification-info">
+                                <div class="modifier-details">
+                                    <div class="modifier-name">
+                                        <i class="fas fa-user me-2"></i>
+                                        @Model.Project.LatestModifier?.EmployeeDisplayName
+                                    </div>
+                                    <div class="modification-time">
+                                        <i class="fas fa-clock me-2"></i>
+                                        @Model.Project.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm")
+                                    </div>
                                 </div>
-                                <div class="modification-time">
-                                    <i class="fas fa-clock me-2"></i>
-                                    @Model.Project.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm")
+                                <div class="modification-text">
+                                    <i class="fas fa-edit me-2"></i>
+                                    @Model.Project.LatestModificationText
                                 </div>
-                            </div>
-                            <div class="modification-text">
-                                <i class="fas fa-edit me-2"></i>
-                                @Model.Project.LatestModificationText
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            }
         </div>
-        <!-- Tasks Section -->
+            <!-- Tasks Section -->
         @if (!User.IsInRole("Viewer"))
         {
             <!-- Right Column -->
