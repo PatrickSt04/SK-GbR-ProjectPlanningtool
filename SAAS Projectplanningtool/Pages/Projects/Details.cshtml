@@ -146,6 +146,11 @@
                                 <label>Beschreibung</label>
                                 <span>@Model.Project.ProjectDescription</span>
                             </div>
+                            <div>
+                                <button class= "btn btn-secondary" onclick="openInMaps('Mooswinkl 1, 84387 Julbach')">
+                                    Auf Karte anzeigen
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -954,6 +959,24 @@
 }
 
 <script src="~/js/ModalFunctions.js"></script>
+<script> 
+        function openInMaps(address) {
+      const encoded = encodeURIComponent(address);
+
+      // iOS-Erkennung
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if (isIOS) {
+        // Apple Karten
+        window.open(`https://maps.apple.com/?q=${encoded}`, '_blank');
+      } else {
+        // Google Maps (Android, Desktop, etc.)
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encoded}`, '_blank');
+      }
+    }
+</script>
+
 <script>
     function toggleMoreTasks() {
         const hiddenTasks = document.getElementById('hiddenTasks');
