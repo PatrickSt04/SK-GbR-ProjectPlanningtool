@@ -28,7 +28,7 @@
 
     <!-- Main Dashboard Grid -->
     <div class="dashboard-grid row">
-        @if (!Model.IsWorkerRole)
+        @if (!User.IsInRole("Viewer"))
         {
 
             <!-- Project Overview Cards -->
@@ -294,7 +294,7 @@
         }
         else
         {
-            @if (Model.IsWorkerRole)
+            @if (User.IsInRole("Viewer"))
             {
                 <div class="col-12">
                     <section class="overview-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;">
