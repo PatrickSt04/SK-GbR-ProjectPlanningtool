@@ -24,7 +24,7 @@ public static class DbInitializer
         context.Add(doneState);
         context.Add(waitingState);
 
-        // Rollen erstellen
+        // Rollen erstellen 
         if (!await roleManager.RoleExistsAsync("Admin"))
             await roleManager.CreateAsync(new IdentityRole("Admin"));
 
