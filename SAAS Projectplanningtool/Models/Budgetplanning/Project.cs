@@ -116,5 +116,17 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         // Additional Costs for Project
         public ICollection<ProjectAdditionalCosts> ProjectAdditionalCosts { get; set; } = new List<ProjectAdditionalCosts>();
+
+        // Projektadresse
+        public string? Street { get; set; }        // z.B. "Mooswinkl 1"
+        public string? PostalCode { get; set; }    // z.B. "84387"
+        public string? City { get; set; }          // z.B. "Julbach"
+        public string? Country { get; set; }       // z.B. "Deutschland"
+
+        // Hilfsproperty für die vollständige Adresse (nicht in DB)
+        [NotMapped]
+        public string? FullAddress =>
+            string.IsNullOrWhiteSpace(Street) ? null
+            : $"{Street}, {PostalCode} {City}".Trim().Trim(',');
     }
 }

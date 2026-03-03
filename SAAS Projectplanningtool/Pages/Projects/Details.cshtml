@@ -147,9 +147,21 @@
                                 <span>@Model.Project.ProjectDescription</span>
                             </div>
                             <div>
-                                <button class= "btn btn-secondary" onclick="openInMaps('Mooswinkl 1, 84387 Julbach')">
+                                @* <button class= "btn btn-secondary" onclick="openInMaps('Mooswinkl 1, 84387 Julbach')">
                                     Auf Karte anzeigen
-                                </button>
+                                </button> *@
+                                <!-- NEU -->
+                                @if (!string.IsNullOrWhiteSpace(Model.Project.FullAddress))
+                                {
+                                    <button class="btn btn-secondary"
+                                            onclick="openInMaps('@Model.Project.FullAddress')">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Auf Karte anzeigen
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Keine Adresse hinterlegt</span>
+                                }
                             </div>
                         </div>
                     </div>
