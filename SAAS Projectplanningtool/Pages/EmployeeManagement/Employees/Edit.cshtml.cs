@@ -85,11 +85,12 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                     if (!string.IsNullOrEmpty(SelectedRole))
                         await _userManager.AddToRoleAsync(employeeWithUser.IdentityUser, SelectedRole);
                 }
-
+                _context.Entry(employeeWithUser).State = EntityState.Detached;
                 var executingEmployee =
                     await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
                 bool selfmodification = executingEmployee.EmployeeId == Employee.EmployeeId;
-                _context.Attach(executingEmployee).State = EntityState.Detached;
+                //_context.Attach(executingEmployee).State = EntityState.Detached;
+
 
                 if (!selfmodification)
                 {
