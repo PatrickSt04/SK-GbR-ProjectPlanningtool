@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SAAS_Projectplanningtool.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreate : Migration
+    public partial class @new : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -492,7 +492,11 @@ namespace SAAS_Projectplanningtool.Migrations
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DefaultWorkDays = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DefaultWorkingHoursJson = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    DefaultWorkingHoursJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Street = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Country = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -12,8 +12,8 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260303185329_ProjectAddress")]
-    partial class ProjectAddress
+    [Migration("20260303192034_new")]
+    partial class @new
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
