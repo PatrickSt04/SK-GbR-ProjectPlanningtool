@@ -249,7 +249,7 @@
                     </div>
                 </div>
 
-                <!-- Verbrauchtes Budget (Zeitbuchungen + Zusatzkosten) -->
+                <!-- Verbrauchtes Budget -->
                 <div class="budget-card success">
                     <div class="budget-card-header">
                         <div class="budget-card-title">Verbrauchtes Budget</div>
@@ -285,10 +285,13 @@
                     </div>
                 </div>
 
-                <!-- Kosten aus Zeitbuchungen -->
-                @* <div class="budget-card" style="border-top: 4px solid #9b59b6;">
+                <!-- Kosten aus Zeitbuchungen (klickbar) -->
+                <a asp-page="/Projects/TimeEntryCosts" asp-route-id="@Model.Project?.ProjectId"
+                   class="budget-card" style="border-top: 4px solid #9b59b6; text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(155,89,182,0.25)';"
+                   onmouseout="this.style.transform=''; this.style.boxShadow='';">
                     <div class="budget-card-header">
-                        <div class="budget-card-title">Kosten aus Zeitbuchungen</div>
+                        <div class="budget-card-title">Kosten aus Zeitbuchungen <i class="fas fa-external-link-alt" style="font-size: 0.7rem; opacity: 0.5; margin-left: 0.3rem;"></i></div>
                         <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
                             <i class="fas fa-clock"></i>
                         </div>
@@ -299,36 +302,22 @@
                         <div class="budget-progress-bar" id="timeEntryCostsProgressBar"
                              style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
                     </div>
-                </div> *@
-                <!-- Kosten aus Zeitbuchungen -->
-                <div class="budget-card" style="border-top: 4px solid #9b59b6;">
-                    <div class="budget-card-header">
-                        <div class="budget-card-title">Kosten aus Zeitbuchungen</div>
-                        <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                    </div>
-                    <div class="budget-card-value" id="timeEntryCostsValue">-</div>
-                    <div class="budget-card-subtitle" id="timeEntryCostsSubtitle">Personalkosten</div>
-                    <div class="budget-progress" style="margin-top: 0.5rem;">
-                        <div class="budget-progress-bar" id="timeEntryCostsProgressBar"
-                             style="width: 0%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></div>
-                    </div>
-
-                    <!-- Aufschlüsselung je Stundensatzgruppe -->
                     <div id="timeEntryBreakdownList" style="margin-top: 1rem; display: none;">
                         <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
-                                    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                        text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
                             <i class="fas fa-layer-group me-1"></i> Nach Stundensatzgruppe
                         </div>
                         <div id="timeEntryBreakdownItems"></div>
                     </div>
-                </div>
+                </a>
 
-                <!-- Zusätzliche Kosten -->
-                <div class="budget-card" style="border-top: 4px solid var(--info-color);">
+                <!-- Zusätzliche Kosten (klickbar) -->
+                <a asp-page="/Projects/AdditionalCostsDetail" asp-route-id="@Model.Project?.ProjectId"
+                   class="budget-card" style="border-top: 4px solid var(--info-color); text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(52,152,219,0.25)';"
+                   onmouseout="this.style.transform=''; this.style.boxShadow='';">
                     <div class="budget-card-header">
-                        <div class="budget-card-title">Zusätzliche Kosten</div>
+                        <div class="budget-card-title">Zusätzliche Kosten <i class="fas fa-external-link-alt" style="font-size: 0.7rem; opacity: 0.5; margin-left: 0.3rem;"></i></div>
                         <div class="budget-card-icon" style="background: var(--info-color);">
                             <i class="fas fa-receipt"></i>
                         </div>
@@ -339,10 +328,9 @@
                         <div class="budget-progress-bar" id="additionalCostsProgressBar"
                              style="width: 0%; background: var(--info-color);"></div>
                     </div>
-                </div>
+                </a>
 
-
-                <!-- Nachkalkulationen -->
+                <!-- Nachkalkulationen (normales div, nicht klickbar) -->
                 <div class="budget-card" style="border-top: 4px solid var(--info-color);">
                     <div class="budget-card-header">
                         <div class="budget-card-title">Nachkalkulationen</div>
@@ -403,27 +391,27 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
 
-            <!-- Task Statistiken -->
-            <div class="task-statistics">
-                <div class="task-stat">
-                    <div class="task-stat-value" id="statTotalTasks">-</div>
-                    <div class="task-stat-label">Gesamt Tasks</div>
-                </div>
-                <div class="task-stat">
-                    <div class="task-stat-value" id="statTasksWithDates">-</div>
-                    <div class="task-stat-label">Mit Terminen</div>
-                </div>
-                <div class="task-stat">
-                    <div class="task-stat-value" id="statTasksWithoutDates">-</div>
-                    <div class="task-stat-label">Ohne Termine</div>
-                </div>
-                <div class="task-stat">
-                    <div class="task-stat-value" id="statTimeEntryCosts">-</div>
-                    <div class="task-stat-label">Kosten Zeitbuchungen</div>
-                </div>
-            </div>
+    <!-- Task Statistiken -->
+    <div class="task-statistics">
+        <div class="task-stat">
+            <div class="task-stat-value" id="statTotalTasks">-</div>
+            <div class="task-stat-label">Gesamt Tasks</div>
+        </div>
+        <div class="task-stat">
+            <div class="task-stat-value" id="statTasksWithDates">-</div>
+            <div class="task-stat-label">Mit Terminen</div>
+        </div>
+        <div class="task-stat">
+            <div class="task-stat-value" id="statTasksWithoutDates">-</div>
+            <div class="task-stat-label">Ohne Termine</div>
+        </div>
+        <div class="task-stat">
+            <div class="task-stat-value" id="statTimeEntryCosts">-</div>
+            <div class="task-stat-label">Kosten Zeitbuchungen</div>
         </div>
     </div>
 }
@@ -436,8 +424,8 @@
 
         @* <div class="expenses-header"> *@
 
-            <!-- Zeiterfassung -->
-            @* <div id="timeTracking">
+        <!-- Zeiterfassung -->
+        @* <div id="timeTracking">
                 @await Html.PartialAsync("PartialViews/_TimeTracking")
             </div> *@
         @* </div> *@
