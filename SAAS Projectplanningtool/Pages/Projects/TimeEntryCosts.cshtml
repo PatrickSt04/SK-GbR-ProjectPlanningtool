@@ -1,0 +1,165 @@
+﻿@page
+@using System.Globalization
+@model SAAS_Projectplanningtool.Pages.Projects.TimeEntryCostsModel
+
+@{
+    ViewData["Title"] = "Kosten aus Zeitbuchungen - " + Model.Project?.ProjectName;
+    <link rel="stylesheet" href="~/css/Budgetplanning.css" />
+}
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>
+            <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project?.ProjectId" class="edit-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <span>Kosten aus Zeitbuchungen</span>
+        </h1>
+        <div class="subtitle" style="margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.95rem;">
+            @Model.Project?.ProjectName
+        </div>
+    </div>
+
+    <!-- Zusammenfassung je Stundensatzgruppe -->
+    @if (Model.HRGSummaries.Any())
+    {
+        <div class="budget-overview" style="margin-bottom: 2rem;">
+            @foreach (var hrg in Model.HRGSummaries)
+            {
+                var pct = Model.TotalCosts > 0 ? (hrg.TotalCosts / Model.TotalCosts) * 100 : 0;
+                <div class="budget-card" style="border-top: 4px solid #9b59b6;">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">@hrg.HourlyRateGroupName</div>
+                        <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value">@hrg.TotalCosts.ToString("C2", new CultureInfo("de-DE"))</div>
+                    <div class="budget-card-subtitle">
+                        @hrg.TotalHours.ToString("F1") h × @hrg.HourlyRate.ToString("F2") €/h · @hrg.EntryCount Einträge
+                    </div>
+                    <div class="budget-progress" style="margin-top: 0.5rem;">
+                        <div class="budget-progress-bar"
+                             style="width: @pct.ToString("F1", CultureInfo.InvariantCulture)%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Gesamtsumme Card -->
+            <div class="budget-card" style="border-top: 4px solid #667eea;">
+                <div class="budget-card-header">
+                    <div class="budget-card-title">Gesamt</div>
+                    <div class="budget-card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                </div>
+                <div class="budget-card-value">@Model.TotalCosts.ToString("C2", new CultureInfo("de-DE"))</div>
+                <div class="budget-card-subtitle">
+                    @Model.TotalHours.ToString("F1") h · @Model.TimeEntriesWithCosts.Count Einträge
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Detaillierte Tabelle -->
+    <div class="modern-table">
+        <div class="card">
+            <div class="card-header" style="background: #f8f7fc !important; border-bottom: 2px solid #9b59b6; color: #4a3560 !important;"> @* TODO CSS *@
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Alle Zeitbuchungen mit Kosten
+                    <span class="badge bg-light text-dark ms-2">@Model.TimeEntriesWithCosts.Count</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.TimeEntriesWithCosts.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="width: 100% !important; table-layout: fixed;">
+                            @* TODO CSS *@
+                            <thead>
+                                <tr>
+                                    <th style="background: #f8f9fa !important; color: #495057 !important; font-weight: 600; font-size: 0.85rem; padding: 0.75rem; white-space: nowrap; width: 110px;">Datum</th>
+                                    <th style="background: #f8f9fa !important; color: #495057 !important; font-weight: 600; font-size: 0.85rem; padding: 0.75rem; white-space: nowrap; width: 130px;">Mitarbeiter</th>
+                                    <th style="background: #f8f9fa !important; color: #495057 !important; font-weight: 600; font-size: 0.85rem; padding: 0.75rem; white-space: nowrap; width: 140px;">Stundensatzgruppe</th>
+                                    <th style="background: #f8f9fa !important; color: #495057 !important; font-weight: 600; font-size: 0.85rem; padding: 0.75rem; white-space: nowrap; width: 80px;">Netto h</th>
+                                    <th style="background: #f8f9fa !important; color: #495057 !important; font-weight: 600; font-size: 0.85rem; padding: 0.75rem; white-space: nowrap; width: 100px;">Stundensatz</th>
+                                    <th style="background: #f8f9fa !important; color: #495057 !important; font-weight: 600; font-size: 0.85rem; padding: 0.75rem; white-space: nowrap; width: 100px;">Kosten</th>
+                                    <th style="background: #f8f9fa !important; color: #495057 !important; font-weight: 600; font-size: 0.85rem; padding: 0.75rem;">Beschreibung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var entry in Model.TimeEntriesWithCosts)
+                                {
+                                    <tr>
+                                        <td>
+                                            @entry.WorkDate.ToString("dd.MM.yyyy")
+                                            <br />
+                                            <small class="text-muted">
+                                                @(entry.WorkDate.DayOfWeek switch
+                                                {
+                                                    DayOfWeek.Monday => "Montag",
+                                                    DayOfWeek.Tuesday => "Dienstag",
+                                                    DayOfWeek.Wednesday => "Mittwoch",
+                                                    DayOfWeek.Thursday => "Donnerstag",
+                                                    DayOfWeek.Friday => "Freitag",
+                                                    DayOfWeek.Saturday => "Samstag",
+                                                    DayOfWeek.Sunday => "Sonntag",
+                                                    _ => ""
+                                                })
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                                @entry.EmployeeName
+                                            </span>
+                                        </td>
+                                        <td>@entry.HourlyRateGroupName</td>
+                                        <td>
+                                            <span style="font-weight: 600; color: #667eea;">
+                                                @entry.NetWorkingHours.ToString("F1") h
+                                            </span>
+                                        </td>
+                                        <td>@entry.HourlyRate.ToString("F2") €</td>
+                                        <td>
+                                            <span style="font-weight: 700; color: #9b59b6;">
+                                                @entry.Costs.ToString("C2", new CultureInfo("de-DE"))
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span title="@entry.Description">
+                                                @(entry.Description?.Length > 40
+                                                                                        ? entry.Description.Substring(0, 40) + "..."
+                                                                                        : entry.Description ?? "-")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            @* TODO CSS *@
+                            <tfoot>
+                                <tr style="background: #f8f9fa !important;">
+                                    <td style="width: 110px;"></td>
+                                    <td style="width: 130px;"></td>
+                                    <td style="width: 140px; text-align: right; font-weight: 700;">Gesamt:</td>
+                                    <td style="width: 80px; color: #667eea; font-weight: 700;">@Model.TotalHours.ToString("F1") h</td>
+                                    <td style="width: 100px;"></td>
+                                    <td style="width: 100px; color: #9b59b6; font-weight: 700;">@Model.TotalCosts.ToString("C2", new CultureInfo("de-DE"))</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-clock fa-3x mb-3" style="color: var(--text-secondary); opacity: 0.4;"></i>
+                        <p class="text-muted">Keine Zeitbuchungen für dieses Projekt vorhanden.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
