@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -341,7 +341,7 @@ footer {
 
 @media (max-width: 768px) {
 
-    /* 1) Sidebar: standardm��ig AUSGEBLENDET auf Mobile */
+    /* 1) Sidebar: standardmäßig AUSGEBLENDET auf Mobile */
     .main-navigation {
         transform: translateX(-250px) !important;
     }
@@ -627,4 +627,150 @@ html, body {
 
 .main-content {
     overflow-x: hidden;
+}
+
+/* ================================================================
+   BUTTON REDESIGN - Passend zum Gradient-Design
+   ================================================================ */
+
+/* Primary Button → Gradient */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        background: linear-gradient(135deg, #5a6fd6 0%, #6a4299 100%);
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+    }
+
+/* Outline Primary → Lila Rand */
+.btn-outline-primary {
+    color: #667eea;
+    border: 2px solid #667eea;
+    background: transparent;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 9px 19px;
+    transition: all 0.2s ease;
+}
+
+    .btn-outline-primary:hover,
+    .btn-outline-primary:focus {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+/* Secondary Button → Dezentes Grau mit Lila-Touch */
+.btn-secondary {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+}
+
+    .btn-secondary:hover,
+    .btn-secondary:focus {
+        background: #e8ecf4;
+        border-color: #cbd5e1;
+        color: #334155;
+        transform: translateY(-1px);
+    }
+
+/* Outline Secondary → Passend zum hellen Design */
+.btn-outline-secondary {
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    background: transparent;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+    .btn-outline-secondary:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        color: #334155;
+    }
+
+/* Success → Bleibt grün, aber abgerundet */
+.btn-success {
+    background: #00d4aa;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
+}
+
+    .btn-success:hover {
+        background: #00c49a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 212, 170, 0.4);
+    }
+
+/* Danger → Bleibt rot, gleicher Stil */
+.btn-danger {
+    background: #ef4444;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+    .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+/* Warning → Gelb/Orange Stil */
+.btn-warning {
+    background: #f59e0b;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+    .btn-warning:hover {
+        background: #d97706;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+/* Alle kleinen Buttons ebenfalls abrunden */
+.btn-sm {
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+.btn-lg {
+    border-radius: 10px;
+    padding: 14px 28px;
 }

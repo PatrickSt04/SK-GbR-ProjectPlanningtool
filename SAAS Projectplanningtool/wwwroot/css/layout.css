@@ -70,18 +70,6 @@ h1{
     padding-bottom: 12px !important;
 }
 
-.btn-primary {
-    background-color: #2C3E50;
-    border-color: #2C3E50;
-    color: #E8F6FE;
-    padding: 12px;
-    border-radius: 8px;
-}
-    .btn-primary:hover {
-        background-color: gray;
-        border-color: gray;
-    }
-
 /* ============================================================
    1. LAYOUT - Navigation & Main Content (Mobile)
    ============================================================ */
