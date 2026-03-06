@@ -454,3 +454,192 @@ html, body {
 .main-content {
     overflow-x: hidden;
 }
+
+/* ================================================================
+   CARD SYSTEM (Gemeinsam genutzt)
+   Quellen: Details.cshtml, Scheduling.cshtml, Index.cshtml,
+            BudgetPlanning.cshtml
+   ================================================================ */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    .card-header h2 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .card-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+
+/* ================================================================
+   PAGE HEADER (Gradient-Header)
+   Quellen: Details.cshtml, Index.cshtml, Scheduling.cshtml,
+            BudgetPlanning.cshtml
+   ================================================================ */
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.project-meta {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.creator-info,
+.creation-date {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+
+/* ================================================================
+   STAT CARDS (Statistik-Karten)
+   Quellen: Details.cshtml, Index.cshtml (beide hatten eigene
+            leicht unterschiedliche Versionen)
+   ================================================================ */
+.statistics-section .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+    .statistics-section .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-right: 15px;
+}
+
+/* Stat Icon Farben */
+.stat-tasks .stat-icon,
+.stat-active .stat-icon {
+    background: #28a745;
+}
+
+.stat-progress .stat-icon,
+.stat-archived .stat-icon {
+    background: #17a2b8;
+}
+
+.stat-timeline .stat-icon,
+.stat-planning .stat-icon {
+    background: #ffc107;
+}
+
+.stat-deadline .stat-icon,
+.stat-overdue .stat-icon {
+    background: #dc3545;
+}
+
+.stat-content h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.stat-content p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+
+/* ================================================================
+   NOTIFICATION ALERT
+   Quelle: Details.cshtml
+   ================================================================ */
+.notification-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ================================================================
+   ACTION BUTTONS LAYOUT (nur das Grid, nicht die Farben)
+   Die Farben kommen von .btn-primary / .btn-secondary
+   ================================================================ */
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
