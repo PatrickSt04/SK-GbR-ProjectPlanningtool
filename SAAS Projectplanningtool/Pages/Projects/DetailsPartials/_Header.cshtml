@@ -1,0 +1,53 @@
+﻿@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+<!-- Header Section -->
+<div class="page-header">
+    <div class="header-content">
+        @if (!User.IsInRole("Viewer"))
+        {
+            <div class="header-left">
+                <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
+                <div class="project-meta">
+                    <span class="creator-info">
+                        <i class="fas fa-user me-1"></i>
+                        Erstellt von @Model.Project.CreatedByEmployee.EmployeeDisplayName
+                    </span>
+                    <span class="creation-date">
+                        <i class="fas fa-calendar me-1"></i>
+                        @Model.Project.CreatedTimestamp?.ToString("dd.MM.yyyy")
+                    </span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
+        }
+
+        @if (!User.IsInRole("Viewer"))
+        {
+            <div class="header-actions">
+                @{
+                    bool isArchived = Model.Project.IsArchived == true;
+                }
+                @if (!isArchived)
+                {
+                    <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-archive me-2"></i>Archivieren
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-box-open me-2"></i>Wiederherstellen
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -8,484 +8,40 @@
 }
 
 <div class="project-details-container">
-    <!-- Header Section -->
-    <div class="page-header">
-        <div class="header-content">
-            @if(!User.IsInRole("Viewer"))
-            {
-                <div class="header-left">
-                    <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
-                    <div class="project-meta">
-                        <span class="creator-info">
-                            <i class="fas fa-user me-1"></i>
-                            Erstellt von @Model.Project.CreatedByEmployee.EmployeeDisplayName
-                        </span>
-                        <span class="creation-date">
-                            <i class="fas fa-calendar me-1"></i>
-                            @Model.Project.CreatedTimestamp?.ToString("dd.MM.yyyy")
-                        </span>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <h1><i class="fas fa-project-diagram me-2"></i>@Model.Project.ProjectName</h1>
-            }
-           
-            @if (!User.IsInRole("Viewer"))
-            {
-                <div class="header-actions">
-                    @{
-                        bool isArchived = Model.Project.IsArchived == true;
-                    }
-                    @if (!isArchived)
-                    {
-                        <form method="post" asp-page-handler="SetProjectArchived" asp-route-id="@Model.Project.ProjectId" style="display:inline;">
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-archive me-2"></i>Archivieren
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <form method="post" asp-page-handler="UndoProjectArchived" asp-route-id="@Model.Project.ProjectId" asp-route-origin="Details" style="display:inline;">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-box-open me-2"></i>Wiederherstellen
-                            </button>
-                        </form>
-                    }
-                </div>
-            }
-        </div>
-    </div>
 
-    @if (!User.IsInRole("Viewer"))
-    {
-        <!-- Statistics Cards -->
-        <div class="statistics-section mb-4">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <div class="stat-card stat-tasks">
-                        <div class="stat-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3>@Model.CompletetedTasks / @Model.TotalTasks</h3>
-                            <p>Aufgaben abgeschlossen</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card stat-progress">
-                        <div class="stat-icon">
-                            <i class="fas fa-chart-pie"></i>
-                        </div>
-                        <div class="stat-content">
-                            @{
-                                double progressPercentage = Model.ProgressInDecimals * 100;
-                            }
-                            <h3>@((int)progressPercentage)%</h3>
-                            <p>Fortschritt</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card stat-timeline">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3>@Model.Project.StartDate?.ToString("dd.MM")</h3>
-                            <p>Startdatum</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card stat-deadline">
-                        <div class="stat-icon">
-                            <i class="fas fa-flag-checkered"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3>@Model.Project.EndDate?.ToString("dd.MM")</h3>
-                            <p>Enddatum</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
+    <!-- Header -->
+    @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_Header.cshtml", Model)
+
+    <!-- Statistics -->
+    @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_Statistics.cshtml", Model)
 
     <!-- Two Column Layout -->
     <div class="two-column-layout">
         <!-- Left Column -->
         <div class="left-column">
-            <!-- Project Information Section -->
-            <section class="project-info-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>Projektleiter</label>
-                                <span>@Model.Project.ResponsiblePerson?.EmployeeDisplayName</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Kunde</label>
-                                <span>@Model.Project.Customer?.CustomerName</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Status</label>
-                                <span class="project-status">@Model.Project.State?.StateName</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Beschreibung</label>
-                                <span>@Model.Project.ProjectDescription</span>
-                            </div>
-                            <div>
-                                @* <button class= "btn btn-secondary" onclick="openInMaps('Mooswinkl 1, 84387 Julbach')">
-                                    Auf Karte anzeigen
-                                </button> *@
-                                <!-- NEU -->
-                                @if (!string.IsNullOrWhiteSpace(Model.Project.FullAddress))
-                                {
-                                    <button class="btn btn-secondary"
-                                            onclick="openInMaps('@Model.Project.FullAddress')">
-                                        <i class="fas fa-map-marker-alt me-1"></i>Auf Karte anzeigen
-                                    </button>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fst-italic">Keine Adresse hinterlegt</span>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
 
-            @if (!User.IsInRole("Viewer"))
+            @if (Model.Project.LatestModifier != null)
             {
-                <!-- Last Modification Section -->
-                <section class="modification-section">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2><i class="fas fa-history me-2"></i>Letzte Änderung</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="modification-info">
-                                <div class="modifier-details">
-                                    <div class="modifier-name">
-                                        <i class="fas fa-user me-2"></i>
-                                        @Model.Project.LatestModifier?.EmployeeDisplayName
-                                    </div>
-                                    <div class="modification-time">
-                                        <i class="fas fa-clock me-2"></i>
-                                        @Model.Project.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm")
-                                    </div>
-                                </div>
-                                <div class="modification-text">
-                                    <i class="fas fa-edit me-2"></i>
-                                    @Model.Project.LatestModificationText
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
             }
         </div>
-            <!-- Tasks Section -->
+
+        <!-- Right Column: Task Catalog -->
         @if (!User.IsInRole("Viewer"))
         {
-            <!-- Right Column -->
             <div class="right-column">
-                <!-- Tasks Section -->
-                <section class="tasks-section">
-                    <div class="card">
-                        <div class="card-body">
-                            <!-- Aufgabenkatalog Header -->
-                            <div class="task-catalog-header">
-                                <h2><i class="fas fa-tasks me-2"></i>Aufgabenkatalog</h2>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="task-catalog-actions">
-                                @{
-                                    bool showCompleted = Model.showCompleted;
-                                }
-                                <form method="get" class="d-inline">
-                                    <input type="hidden" name="id" value="@Model.Project.ProjectId" />
-                                    <input type="hidden" asp-for="showCompleted" value="@(!Model.showCompleted)" />
-                                    <button type="submit" class="btn btn-outline-primary">
-                                        <i class="fas @(showCompleted ? "fa-eye-slash" : "fa-eye") me-1"></i>
-                                        Abgeschlossene
-                                    </button>
-                                </form>
-                                <button type="button" class="btn btn-primary" onclick="showAddTaskCatalogModal()">
-                                    <i class="fas fa-plus me-1"></i>
-                                    Aufgabe hinzufügen
-                                </button>
-                            </div>
-
-                            <!-- Tasks Container -->
-                            <div class="tasks-main-container">
-                                <!-- Task List -->
-                                <div class="task-list-container">
-                                    <div class="task-list" id="taskList">
-                                        @{
-                                            var allFilteredTasks = Model.TaskCatalog.Where(task =>
-                                            {
-                                                bool isCompleted = task.State?.StateName == "Abgeschlossen";
-                                                return !isCompleted || showCompleted;
-                                            }).ToList();
-
-                                            var visibleTasks = allFilteredTasks.Take(5).ToList();
-                                            var hiddenTasksCount = allFilteredTasks.Count() - 5;
-                                        }
-
-                                        @foreach (var task in visibleTasks)
-                                        {
-                                            bool isCompleted = task.State?.StateName == "Abgeschlossen";
-
-                                            <div class="task-item @(isCompleted ? "completed" : "")">
-                                                <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
-                                                    <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
-                                                    <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                                                    <input type="hidden" name="StateId" value="@task.StateId" />
-
-                                                    <div class="task-checkbox">
-                                                        <input class="form-check-input" type="checkbox"
-                                                               onchange="this.form.submit();"
-                                                               @(isCompleted ? "checked" : "") />
-                                                    </div>
-                                                    <div class="task-content">
-                                                        <div class="task-name">@task.TaskName</div>
-                                                        <div class="task-details">
-                                                            <span class="status-badge @(isCompleted ? "completed" : "pending")">
-                                                                @task.State?.StateName
-                                                            </span>
-                                                            @if (task.StartDate.HasValue || task.EndDate.HasValue)
-                                                            {
-                                                                <span class="task-dates">
-                                                                    @if (task.StartDate.HasValue)
-                                                                    {
-                                                                        <span>@task.StartDate.Value.ToString("dd.MM")</span>
-                                                                    }
-                                                                    @if (task.StartDate.HasValue && task.EndDate.HasValue)
-                                                                    {
-                                                                        <span> - </span>
-                                                                    }
-                                                                    @if (task.EndDate.HasValue)
-                                                                    {
-                                                                        <span>@task.EndDate.Value.ToString("dd.MM")</span>
-                                                                    }
-                                                                </span>
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                    <div class="task-actions">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                                                onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")' )">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger"
-                                                                onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'taskCatalog', '@task.TaskName')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        }
-
-                                        <!-- Hidden tasks container -->
-                                        @if (hiddenTasksCount > 0)
-                                        {
-                                            <div id="hiddenTasks" style="display: none;">
-                                                @foreach (var task in allFilteredTasks.Skip(5))
-                                                {
-                                                    bool isCompleted = task.State?.StateName == "Abgeschlossen";
-
-                                                    <div class="task-item @(isCompleted ? "completed" : "")">
-                                                        <form method="post" asp-page-handler="ToggleTaskState" class="task-form">
-                                                            <input type="hidden" name="ProjectTaskId" value="@task.ProjectTaskCatalogTaskId" />
-                                                            <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
-                                                            <input type="hidden" name="StateId" value="@task.StateId" />
-
-                                                            <div class="task-checkbox">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                       onchange="this.form.submit();"
-                                                                       @(isCompleted ? "checked" : "") />
-                                                            </div>
-                                                            <div class="task-content">
-                                                                <div class="task-name">@task.TaskName</div>
-                                                                <div class="task-details">
-                                                                    <span class="status-badge @(isCompleted ? "completed" : "pending")">
-                                                                        @task.State?.StateName
-                                                                    </span>
-                                                                    @if (task.StartDate.HasValue || task.EndDate.HasValue)
-                                                                    {
-                                                                        <span class="task-dates">
-                                                                            @if (task.StartDate.HasValue)
-                                                                            {
-                                                                                <span>@task.StartDate.Value.ToString("dd.MM")</span>
-                                                                            }
-                                                                            @if (task.StartDate.HasValue && task.EndDate.HasValue)
-                                                                            {
-                                                                                <span> - </span>
-                                                                            }
-                                                                            @if (task.EndDate.HasValue)
-                                                                            {
-                                                                                <span>@task.EndDate.Value.ToString("dd.MM")</span>
-                                                                            }
-                                                                        </span>
-                                                                    }
-                                                                </div>
-                                                            </div>
-                                                            <div class="task-actions">
-                                                                <button type="button" class="btn btn-sm btn-outline-primary"
-                                                                        onclick="editTask('@task.ProjectTaskCatalogTaskId', '@task.TaskName', '@(task.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(task.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
-                                                                    <i class="fas fa-edit"></i>
-                                                                </button>
-                                                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                                                        onclick="deleteItem('@task.ProjectTaskCatalogTaskId', 'task', '@task.TaskName')">
-                                                                    <i class="fas fa-trash"></i>
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-
-                                    <!-- Show More Button -->
-                                    @if (hiddenTasksCount > 0)
-                                    {
-                                        <div class="show-more-container">
-                                            <button type="button" class="btn btn-outline-secondary" id="showMoreBtn" onclick="toggleMoreTasks()">
-                                                <i class="fas fa-chevron-down me-1"></i>
-                                                <span id="showMoreText">@hiddenTasksCount weitere Aufgaben anzeigen</span>
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_TaskCatalog.cshtml", Model)
             </div>
         }
     </div>
-    @if(!User.IsInRole("Viewer"))
+
+    @if (!User.IsInRole("Viewer"))
     {
-
-        <!-- Full Width Sections Below -->
+        <!-- Full Width Sections -->
         <div class="full-width-sections">
-            <!-- Project Structure Section -->
-            <section class="">
-                <div class="card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-sitemap me-2"></i>Projektstruktur</h2>
-                        <div class="card-actions">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="showAddSectionModal()">
-                                <i class="fas fa-plus me-2"></i>Abschnitt hinzufügen
-                            </button>
-                            <div type="button"
-                                    class=" @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")"
-                                    @(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "disabled" : "")
-                                    style="@(Model.Project?.ProjectBudget?.InitialBudget == null || Model.Project?.ProjectBudget?.InitialBudget == 0 ? "pointer-events: none;" : "")">
-                                @if (Model.Project?.ProjectBudget?.InitialBudget != null && Model.Project?.ProjectBudget?.InitialBudget > 0)
-                                {
-                                    <a asp-page="/Projects/Scheduling" asp-route-id="@Model.Project.ProjectId" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-calendar me-1"></i>Terminplanung
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span>
-                                        <i class="fas fa-calendar me-1"></i>Terminplanung
-                                    </span>
-                                }
-                            </div>
-                            <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project.ProjectId" class="">
-                                <button type="button" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-users me-1"></i>Budgetplanung
-                                </button>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        @if (Model.Project?.ProjectSections != null && Model.Project.ProjectSections.Any())
-                        {
-                            <div class="project-structure-tree">
-                                <!-- Project Root -->
-                                <div class="structure-item structure-project">
-                                    <div class="structure-header">
-                                        <div class="structure-toggle">
-                                            <i class="fas fa-project-diagram"></i>
-                                        </div>
-                                        <div class="structure-content">
-                                            <span class="structure-name">@Model.Project.ProjectName</span>
-                                            <span class="structure-meta">@Model.Project.ProjectSections.Count Section(s)</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Project Sections -->
-                                @foreach (var section in Model.Project.ProjectSections.Where(s => s.ParentSectionId == null))
-                                {
-                                    @await Html.PartialAsync("~/Pages/Projects/PartialViews/_ProjectSectionTreeItem.cshtml", section)
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="empty-state">
-                                <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
-                                <p class="text-muted">Noch keine Projektstruktur vorhanden</p>
-                                <button type="button" class="btn btn-primary" onclick="showAddSectionModal()">
-                                    <i class="fas fa-plus me-2"></i>Ersten Abschnitt hinzufügen
-                                </button>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </section>
-
-            <!-- Quick Actions Section -->
-            <section class="quick-actions-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-bolt me-2"></i>Schnelle Aktionen</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="action-buttons">
-                            <button type="button" class="btn-primary action-btn" onclick="showAddSectionModal()">
-                                <i class="fas fa-plus"></i>
-                                Abschnitt hinzufügen
-                            </button>
-                            <button type="button" class="btn-secondary action-btn" onclick="showAddTaskModal()">
-                                <i class="fas fa-tasks"></i>
-                                Aufgabe hinzufügen
-                            </button>
-                            <button type="button" class="btn-secondary action-btn" onclick="showAddMileStoneModal()">
-                                <i class="fas fa-tasks"></i>
-                                Meilenstein hinzufügen
-                            </button>
-
-                            <a asp-page="Edit" asp-route-id="@Model.Project.ProjectId" class="btn-secondary action-btn">
-                                <i class="fas fa-edit"></i>
-                                Projekt bearbeiten
-                            </a>
-                            <a asp-page="Index" class="btn-secondary action-btn">
-                                <i class="fas fa-arrow-left"></i>
-                                Zurück zur Übersicht
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectStructure.cshtml", Model)
+            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_QuickActions.cshtml", Model)
         </div>
     }
     else
@@ -494,13 +50,10 @@
             <i class="fas fa-receipt"></i>
             Zeitbuchungen
         </h2>
-        <!-- Zeiterfassung -->
         <div id="timeTracking">
-            @await Html.PartialAsync("PartialViews/_TimeTracking")
+            @await Html.PartialAsync("PartialViews/_TimeTracking") @* TODO: In DetailsPartials umziehen *@
         </div>
     }
-
-
 
 </div>
 
@@ -515,7 +68,7 @@
     </div>
 }
 
-<!-- Add Partial Modals for ProjectHandling -->
+<!-- Modals -->
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_EditTaskCatalogTaskModal.cshtml", (ProjectHandlerPageModel)Model)
@@ -523,52 +76,16 @@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionMileStone.cshtml", (ProjectHandlerPageModel)Model)
 
+<script src="~/js/ModalFunctions.js"></script>
+
+<script>
+    // Tooltip-Initialisierung
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+
 @section Styles {
     <link rel="stylesheet" href="~/css/project.css" asp-append-version="true" />
 }
-
-<script src="~/js/ModalFunctions.js"></script>
-<script> 
-        function openInMaps(address) {
-      const encoded = encodeURIComponent(address);
-
-      // iOS-Erkennung
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-      if (isIOS) {
-        // Apple Karten
-        window.open(`https://maps.apple.com/?q=${encoded}`, '_blank');
-      } else {
-        // Google Maps (Android, Desktop, etc.)
-        window.open(`https://www.google.com/maps/search/?api=1&query=${encoded}`, '_blank');
-      }
-    }
-</script>
-
-<script>
-    function toggleMoreTasks() {
-        const hiddenTasks = document.getElementById('hiddenTasks');
-        const showMoreBtn = document.getElementById('showMoreBtn');
-        const showMoreText = document.getElementById('showMoreText');
-        const icon = showMoreBtn.querySelector('i');
-
-        if (hiddenTasks.style.display === 'none') {
-            hiddenTasks.style.display = 'block';
-            showMoreText.textContent = 'Weniger anzeigen';
-            icon.className = 'fas fa-chevron-up me-1';
-        } else {
-            hiddenTasks.style.display = 'none';
-            // Get the count from the button text
-            const matches = showMoreText.textContent.match(/(\d+)/);
-            const count = matches ? matches[1] : '0';
-            showMoreText.textContent = count + ' weitere Aufgaben anzeigen';
-            icon.className = 'fas fa-chevron-down me-1';
-        }
-    }
-            // enabling tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-</script>

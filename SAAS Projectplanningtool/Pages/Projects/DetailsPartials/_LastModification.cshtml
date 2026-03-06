@@ -1,0 +1,32 @@
+﻿@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+<!-- Last Modification Section -->
+@if (Model.Project.LatestModifier != null)
+{
+    <section class="modification-section">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-history me-2"></i>Letzte Änderung</h2>
+            </div>
+            <div class="card-body">
+                <div class="modification-info">
+                    <div class="modifier-details">
+                        <div class="modifier-name">
+                            <i class="fas fa-user me-2"></i>
+                            @Model.Project.LatestModifier?.EmployeeDisplayName
+                        </div>
+                        <div class="modification-time">
+                            <i class="fas fa-clock me-2"></i>
+                            @Model.Project.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm")
+                        </div>
+                    </div>
+                    <div class="modification-text">
+                        <i class="fas fa-edit me-2"></i>
+                        @Model.Project.LatestModificationText
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}

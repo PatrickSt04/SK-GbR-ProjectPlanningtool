@@ -1,0 +1,55 @@
+﻿@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+<!-- Statistics Cards -->
+@if (!User.IsInRole("Viewer"))
+{
+    <div class="statistics-section mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="stat-card stat-tasks">
+                    <div class="stat-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.CompletetedTasks / @Model.TotalTasks</h3>
+                        <p>Aufgaben abgeschlossen</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-progress">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.ProgressInDecimals.ToString("0")%</h3>
+                        <p>Fortschritt</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-timeline">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Project.StartDate?.ToString("dd.MM")</h3>
+                        <p>Startdatum</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-deadline">
+                    <div class="stat-icon">
+                        <i class="fas fa-flag-checkered"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>@Model.Project.EndDate?.ToString("dd.MM")</h3>
+                        <p>Enddatum</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

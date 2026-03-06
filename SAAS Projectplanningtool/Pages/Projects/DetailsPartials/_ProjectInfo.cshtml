@@ -1,0 +1,55 @@
+﻿@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+<!-- Project Information Section -->
+<section class="project-info-section">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Projektleiter</label>
+                    <span>@Model.Project.ResponsiblePerson?.EmployeeDisplayName</span>
+                </div>
+                <div class="info-item">
+                    <label>Kunde</label>
+                    <span>@Model.Project.Customer?.CustomerName</span>
+                </div>
+                <div class="info-item">
+                    <label>Status</label>
+                    <span class="project-status">@Model.Project.State?.StateName</span>
+                </div>
+                <div class="info-item">
+                    <label>Beschreibung</label>
+                    <span>@(Model.Project.ProjectDescription ?? "Keine Beschreibung vorhanden")</span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Project.Street) && !string.IsNullOrWhiteSpace(Model.Project.PostalCode))
+            {
+                var fullAddress = $"{Model.Project.Street}, {Model.Project.PostalCode} {Model.Project.City}";
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="openInMaps('@fullAddress)">
+                        <i class="fas fa-map-marker-alt me-1"></i>Auf Karte anzeigen @* TODO open in maps funktioniert nicht *@
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<script>
+    function openInMaps(address) {
+        const encoded = encodeURIComponent(address);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+            window.open(`https://maps.apple.com/?q=${encoded}`, '_blank');
+        } else {
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encoded}`, '_blank');
+        }
+    }
+</script>
