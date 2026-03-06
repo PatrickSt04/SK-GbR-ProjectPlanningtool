@@ -1,0 +1,456 @@
+﻿/* ================================================================
+   SHARED.CSS - Konsolidierte gemeinsame Styles
+   Einbinden in _Layout.cshtml VOR allen anderen CSS-Dateien:
+   <link rel="stylesheet" href="~/css/shared.css" asp-append-version="true" />
+   ================================================================ */
+
+
+/* ================================================================
+   1. CSS VARIABLEN (Global)
+   Quelle: Budgetplanning.css (dort löschen)
+   ================================================================ */
+:root {
+    --primary-color: #667eea;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-color: #f093fb;
+    --accent-color: #4facfe;
+    --success-color: #00d4aa;
+    --warning-color: #ffc107;
+    --danger-color: #ff6b6b;
+    --light-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+    --border-radius: 12px;
+    --border-radius-sm: 6px;
+}
+
+
+/* ================================================================
+   2. ANIMATION KEYFRAMES
+   Quellen: dashboard.css, TimeTracking.css (dort löschen)
+   ================================================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes progressShine {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+
+/* ================================================================
+   3. SCROLLBAR STYLES
+   Quellen: dashboard.css, ProjectStructureTreeItem.css,
+            Budgetplanning.css, index.css (dort löschen)
+   ================================================================ */
+
+/* Standard Scrollbar für .custom-scrollbar Klasse */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+/* Schmale Scrollbar-Variante (6px) */
+.slim-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.slim-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.slim-scrollbar::-webkit-scrollbar-thumb {
+    background: #ced4da;
+    border-radius: 3px;
+}
+
+    .slim-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #adb5bd;
+    }
+
+
+/* ================================================================
+   4. EMPTY STATE
+   Quellen: ProjectStructureTreeItem.css, gantt.css, index.css
+   (dort löschen)
+   ================================================================ */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.3;
+    }
+
+    .empty-state p {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+
+
+/* ================================================================
+   5. UTILITY KLASSEN
+   Quelle: dashboard.css (dort löschen)
+   ================================================================ */
+.fade-in {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.text-wrap {
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-help {
+    cursor: help;
+}
+
+.border-radius-lg {
+    border-radius: 12px;
+}
+
+.border-radius-xl {
+    border-radius: 16px;
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.shadow-xl {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+
+/* ================================================================
+   6. CARET / TOGGLE ICON
+   Quellen: gantt.css (doppelt definiert!), 
+            ProjectStructureTreeItem.css
+   (dort löschen)
+   ================================================================ */
+.caret {
+    cursor: pointer;
+    margin-right: 8px;
+    color: #6c757d;
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+}
+
+    .caret.collapsed {
+        transform: rotate(-90deg);
+    }
+
+    .caret:hover {
+        color: #495057;
+    }
+
+
+/* ================================================================
+   7. STATUS BADGES (Gemeinsam genutzt)
+   Quellen: dashboard.css, index.css
+   (dort löschen)
+   ================================================================ */
+.status-active,
+.state-open {
+    background: #cce5ff;
+    color: #0066cc;
+}
+
+.status-completed,
+.state-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-onhold {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.status-cancelled {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.state-inprogress {
+    background: #fff3cd;
+    color: #856404;
+}
+
+
+/* ================================================================
+   8. PRIORITY INDICATORS
+   Quelle: dashboard.css (dort löschen)
+   ================================================================ */
+.priority-high {
+    border-left: 4px solid #dc3545 !important;
+}
+
+.priority-medium {
+    border-left: 4px solid #ffc107 !important;
+}
+
+.priority-low {
+    border-left: 4px solid #28a745 !important;
+}
+
+
+/* ================================================================
+   9. STATE COLOR CONTAINER
+   Quelle: gantt.css (dort löschen)
+   ================================================================ */
+.statecolorcontainer {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+}
+
+
+/* ================================================================
+   10. BUTTON ICON (.btn-icon)
+   Quelle: ProjectStructureTreeItem.css (dort löschen)
+   ================================================================ */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+    .btn-icon:hover {
+        background: #f8f9fa;
+        color: #495057;
+        border-color: #adb5bd;
+    }
+
+
+/* ================================================================
+   11. BUTTON LINK FIX
+   Quelle: gantt.css (dort löschen)
+   ================================================================ */
+.btn a {
+    color: white;
+    text-decoration: none;
+}
+
+.btn:hover a {
+    color: white;
+}
+
+
+/* ================================================================
+   12. SHARED MODAL STYLES
+   Quelle: Budgetplanning.css (dort löschen)
+   ================================================================ */
+.modal-content {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 1.5rem 2rem;
+}
+
+    .modal-header h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+.btn-close {
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    opacity: 1;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    border: none;
+    padding: 1.5rem 2rem;
+    background: var(--light-bg);
+}
+
+
+/* ================================================================
+   13. SHARED FORM CONTROLS
+   Quelle: Budgetplanning.css (dort löschen)
+   ================================================================ */
+.form-control {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+
+/* ================================================================
+   14. ACCESSIBILITY
+   Quelle: dashboard.css (dort löschen)
+   ================================================================ */
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .stat-card {
+        border: 2px solid #000;
+    }
+
+    .task-item,
+    .customer-item {
+        border: 1px solid #000;
+    }
+
+    .action-btn {
+        border: 2px solid;
+    }
+}
+
+/* Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus Styles */
+.stat-card:focus-within,
+.task-item:focus-within,
+.customer-item:focus-within {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.action-btn:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+
+/* ================================================================
+   15. OVERFLOW PREVENTION
+   Quelle: layout.css (dort löschen)
+   ================================================================ */
+html, body {
+    overflow-x: hidden;
+}
+
+.main-content {
+    overflow-x: hidden;
+}

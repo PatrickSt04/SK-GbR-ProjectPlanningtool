@@ -1,29 +1,9 @@
-﻿:root {
-    --primary-color: #667eea;
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary-color: #f093fb;
-    --accent-color: #4facfe;
-    --success-color: #00d4aa;
-    --warning-color: #ffc107;
-    --danger-color: #ff6b6b;
-    --light-bg: #f8fafc;
-    --card-bg: #ffffff;
-    --border-color: #e2e8f0;
-    --text-primary: #2d3748;
-    --text-secondary: #718096;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
-    --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
-    --border-radius: 12px;
-    --border-radius-sm: 6px;
-}
-
-body {
+﻿/*body {
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-primary);
     min-height: 100vh;
-}
+}*/
 
 .main-container {
     background: var(--card-bg);
@@ -372,52 +352,10 @@ body {
 }
 
 /* Modal Styling */
-.modal-content {
-    border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
-}
-
-.modal-header {
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
-    padding: 1.5rem 2rem;
-}
 
     .modal-header h5 {
         margin: 0;
         font-weight: 600;
-    }
-
-.btn-close {
-    background: rgba(255,255,255,0.3);
-    border-radius: 50%;
-    opacity: 1;
-}
-
-.modal-body {
-    padding: 2rem;
-}
-
-.modal-footer {
-    border: none;
-    padding: 1.5rem 2rem;
-    background: var(--light-bg);
-}
-
-/* Form Controls */
-.form-control {
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    padding: 0.75rem 1rem;
-    transition: all 0.3s ease;
-}
-
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
 #totalCostPerHour {

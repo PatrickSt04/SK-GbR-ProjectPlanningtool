@@ -1,44 +1,5 @@
 ﻿/* ===== DASHBOARD SPECIFIC STYLES ===== */
 
-/* Animation Utilities */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 /* Dashboard Container Animations */
 .dashboard-container {
     animation: fadeInUp 0.6s ease-out;
@@ -297,31 +258,6 @@
     letter-spacing: 0.5px;
 }
 
-.status-open {
-    background: #e3f2fd;
-    color: #1565c0;
-}
-
-.status-inprogress {
-    background: #fff8e1;
-    color: #ef6c00;
-}
-
-.status-completed {
-    background: #e8f5e8;
-    color: #2e7d32;
-}
-
-.status-onhold {
-    background: #fce4ec;
-    color: #c2185b;
-}
-
-.status-cancelled {
-    background: #ffebee;
-    color: #d32f2f;
-}
-
 /* Priority Indicators */
 .priority-high {
     border-left: 4px solid #dc3545 !important;
@@ -437,33 +373,6 @@
     }
 }
 
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-    .stat-card {
-        border: 2px solid #000;
-    }
-
-    .task-item,
-    .customer-item {
-        border: 1px solid #000;
-    }
-
-    .action-btn {
-        border: 2px solid;
-    }
-}
-
-/* Reduce Motion for Accessibility */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
 /* Focus Styles for Accessibility */
 .stat-card:focus-within,
 .task-item:focus-within,
@@ -524,22 +433,3 @@
 .shadow-xl {
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
-
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-    }

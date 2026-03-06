@@ -25,9 +25,9 @@ h1{
     background-color: #2C3E50;
     margin:0px !important;
 }
-.nav-link {
+/*.nav-link {
     color: #E8F6FE!important
-}
+}*/
 .main-container {
     padding-top: 12px;
     height: 100%
@@ -384,13 +384,4 @@ h1{
         width: 100% !important;
         text-align: center !important;
     }
-}
-
-/* Horizontales Scrollen verhindern */
-html, body {
-    overflow-x: hidden;
-}
-
-.main-content {
-    overflow-x: hidden;
 }
