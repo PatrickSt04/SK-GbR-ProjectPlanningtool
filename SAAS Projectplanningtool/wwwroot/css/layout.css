@@ -25,9 +25,9 @@ h1{
     background-color: #2C3E50;
     margin:0px !important;
 }
-.nav-link {
+/*.nav-link {
     color: #E8F6FE!important
-}
+}*/
 .main-container {
     padding-top: 12px;
     height: 100%
@@ -69,18 +69,6 @@ h1{
     padding-top: 12px !important;
     padding-bottom: 12px !important;
 }
-
-.btn-primary {
-    background-color: #2C3E50;
-    border-color: #2C3E50;
-    color: #E8F6FE;
-    padding: 12px;
-    border-radius: 8px;
-}
-    .btn-primary:hover {
-        background-color: gray;
-        border-color: gray;
-    }
 
 /* ============================================================
    1. LAYOUT - Navigation & Main Content (Mobile)
@@ -384,13 +372,4 @@ h1{
         width: 100% !important;
         text-align: center !important;
     }
-}
-
-/* Horizontales Scrollen verhindern */
-html, body {
-    overflow-x: hidden;
-}
-
-.main-content {
-    overflow-x: hidden;
 }

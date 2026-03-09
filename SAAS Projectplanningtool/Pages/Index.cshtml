@@ -82,28 +82,28 @@
                         <div class="action-buttons">
                             @if (Model.CanCreateProjects)
                             {
-                                <a asp-page="/Projects/Create" class="action-btn primary">
+                                <a asp-page="/Projects/Create" class="btn-primary action-btn">
                                     <i class="fas fa-plus"></i>
                                     Neues Projekt
                                 </a>
                             }
                             @if (Model.CanCreateTasks)
                             {
-                                <a asp-page="/Tasks/Create" class="action-btn secondary">
+                                <a asp-page="/Tasks/Create" class="btn-secondary action-btn ">
                                     <i class="fas fa-tasks"></i>
                                     Neue Aufgabe
                                 </a>
                             }
                             @if (Model.CanCreateCustomers)
                             {
-                                <a asp-page="/Customers/Create" class="action-btn secondary">
+                                <a asp-page="/Customers/Create" class="btn-secondary action-btn">
                                     <i class="fas fa-user-plus"></i>
                                     Neuer Kunde
                                 </a>
                             }
                             @if (Model.CanCreateEmployees)
                             {
-                                <a asp-page="/Employees/Create" class="action-btn secondary">
+                                <a asp-page="/Employees/Create" class="btn-secondary action-btn">
                                     <i class="fas fa-user-tie"></i>
                                     Neuer Mitarbeiter
                                 </a>

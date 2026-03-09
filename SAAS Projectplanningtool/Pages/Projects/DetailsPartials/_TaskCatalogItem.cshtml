@@ -1,0 +1,42 @@
+﻿@model SAAS_Projectplanningtool.Models.Budgetplanning.ProjectTaskCatalogTask
+@{
+    bool isCompleted = Model.State?.StateName == "Abgeschlossen";
+}
+
+<div class="task-item @(isCompleted ? "completed" : "")">
+    <div class="task-form">
+        <div class="task-checkbox">
+            <form method="post" asp-page-handler="ToggleTaskState">
+                <input type="hidden" name="ProjectTaskId" value="@Model.ProjectTaskCatalogTaskId" />
+                <input type="hidden" name="Project.ProjectId" value="@Model.ProjectId" />
+                <input class="form-check-input" type="checkbox"
+                       onchange="this.form.submit()"
+                       @(isCompleted ? "checked" : "") />
+            </form>
+        </div>
+        <div class="task-content">
+            <div class="task-name">@Model.TaskName</div>
+            <div class="task-details">
+                <span class="status-badge @(isCompleted ? "completed" : "pending")">
+                    @(isCompleted ? "Abgeschlossen" : "Offen")
+                </span>
+                @if (Model.StartDate.HasValue || Model.EndDate.HasValue)
+                {
+                    <span class="task-dates">
+                        @Model.StartDate?.ToString("dd.MM.yyyy") - @Model.EndDate?.ToString("dd.MM.yyyy")
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="task-actions">
+            <button type="button" class="btn btn-sm btn-outline-primary"
+                    onclick="editTask('@Model.ProjectTaskCatalogTaskId', '@Model.TaskName', '@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")', '@(Model.EndDate?.ToString("yyyy-MM-dd") ?? "")')">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger"
+                    onclick="deleteItem('@Model.ProjectTaskCatalogTaskId', 'task', '@Model.TaskName')">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</div>

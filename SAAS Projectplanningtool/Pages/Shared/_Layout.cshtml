@@ -9,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/shared.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
@@ -19,7 +20,7 @@
     <nav class="main-navigation" id="mainNav">
         <div class="nav-brand">
             <a class="a_muted" href="/index">
-                <h2><i class="fas fa-project-diagram"></i> ProjektTool</h2>
+                <h2><i class="fas fa-project-diagram"></i> PKAS by SKRIO</h2>
             </a>
         </div>
         @if (User.Identity?.IsAuthenticated == true)
@@ -169,7 +170,7 @@
                     </a>
                 </li>
 
-                <hr style="border-color: #34495e; margin: 20px 15px;">
+                <hr style="border-color: #e8ecf4; margin: 12px 15px;"> @* TODO: in CSS auslagern *@
                 @* 
                 <li class="nav-item">
                     <a href="/Identity/Account/Login" class="nav-link" style="background: #3498db; color: white; margin: 0 15px; border-radius: 6px;">
@@ -179,7 +180,7 @@
                 </li> *@
 
                 <li class="nav-item">
-                    <a href="/Support" class="nav-link" style="border: 2px solid #3498db; color: #3498db; margin: 10px 15px 0; border-radius: 6px;">
+                    <a href="/Support" class="nav-link" style="border: 2px solid #667eea; color: #667eea; margin: 10px 15px 0; border-radius: 6px;">
                         <i class="fas fa-user-plus"></i>
                         Support
                     </a>
