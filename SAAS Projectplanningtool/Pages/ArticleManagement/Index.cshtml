@@ -1,0 +1,144 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.IndexModel
+@{
+    ViewData["Title"] = "Artikelverwaltung";
+}
+
+@await Html.PartialAsync("_ArticleStyles")
+
+<div class="cm-header">
+    <div>
+        <h1>Artikelverwaltung</h1>
+        <div class="cm-meta">Alle Artikel Ihres Unternehmens</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <a asp-page="ArticleCategoryIndex" class="btn-cm btn-cm-ghost">
+            <i class="bi bi-tags"></i> Kategorien
+        </a>
+        <a asp-page="Create" class="btn-cm btn-cm-primary">
+            <i class="bi bi-plus-lg"></i> Neuer Artikel
+        </a>
+    </div>
+</div>
+
+<div class="cm-card" style="padding:0; overflow:hidden;">
+    <div class="cm-colorbar"></div>
+    <div style="padding:18px 24px 14px;">
+        <div class="cm-toolbar">
+            <div class="cm-search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchInput" class="cm-input cm-search"
+                       placeholder="Artikelnummer oder Name suchen…" oninput="filterTable()">
+            </div>
+            <select id="categoryFilter" class="cm-input cm-select" style="width:auto;" onchange="filterTable()">
+                <option value="">Alle Kategorien</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat.ArticleCategoryId">@cat.CategoryName</option>
+                }
+            </select>
+            <select id="statusFilter" class="cm-input cm-select" style="width:auto;" onchange="filterTable()">
+                <option value="aktiv">Aktive</option>
+                <option value="">Alle</option>
+                <option value="gesperrt">Gesperrte</option>
+            </select>
+        </div>
+    </div>
+
+    <table class="cm-table" id="articleTable">
+        <thead>
+            <tr>
+                <th>Artikelnummer</th>
+                <th>Artikelname</th>
+                <th>Kategorie</th>
+                <th style="text-align:right;">Preis</th>
+                <th>Status</th>
+                <th style="width:80px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Articles)
+            {
+                <tr data-search="@item.ArticleNumber.ToLower() @item.ArticleName.ToLower()"
+                    data-category="@item.ArticleCategoryId"
+                    data-status="@(item.DeleteFlag ? "gesperrt" : "aktiv")">
+                    <td style="font-family:monospace; font-size:.85rem; color:var(--text-muted);">
+                        @item.ArticleNumber
+                    </td>
+                    <td>
+                        <a class="td-link" asp-page="Details" asp-route-id="@item.ArticleId">
+                            @item.ArticleName
+                        </a>
+                    </td>
+                    <td>
+                        @if (item.ArticleCategory != null)
+                        {
+                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:.82rem;
+                                                                 background:var(--accent-light); color:var(--accent);
+                                                                 padding:2px 9px; border-radius:20px; font-weight:600;">
+                                <i class="bi bi-tag-fill"></i> @item.ArticleCategory.CategoryName
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="color:var(--text-muted); font-size:.82rem;">–</span>
+                        }
+                    </td>
+                    <td style="text-align:right; font-weight:700;">
+                        @item.Price.ToString("N2") €
+                    </td>
+                    <td>
+                        @if (item.DeleteFlag)
+                        {
+                            <span class="badge-type badge-locked"><i class="bi bi-lock-fill"></i> Gesperrt</span>
+                        }
+                        else
+                        {
+                            <span style="color:var(--success); font-size:.8rem; font-weight:600;">
+                                <i class="bi bi-check-circle-fill"></i> Aktiv
+                            </span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-page="Details" asp-route-id="@item.ArticleId"
+                           class="btn-cm btn-cm-ghost btn-cm-sm">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Articles.Any())
+    {
+        <div class="cm-empty">
+            <div class="cm-empty-icon"><i class="bi bi-box-seam"></i></div>
+            Noch keine Artikel vorhanden.
+        </div>
+    }
+
+    <div style="padding:12px 24px; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-muted);">
+        <span id="rowCount">@Model.Articles.Count</span> Einträge
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        const q      = document.getElementById('searchInput').value.toLowerCase();
+        const cat    = document.getElementById('categoryFilter').value;
+        const status = document.getElementById('statusFilter').value;
+        const rows   = document.querySelectorAll('#articleTable tbody tr');
+        let visible  = 0;
+        rows.forEach(r => {
+            const show = (!q      || r.dataset.search.includes(q))   &&
+                         (!cat    || r.dataset.category === cat)      &&
+                         (!status || r.dataset.status   === status);
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('rowCount').textContent = visible;
+    }
+    filterTable();
+</script>
+
