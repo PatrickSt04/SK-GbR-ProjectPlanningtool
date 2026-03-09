@@ -1,4 +1,5 @@
 ﻿using Mono.TextTemplating;
+using SAAS_Projectplanningtool.Models.CRM;
 using SAAS_Projectplanningtool.Models.IndependentTables;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

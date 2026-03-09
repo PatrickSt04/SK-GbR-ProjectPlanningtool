@@ -1,63 +1,158 @@
 ﻿@page
 @model SAAS_Projectplanningtool.Pages.CustomerManagement.EditModel
-
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Kunde bearbeiten";
 }
 
-<h1>Kunde bearbeiten</h1>
+@await Html.PartialAsync("_CustomerStyles")
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Customer.CustomerId" />
-            <input type="hidden" asp-for="Customer.CompanyId" />
-            <input type="hidden" asp-for="Customer.CreatedById" />
-            <input type="hidden" asp-for="Customer.CreatedTimestamp" />
-            <input type="hidden" asp-for="Customer.AddressId" />
-            <div class="form-group">
-                <label asp-for="Customer.CustomerName" class="control-label">Name</label>
-                <input asp-for="Customer.CustomerName" class="form-control" />
-                <span asp-validation-for="Customer.CustomerName" class="text-danger"></span>
-            </div>
-            <input type="hidden" asp-for="Address.CompanyId" />
-            <input type="hidden" asp-for="Address.AddressId" />
-
-            <label asp-for="Address.Country" class="control-label">Land</label>
-            <input asp-for="Address.Country" class="form-control" />
-            <span asp-validation-for="Address.Country" class="text-danger"></span>
-
-            <label asp-for="Address.Region" class="control-label">Region</label>
-            <input asp-for="Address.Region" class="form-control" />
-            <span asp-validation-for="Address.Region" class="text-danger"></span>
-
-            <label asp-for="Address.PostalCode" class="control-label">Postleitzahl</label>
-            <input asp-for="Address.PostalCode" class="form-control" />
-            <span asp-validation-for="Address.PostalCode" class="text-danger"></span>
-
-            <label asp-for="Address.City" class="control-label">Stadt</label>
-            <input asp-for="Address.City" class="form-control" />
-            <span asp-validation-for="Address.City" class="text-danger"></span>
-
-            <label asp-for="Address.Street" class="control-label">Straße</label>
-            <input asp-for="Address.Street" class="form-control" />
-            <span asp-validation-for="Address.Street" class="text-danger"></span>
-
-            <label asp-for="Address.HouseNumber" class="control-label">Hausnummer</label>
-            <input asp-for="Address.HouseNumber" class="form-control" />
-            <span asp-validation-for="Address.HouseNumber" class="text-danger"></span>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<div style="max-width: 720px;">
+    <div class="cm-header">
+        <div>
+            <h1>Stammdaten bearbeiten</h1>
+            <div class="cm-meta">@Model.Customer.CustomerName</div>
+        </div>
+        <a asp-page="Details" asp-route-id="@Model.Customer.CustomerId" class="btn-cm btn-cm-ghost">
+            <i class="bi bi-arrow-left"></i> Zurück
+        </a>
     </div>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="cm-card" style="border-left:3px solid var(--danger); color:var(--danger); font-size:.875rem;"></div>
+        <input type="hidden" asp-for="Customer.CustomerId" />
+        <input type="hidden" asp-for="Customer.CompanyId" />
+        <input type="hidden" asp-for="Customer.CreatedById" />
+        <input type="hidden" asp-for="Customer.CreatedTimestamp" />
+        <input type="hidden" asp-for="Customer.AddressId" />
+        <input type="hidden" asp-for="Address.CompanyId" />
+        <input type="hidden" asp-for="Address.AddressId" />
+
+        <!-- Typ -->
+        <div class="cm-card">
+            <div class="cm-card-title">Typ</div>
+            <div style="display:flex; gap:12px;">
+                <label style="flex:1; cursor:pointer;">
+                    <input type="radio" asp-for="Customer.CustomerType" value="0" id="typeInteressent" style="display:none;">
+                    <div class="type-option @(Model.Customer.CustomerType == SAAS_Projectplanningtool.Models.CRM.CustomerType.Interessent ? "selected" : "")"
+                         data-for="typeInteressent" onclick="selectType(this,'typeInteressent')">
+                        <i class="bi bi-person-badge" style="font-size:1.4rem; color:var(--warning);"></i>
+                        <strong>Interessent</strong>
+                        <span style="font-size:.78rem; color:var(--text-muted);">Noch kein aktiver Kunde</span>
+                    </div>
+                </label>
+                <label style="flex:1; cursor:pointer;">
+                    <input type="radio" asp-for="Customer.CustomerType" value="1" id="typeKunde" style="display:none;">
+                    <div class="type-option @(Model.Customer.CustomerType == SAAS_Projectplanningtool.Models.CRM.CustomerType.Kunde ? "selected" : "")"
+                         data-for="typeKunde" onclick="selectType(this,'typeKunde')">
+                        <i class="bi bi-building-check" style="font-size:1.4rem; color:var(--success);"></i>
+                        <strong>Kunde</strong>
+                        <span style="font-size:.78rem; color:var(--text-muted);">Bestehender Kunde</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Stammdaten -->
+        <div class="cm-card">
+            <div class="cm-card-title">Stammdaten</div>
+            <div class="cm-form-group">
+                <label asp-for="Customer.CustomerName">Name *</label>
+                <input asp-for="Customer.CustomerName" class="cm-input" />
+                <span asp-validation-for="Customer.CustomerName" style="color:var(--danger); font-size:.78rem;"></span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="cm-form-group">
+                    <label asp-for="Customer.ContactPhone">Telefon</label>
+                    <input asp-for="Customer.ContactPhone" class="cm-input" />
+                </div>
+                <div class="cm-form-group">
+                    <label asp-for="Customer.ContactEmail">E-Mail</label>
+                    <input asp-for="Customer.ContactEmail" class="cm-input" type="email" />
+                </div>
+            </div>
+            <div class="cm-form-group">
+                <label asp-for="Customer.Website">Website</label>
+                <input asp-for="Customer.Website" class="cm-input" />
+            </div>
+            <div class="cm-form-group">
+                <label asp-for="Customer.Notes">Notizen</label>
+                <textarea asp-for="Customer.Notes" class="cm-input" rows="3" style="resize:vertical;"></textarea>
+            </div>
+        </div>
+
+        <!-- Adresse -->
+        <div class="cm-card">
+            <div class="cm-card-title">Adresse</div>
+            <div style="display:grid; grid-template-columns:3fr 1fr; gap:14px;">
+                <div class="cm-form-group">
+                    <label asp-for="Address.Street">Straße</label>
+                    <input asp-for="Address.Street" class="cm-input" />
+                </div>
+                <div class="cm-form-group">
+                    <label asp-for="Address.HouseNumber">Nr.</label>
+                    <input asp-for="Address.HouseNumber" class="cm-input" />
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 2fr; gap:14px;">
+                <div class="cm-form-group">
+                    <label asp-for="Address.PostalCode">PLZ</label>
+                    <input asp-for="Address.PostalCode" class="cm-input" />
+                </div>
+                <div class="cm-form-group">
+                    <label asp-for="Address.City">Stadt</label>
+                    <input asp-for="Address.City" class="cm-input" />
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="cm-form-group">
+                    <label asp-for="Address.Country">Land</label>
+                    <input asp-for="Address.Country" class="cm-input" />
+                </div>
+                <div class="cm-form-group">
+                    <label asp-for="Address.Region">Region / Bundesland</label>
+                    <input asp-for="Address.Region" class="cm-input" />
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:4px;">
+            <a asp-page="Details" asp-route-id="@Model.Customer.CustomerId" class="btn-cm btn-cm-ghost">Abbrechen</a>
+            <button type="submit" class="btn-cm btn-cm-primary">
+                <i class="bi bi-check-lg"></i> Speichern
+            </button>
+        </div>
+    </form>
 </div>
 
-<div>
-    <a asp-page="./Index">Back to List</a>
-</div>
+<style>
+    .type-option {
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        transition: all .15s;
+    }
+
+        .type-option:hover {
+            border-color: #a5b4fc;
+            background: var(--accent-light);
+        }
+
+        .type-option.selected {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+</style>
+
+<script>
+    function selectType(el, radioId) {
+      document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById(radioId).checked = true;
+    }
+</script>
 
 @section Scripts {
     @{

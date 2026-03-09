@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309084744_CRM")]
+    partial class CRM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -688,6 +691,10 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("EntryId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CompanyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("ContactDate")
                         .HasColumnType("datetime2");
 
@@ -706,6 +713,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("EntryId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("CreatedById");
 
@@ -780,6 +789,10 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("ContactPersonId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CompanyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("CustomerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -805,6 +818,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.HasKey("ContactPersonId");
 
+                    b.HasIndex("CompanyId");
+
                     b.HasIndex("CustomerId");
 
                     b.ToTable("CustomerContactPerson");
@@ -813,6 +828,10 @@ namespace SAAS_Projectplanningtool.Migrations
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.CRM.CustomerMaterialSurcharge", b =>
                 {
                     b.Property<string>("SurchargeId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CompanyId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CustomerId")
@@ -830,6 +849,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("SurchargeId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("CustomerId");
 
@@ -852,6 +873,10 @@ namespace SAAS_Projectplanningtool.Migrations
 
                     b.Property<DateTime?>("ClosedTimestamp")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("CompanyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Content")
                         .HasColumnType("nvarchar(max)");
@@ -876,6 +901,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasKey("MessageId");
 
                     b.HasIndex("ClosedById");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("CreatedById");
 
@@ -1691,6 +1718,12 @@ namespace SAAS_Projectplanningtool.Migrations
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.CRM.ContactHistoryEntry", b =>
                 {
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
                         .WithMany()
                         .HasForeignKey("CreatedById")
@@ -1701,6 +1734,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Company");
 
                     b.Navigation("CreatedByEmployee");
 
@@ -1740,22 +1775,38 @@ namespace SAAS_Projectplanningtool.Migrations
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.CRM.CustomerContactPerson", b =>
                 {
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("SAAS_Projectplanningtool.Models.CRM.Customer", "Customer")
                         .WithMany("ContactPersons")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.Navigation("Company");
+
                     b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.CRM.CustomerMaterialSurcharge", b =>
                 {
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("SAAS_Projectplanningtool.Models.CRM.Customer", "Customer")
                         .WithMany("MaterialSurcharges")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Company");
 
                     b.Navigation("Customer");
                 });
@@ -1766,6 +1817,12 @@ namespace SAAS_Projectplanningtool.Migrations
                         .WithMany()
                         .HasForeignKey("ClosedById")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
                         .WithMany()
@@ -1779,6 +1836,8 @@ namespace SAAS_Projectplanningtool.Migrations
                         .IsRequired();
 
                     b.Navigation("ClosedByEmployee");
+
+                    b.Navigation("Company");
 
                     b.Navigation("CreatedByEmployee");
 

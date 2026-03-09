@@ -9,6 +9,7 @@ using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
+using SAAS_Projectplanningtool.Models.CRM;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
 {
