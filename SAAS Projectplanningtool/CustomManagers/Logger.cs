@@ -4,12 +4,20 @@ using System.Security.Claims;
 using SAAS_Projectplanningtool.Models;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SAAS_Projectplanningtool.CustomManagers
 {
     public class Logger(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
         private readonly CustomUserManager customUserManager = new(context, userManager);
+
+        // ReferenceHandler.IgnoreCycles schützt zusätzlich vor echten Zirkelreferenzen.
+        private static readonly JsonSerializerOptions _logSerializerOptions = new()
+        {
+            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+            WriteIndented = false
+        };
 
         public async Task<string> Log(Exception? exception, ClaimsPrincipal ExcecutingUserTable, object? UsedModelObject, string? custommessage)
         {
@@ -22,7 +30,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 ExcecutingEmployee = excecutingEmployee,
                 TimeOfException = DateTime.Now,
                 CustomMessage = custommessage,
-                SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
+                SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject, _logSerializerOptions)
             };
 
             await context.Logfile.AddAsync(log);
@@ -30,6 +38,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
 
             return log.LogfileId;
         }
+
         // Overload for logging by user id
         // Used for Login / Logout actions of a user
         public async Task<string> LogByUserId(string userId, string? customMessage, object? UsedModelObject = null)
@@ -43,7 +52,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 ExcecutingEmployee = excecutingEmployee,
                 TimeOfException = DateTime.Now,
                 CustomMessage = customMessage,
-                SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject)
+                SerializedObject = UsedModelObject == null ? "null" : JsonSerializer.Serialize(UsedModelObject, _logSerializerOptions)
             };
 
             await context.Logfile.AddAsync(log);

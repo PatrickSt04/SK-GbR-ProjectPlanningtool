@@ -2,35 +2,51 @@
 @model SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups.CreateModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Stundensatzgruppe anlegen";
 }
 
-<h1>Stundensatzgruppen - Anlage</h1>
+@await Html.PartialAsync("../_EmployeeStyles")
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="HourlyRateGroup.HourlyRateGroupName" class="control-label">Name der Stundensatzgruppe</label>
-                <input asp-for="HourlyRateGroup.HourlyRateGroupName" class="form-control" />
-                <span asp-validation-for="HourlyRateGroup.HourlyRateGroupName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HourlyRateGroup.HourlyRate" class="control-label">Stundensatz in €</label>
-                <input asp-for="HourlyRateGroup.HourlyRate" class="form-control" />
-                <span asp-validation-for="HourlyRateGroup.HourlyRate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Speichern" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="cm-header">
+    <div>
+        <h1>Stundensatzgruppe anlegen</h1>
+        <div class="cm-meta">Neue Gruppe mit Stundensatz erstellen</div>
     </div>
+    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
 </div>
 
-<div>
-    <a asp-page="/EmployeeManagement/Index">Zurück zur Übersicht</a>
+<div style="max-width:480px;">
+    <div class="cm-card" style="padding:0; overflow:hidden;">
+        <div class="cm-colorbar-rate"></div>
+        <div style="padding:24px;">
+            <div class="cm-card-title"><i class="bi bi-clock-history"></i> &nbsp;Gruppendaten</div>
+
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:14px;"></div>
+
+                <div class="cm-form-group">
+                    <label asp-for="HourlyRateGroup.HourlyRateGroupName">Name der Stundensatzgruppe</label>
+                    <input asp-for="HourlyRateGroup.HourlyRateGroupName" class="cm-input" placeholder="z. B. Senior, Junior, Extern…" />
+                    <span asp-validation-for="HourlyRateGroup.HourlyRateGroupName" class="text-danger"></span>
+                </div>
+
+                <div class="cm-form-group">
+                    <label asp-for="HourlyRateGroup.HourlyRate">Stundensatz in €</label>
+                    <input asp-for="HourlyRateGroup.HourlyRate" class="cm-input" placeholder="0,00" type="number" step="0.01" min="0" />
+                    <span asp-validation-for="HourlyRateGroup.HourlyRate" class="text-danger"></span>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:24px;">
+                    <button type="submit" class="btn-cm btn-cm-purple">
+                        <i class="bi bi-check-lg"></i> Gruppe anlegen
+                    </button>
+                    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

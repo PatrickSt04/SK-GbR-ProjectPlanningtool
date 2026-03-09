@@ -2,43 +2,62 @@
 @model CreateModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Mitarbeiter anlegen";
 }
 
-<h1>Mitarbeiteranlage</h1>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Employee.EmployeeDisplayName" class="control-label">Anzeigename</label>
-                <input asp-for="Employee.EmployeeDisplayName" class="form-control" />
-                <span asp-validation-for="Employee.EmployeeDisplayName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label">Email</label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Employee.HourlyRateGroupId" class="control-label">Stundensatzgruppe</label>
-                <select asp-for="Employee.HourlyRateGroupId" class="form-control" asp-items="Model.HourlyRateGroups"></select>
-                <span asp-validation-for="Employee.HourlyRateGroupId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdentityRoleId" class="control-label">Rolle</label>
-                <select asp-for="IdentityRoleId" class="form-control" asp-items="Model.IdentityRoles"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Anlegen" class="btn btn-primary" />
-            </div>
-        </form>
+@await Html.PartialAsync("../_EmployeeStyles")
+
+<div class="cm-header">
+    <div>
+        <h1>Mitarbeiter anlegen</h1>
+        <div class="cm-meta">Neuen Mitarbeiter zum Unternehmen hinzufügen</div>
     </div>
+    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
 </div>
 
-<div>
-    <a asp-page="/EmployeeManagement/Index">Zurück</a>
+<div style="max-width:520px;">
+    <div class="cm-card" style="padding:0; overflow:hidden;">
+        <div class="cm-colorbar"></div>
+        <div style="padding:24px;">
+            <div class="cm-card-title"><i class="bi bi-person-plus"></i> &nbsp;Mitarbeiterdaten</div>
+
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:14px;"></div>
+
+                <div class="cm-form-group">
+                    <label asp-for="Employee.EmployeeDisplayName">Anzeigename</label>
+                    <input asp-for="Employee.EmployeeDisplayName" class="cm-input" placeholder="Vor- und Nachname" />
+                    <span asp-validation-for="Employee.EmployeeDisplayName" class="text-danger"></span>
+                </div>
+
+                <div class="cm-form-group">
+                    <label asp-for="Email">E-Mail-Adresse</label>
+                    <input asp-for="Email" class="cm-input" type="email" placeholder="mitarbeiter@firma.de" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="cm-form-group">
+                    <label asp-for="Employee.HourlyRateGroupId">Stundensatzgruppe</label>
+                    <select asp-for="Employee.HourlyRateGroupId" class="cm-input cm-select" asp-items="Model.HourlyRateGroups"></select>
+                    <span asp-validation-for="Employee.HourlyRateGroupId" class="text-danger"></span>
+                </div>
+
+                <div class="cm-form-group">
+                    <label asp-for="IdentityRoleId">Rolle</label>
+                    <select asp-for="IdentityRoleId" class="cm-input cm-select" asp-items="Model.IdentityRoles"></select>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:24px;">
+                    <button type="submit" class="btn-cm btn-cm-primary">
+                        <i class="bi bi-check-lg"></i> Mitarbeiter anlegen
+                    </button>
+                    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

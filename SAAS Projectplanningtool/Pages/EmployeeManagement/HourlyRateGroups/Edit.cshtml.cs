@@ -39,7 +39,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                     return NotFound();
                 }
 
-                var hourlyrategroup = await _context.HourlyRateGroup.FirstOrDefaultAsync(m => m.HourlyRateGroupId == id);
+                var hourlyrategroup = await _context.HourlyRateGroup.Include(hr => hr.Company).FirstOrDefaultAsync(m => m.HourlyRateGroupId == id);
                 if (hourlyrategroup == null)
                 {
                     return NotFound();
@@ -63,6 +63,8 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                     return Page();
                 }
                 HourlyRateGroup = await new CustomObjectModifier(_context, _userManager).AddLatestModificationAsync(User, "Stundensatzgruppe geändert", HourlyRateGroup, false);
+                var excecutingEmployee = await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
+                HourlyRateGroup.Company = excecutingEmployee.Company;
                 _context.Attach(HourlyRateGroup).State = EntityState.Modified;
 
                 try
@@ -81,7 +83,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups
                     }
                 }
 
-                return RedirectToPage("./Details", new {id = HourlyRateGroup.HourlyRateGroupId});
+                return RedirectToPage("./Details", new { id = HourlyRateGroup.HourlyRateGroupId });
 
             }
             catch (Exception ex)
