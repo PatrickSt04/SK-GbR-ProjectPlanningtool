@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
+using SAAS_Projectplanningtool.Models.Budgetplanning;
 
 namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
 {
@@ -27,7 +28,11 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
         [BindProperty]
 
         public Employee Employee { get; set; } = default!;
+
+        public bool EmployeeIsViewer { get; set; } = false;
         public IList<string> EmployeeRoles { get; set; } = new List<string>();
+
+        public IList<Project> ViewerSharedProjects { get; set; } = new List<Project>();
 
         public async Task<IActionResult> OnGetAsync(string? id)
         {
@@ -55,6 +60,20 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                     Employee = employee;
                     if (employee.IdentityUser != null)
                         EmployeeRoles = await _userManager.GetRolesAsync(employee.IdentityUser);
+                }
+                var identityUser = Employee.IdentityUser;
+                if (identityUser != null)
+                {
+                    EmployeeRoles = await _userManager.GetRolesAsync(identityUser);
+                    if (EmployeeRoles.Contains("Viewer"))
+                    {
+                        EmployeeIsViewer = true;
+                        // Get shared projects if employee is viewer
+                        var projectReleaseManager = new ProjectReleaseManager(_context, _userManager);
+                        var releasedProjectIDs = await projectReleaseManager.GetReleasedProjectIDsForViewer(Employee);
+                        ViewerSharedProjects = await _context.Project.Include(p => p.State).Include(p => p.ResponsiblePerson).Include(p => p.Customer)
+                            .Where(p => releasedProjectIDs.Contains(p.ProjectId)).ToListAsync();
+                    }
                 }
                 await _logger.Log(null, User, null, "/EmployeeManagement/Employees/Details<OnGetAsync>End");
                 return Page();

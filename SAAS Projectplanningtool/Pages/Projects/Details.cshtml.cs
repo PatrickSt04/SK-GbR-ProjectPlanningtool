@@ -156,12 +156,12 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     TotalProjectHours = allTimeEntries.Sum(t => t.NetWorkingHours);
 
                 }
-                
-                    #endregion
+
+                #endregion
 
 
 
-                    ViewData["AllStates"] = await _context.State.ToListAsync();
+                ViewData["AllStates"] = await _context.State.ToListAsync();
 
 
 
@@ -337,6 +337,41 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error",
                     new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostDeleteTimeEntryAsync>Error") });
+            }
+        }
+        /// <summary>
+        /// Projekt wird für  Viewer Mitarbeiter freigegeben, damit sie Zeiteinträge hinzufügen kann.
+        /// </summary>
+        public async Task<IActionResult> OnPostReleaseProjectForViewerAsync(
+            List<string>? employeeIds,
+            string? projectId)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/Details<OnPostReleaseProjectForViewerAsync>Begin");
+                var projectReleaseManager = new ProjectReleaseManager(_context, _userManager);
+                if (projectId == null) return NotFound();
+                if (employeeIds == null || employeeIds.Count == 0)
+                {
+                    TempData.SetMessage("Error", "Es muss mindestens ein Mitarbeiter ausgewählt werden.");
+                    return RedirectToPage(new { id = projectId });
+                }
+
+
+                foreach (var employeeId in employeeIds)
+                {
+                    var employee = await _context.Employee.FindAsync(employeeId);
+                    if (employee != null)
+                        await projectReleaseManager.ReleaseProjectForViewer(projectId, employee);
+                }
+
+                await _logger.Log(null, User, null, "Projects/Details<OnPostReleaseProjectForViewerAsync>End");
+                return RedirectToPage(new { id = projectId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error",
+                    new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostReleaseProjectForViewerAsync>Error") });
             }
         }
         #endregion
