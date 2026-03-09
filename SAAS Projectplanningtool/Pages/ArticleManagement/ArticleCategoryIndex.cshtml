@@ -1,0 +1,119 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.ArticleCategoryIndexModel
+@{
+    ViewData["Title"] = "Artikelkategorien";
+}
+
+@await Html.PartialAsync("_ArticleStyles")
+
+<div class="cm-header">
+    <div>
+        <h1>Artikelkategorien</h1>
+        <div class="cm-meta">Verwaltung aller Kategorien Ihres Unternehmens</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <a asp-page="Index" class="btn-cm btn-cm-ghost">
+            <i class="bi bi-box-seam"></i> Zur Artikelübersicht
+        </a>
+        <a asp-page="ArticleCategoryCreate" class="btn-cm btn-cm-primary">
+            <i class="bi bi-plus-lg"></i> Neue Kategorie
+        </a>
+    </div>
+</div>
+
+<div class="cm-card" style="padding:0; overflow:hidden;">
+    <div class="cm-colorbar"></div>
+    <div style="padding:18px 24px 14px;">
+        <div class="cm-toolbar">
+            <div class="cm-search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchInput" class="cm-input cm-search"
+                       placeholder="Kategorie suchen…" oninput="filterTable()">
+            </div>
+            <select id="statusFilter" class="cm-input cm-select" style="width:auto;" onchange="filterTable()">
+                <option value="aktiv">Aktive</option>
+                <option value="">Alle</option>
+                <option value="gesperrt">Gesperrte</option>
+            </select>
+        </div>
+    </div>
+
+    <table class="cm-table" id="categoryTable">
+        <thead>
+            <tr>
+                <th>Kategoriename</th>
+                <th>Beschreibung</th>
+                <th>Artikel</th>
+                <th>Status</th>
+                <th style="width:80px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cat in Model.Categories)
+            {
+                <tr data-name="@cat.CategoryName.ToLower()"
+                    data-status="@(cat.DeleteFlag ? "gesperrt" : "aktiv")">
+                    <td>
+                        <a class="td-link" asp-page="ArticleCategoryDetails" asp-route-id="@cat.ArticleCategoryId">
+                            @cat.CategoryName
+                        </a>
+                    </td>
+                    <td style="color:var(--text-muted); font-size:.85rem;">
+                        @(string.IsNullOrEmpty(cat.Description) ? "–" : cat.Description)
+                    </td>
+                    <td style="font-size:.85rem; color:var(--text-muted);">
+                        @cat.Articles.Count(a => !a.DeleteFlag) aktiv
+                    </td>
+                    <td>
+                        @if (cat.DeleteFlag)
+                        {
+                            <span class="badge-type badge-locked"><i class="bi bi-lock-fill"></i> Gesperrt</span>
+                        }
+                        else
+                        {
+                            <span style="color:var(--success); font-size:.8rem; font-weight:600;">
+                                <i class="bi bi-check-circle-fill"></i> Aktiv
+                            </span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-page="ArticleCategoryDetails" asp-route-id="@cat.ArticleCategoryId"
+                           class="btn-cm btn-cm-ghost btn-cm-sm">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Categories.Any())
+    {
+        <div class="cm-empty">
+            <div class="cm-empty-icon"><i class="bi bi-tags"></i></div>
+            Noch keine Kategorien vorhanden.
+        </div>
+    }
+
+    <div style="padding:12px 24px; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-muted);">
+        <span id="rowCount">@Model.Categories.Count</span> Einträge
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        const q      = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const rows   = document.querySelectorAll('#categoryTable tbody tr');
+        let visible  = 0;
+        rows.forEach(r => {
+            const show = (!q || r.dataset.name.includes(q)) &&
+                         (!status || r.dataset.status === status);
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('rowCount').textContent = visible;
+    }
+    filterTable();
+</script>
+

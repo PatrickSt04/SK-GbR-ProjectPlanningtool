@@ -1,0 +1,135 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.DetailsModel
+@{
+    ViewData["Title"] = Model.Article.ArticleName;
+    bool isLocked = Model.Article.DeleteFlag;
+}
+
+@await Html.PartialAsync("_ArticleStyles")
+
+<div class="cm-header">
+    <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:48px; height:48px; border-radius:14px; background:var(--accent-light);
+                    display:flex; align-items:center; justify-content:center;
+                    font-size:1.3rem; color:var(--accent); flex-shrink:0;">
+            <i class="bi bi-box-seam-fill"></i>
+        </div>
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <h1 style="margin:0; font-size:1.5rem;">@Model.Article.ArticleName</h1>
+                <span style="font-family:monospace; font-size:.85rem; color:var(--text-muted);
+                              background:var(--surface-2); border:1px solid var(--border);
+                              padding:2px 8px; border-radius:6px;">
+                    @Model.Article.ArticleNumber
+                </span>
+                @if (isLocked)
+                {
+                    <span class="badge-type badge-locked"><i class="bi bi-lock-fill"></i> Gesperrt</span>
+                }
+                else
+                {
+                    <span class="badge-type badge-active"><i class="bi bi-check-circle-fill"></i> Aktiv</span>
+                }
+            </div>
+            <div style="font-size:.78rem; color:var(--text-muted); margin-top:3px;">
+                Erstellt von @(Model.Article.CreatedByEmployee?.EmployeeDisplayName ?? "Unbekannt")
+                @if (Model.Article.CreatedTimestamp.HasValue)
+                {
+                    <span>· @Model.Article.CreatedTimestamp.Value.ToString("dd.MM.yyyy")</span>
+                }
+            </div>
+        </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a asp-page="Edit" asp-route-id="@Model.Article.ArticleId" class="btn-cm btn-cm-ghost">
+            <i class="bi bi-pencil"></i> Bearbeiten
+        </a>
+        @if (!isLocked)
+        {
+            <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Article.ArticleId">
+                <button type="submit" class="btn-cm btn-cm-danger btn-cm-sm"
+                        onclick="return confirm('Artikel wirklich sperren?');">
+                    <i class="bi bi-lock"></i> Sperren
+                </button>
+            </form>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Article.ArticleId">
+                <button type="submit" class="btn-cm btn-cm-success btn-cm-sm">
+                    <i class="bi bi-unlock"></i> Entsperren
+                </button>
+            </form>
+        }
+        <a asp-page="Index" class="btn-cm btn-cm-ghost btn-cm-sm">
+            <i class="bi bi-arrow-left"></i> Zurück
+        </a>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px; align-items:start;">
+    <div>
+        <div class="cm-card">
+            <div class="cm-card-title">Artikeldaten</div>
+            <div class="cm-info-grid">
+                <div class="cm-info-item">
+                    <label>Artikelnummer</label>
+                    <span style="font-family:monospace;">@Model.Article.ArticleNumber</span>
+                </div>
+                <div class="cm-info-item">
+                    <label>Artikelname</label>
+                    <span>@Model.Article.ArticleName</span>
+                </div>
+                <div class="cm-info-item">
+                    <label>Preis</label>
+                    <span style="font-size:1.05rem; font-weight:700; color:var(--accent);">
+                        @Model.Article.Price.ToString("N2") €
+                    </span>
+                </div>
+                <div class="cm-info-item">
+                    <label>Kategorie</label>
+                    @if (Model.Article.ArticleCategory != null)
+                    {
+                        <span>
+                            <a asp-page="ArticleCategoryDetails"
+                               asp-route-id="@Model.Article.ArticleCategoryId"
+                               style="color:var(--accent); text-decoration:none; font-weight:600;">
+                                <i class="bi bi-tag-fill"></i> @Model.Article.ArticleCategory.CategoryName
+                            </a>
+                        </span>
+                    }
+                    else
+                    {
+                        <span style="color:var(--text-muted);">–</span>
+                    }
+                </div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Article.Description))
+            {
+                <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+                    <div class="cm-card-title">Beschreibung</div>
+                    <p style="margin:0; font-size:.875rem; white-space:pre-wrap;">@Model.Article.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="cm-card">
+        <div class="cm-card-title">Letzte Änderung</div>
+        <div style="font-size:.85rem;">
+            <div style="margin-bottom:8px;">
+                <div style="color:var(--text-muted); font-size:.75rem;">Bearbeiter</div>
+                <div>@(Model.Article.LatestModifier?.EmployeeDisplayName ?? "–")</div>
+            </div>
+            <div style="margin-bottom:8px;">
+                <div style="color:var(--text-muted); font-size:.75rem;">Zeitpunkt</div>
+                <div>@(Model.Article.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "–")</div>
+            </div>
+            <div>
+                <div style="color:var(--text-muted); font-size:.75rem;">Beschreibung</div>
+                <div>@(Model.Article.LatestModificationText ?? "–")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
