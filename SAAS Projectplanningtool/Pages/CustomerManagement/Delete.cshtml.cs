@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
+using SAAS_Projectplanningtool.Models.CRM;
 
 namespace SAAS_Projectplanningtool.Pages.CustomerManagement
 {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.TimeTracking;
+using SAAS_Projectplanningtool.Models.CRM;
 
 
 namespace SAAS_Projectplanningtool.Data
@@ -12,7 +13,7 @@ namespace SAAS_Projectplanningtool.Data
     {
         public DbSet<SAAS_Projectplanningtool.Models.Company> Company { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Address> Address { get; set; } = default!;
-        public DbSet<SAAS_Projectplanningtool.Models.Customer> Customer { get; set; } = default!;
+        public DbSet<Customer> Customer { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Employee> Employee { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.HourlyRateGroup> HourlyRateGroup { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.Project> Project { get; set; } = default!;
@@ -30,6 +31,11 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.HolidayCalendarEntry> HolidayCalendarEntry { get; set; } = default!;
 
         public DbSet<SAAS_Projectplanningtool.Models.ProjectEmployeeViewerShare> ProjectEmployeeViewerShare { get; set; } = default!;
+
+        public DbSet<SAAS_Projectplanningtool.Models.CRM.CustomerContactPerson> CustomerContactPerson { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.CRM.CustomerMessage> CustomerMessage { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.CRM.CustomerMaterialSurcharge> CustomerMaterialSurcharge { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.CRM.ContactHistoryEntry> ContactHistoryEntry { get; set; } = default!;
         public DbSet<TimeEntry> TimeEntry { get; set; } = default!;
 
 
