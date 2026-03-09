@@ -89,7 +89,9 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                 var executingEmployee =
                     await new CustomUserManager(_context, _userManager).GetEmployeeAsync(_userManager.GetUserId(User));
                 bool selfmodification = executingEmployee.EmployeeId == Employee.EmployeeId;
-                //_context.Attach(executingEmployee).State = EntityState.Detached;
+                // executingEmployee aus dem Tracking entfernen, damit EF kein Konflikt
+                // mit dem später anzuhängenden Employee-Objekt bekommt
+                _context.Entry(executingEmployee).State = EntityState.Detached;
 
 
                 if (!selfmodification)

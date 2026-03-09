@@ -2,93 +2,151 @@
 @model IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Mitarbeiterverwaltung";
 }
 
-<h1>Mitarbeiterverwaltung</h1>
-<hr />
-<div class="row">
-    <div class="col-md-8">
-        <h3>Mitarbeiter</h3>
-        <a asp-page="./Employees/Create">
-            <div class="btn btn-secondary">
-                Anlegen
+@await Html.PartialAsync("_EmployeeStyles")
+
+<div class="cm-header">
+    <div>
+        <h1>Mitarbeiterverwaltung</h1>
+        <div class="cm-meta">Mitarbeiter & Stundensatzgruppen Ihres Unternehmens</div>
+    </div>
+</div>
+
+<div class="em-grid">
+
+    @* {{!-- ══ Mitarbeiter ══ --}} *@
+    <div class="cm-card" style="padding:0; overflow:hidden;">
+        <div class="cm-colorbar"></div>
+        <div class="cm-section-header">
+            <h2 class="cm-section-title">
+                <i class="bi bi-people-fill"></i> Mitarbeiter
+            </h2>
+            <a asp-page="./Employees/Create" class="btn-cm btn-cm-primary btn-cm-sm">
+                <i class="bi bi-plus-lg"></i> Anlegen
+            </a>
+        </div>
+
+        <div style="padding:14px 24px 0;">
+            <div class="cm-toolbar">
+                <div class="cm-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="empSearch" class="cm-input cm-search"
+                           placeholder="Name oder E-Mail suchen…" oninput="filterEmployees()">
+                </div>
+                <select id="empStatusFilter" class="cm-input cm-select" style="width:auto;" onchange="filterEmployees()">
+                    <option value="aktiv">Aktive</option>
+                    <option value="">Alle</option>
+                    <option value="gesperrt">Gesperrte</option>
+                </select>
             </div>
-        </a>
-        <hr />
-        <table class="table">
+        </div>
+
+        <table class="cm-table" id="employeeTable">
             <thead>
                 <tr>
-                    <th>
-                        Name
-                    </th>
-                    <th>
-                        EMail
-                    </th>
-                    <th>
-                        Stundensatzgruppe
-                    </th>
-                    <th>
-                        Rolle
-                    </th>
-                    <th>
-                    </th>
+                    <th>Name</th>
+                    <th>E-Mail</th>
+                    <th>Stundensatzgruppe</th>
+                    <th>Rolle</th>
+                    <th style="width:80px;"></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model.Employee)
                 {
-                    <tr>
+                    var isLocked = item.DeleteFlag;
+                    <tr data-name="@item.EmployeeDisplayName.ToLower()"
+                        data-email="@(item.IdentityUser?.Email?.ToLower() ?? "")"
+                        data-status="@(isLocked ? "gesperrt" : "aktiv")">
                         <td>
-                            <a asp-page="./Employees/Details" asp-route-id="@item.EmployeeId">@Html.DisplayFor(modelItem => item.EmployeeDisplayName)</a>
+                            <a class="td-link" asp-page="./Employees/Details" asp-route-id="@item.EmployeeId">
+                                @item.EmployeeDisplayName
+                            </a>
+                            @if (isLocked)
+                            {
+                                <span class="badge-type badge-locked" style="margin-left:6px;">
+                                    <i class="bi bi-lock-fill"></i> Gesperrt
+                                </span>
+                            }
+                        </td>
+                        <td style="color:var(--text-muted); font-size:.85rem;">
+                            @if (item.IdentityUser != null)
+                            {
+                                <i class="bi bi-envelope" style="margin-right:4px;"></i>
+                                @item.IdentityUser.Email
+                            }
+                            else
+                            {
+                                <span style="opacity:.4;">–</span>
+                            }
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.IdentityUser.Email)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.HourlyRateGroup.HourlyRateGroupName)
+                            @if (item.HourlyRateGroup != null)
+                            {
+                                <span class="rate-chip">
+                                    <i class="bi bi-clock"></i> @item.HourlyRateGroup.HourlyRateGroupName
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="opacity:.4; font-size:.82rem;">–</span>
+                            }
                         </td>
                         <td>
                             @if (item.IdentityUser != null && Model.EmployeeRoles.TryGetValue(item.IdentityUser.Id, out var roles))
                             {
                                 foreach (var role in roles)
                                 {
-                                    <span class="badge bg-primary me-1">@role</span>
+                                    <span class="badge-type badge-role">
+                                        <i class="bi bi-shield-check"></i> @role
+                                    </span>
                                 }
                             }
                         </td>
                         <td>
-                            @if (item.DeleteFlag)
-                            {
-                                <span class="badge bg-danger">gesperrt</span>
-                            }
+                            <a asp-page="./Employees/Details" asp-route-id="@item.EmployeeId"
+                               class="btn-cm btn-cm-ghost btn-cm-sm">
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
                         </td>
                     </tr>
                 }
-
             </tbody>
         </table>
-    </div>
-    <div class="col-md-4">
-        <h3>Stundensatzgruppen</h3>
-        <a asp-page="./HourlyRateGroups/Create">
-            <div class="btn btn-secondary">
-                Anlegen
+
+        @if (!Model.Employee.Any())
+        {
+            <div class="cm-empty">
+                <div class="cm-empty-icon"><i class="bi bi-people"></i></div>
+                Noch keine Mitarbeiter vorhanden.
             </div>
-        </a>
-        <hr />
-        <table class="table">
+        }
+
+        <div style="padding:10px 24px; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-muted);">
+            <span id="empCount">@Model.Employee.Count</span> Mitarbeiter
+        </div>
+    </div>
+
+    @* {{!-- ══ Stundensatzgruppen ══ --}} *@
+    <div class="cm-card" style="padding:0; overflow:hidden;">
+        <div class="cm-colorbar-rate"></div>
+        <div class="cm-section-header">
+            <h2 class="cm-section-title">
+                <i class="bi bi-clock-history"></i> Stundensatzgruppen
+            </h2>
+            <a asp-page="./HourlyRateGroups/Create" class="btn-cm btn-cm-purple btn-cm-sm">
+                <i class="bi bi-plus-lg"></i> Anlegen
+            </a>
+        </div>
+
+        <table class="cm-table" id="rateTable">
             <thead>
                 <tr>
-                    <th>
-                        Name
-                    </th>
-                    <th>
-                        Stundensatz in €
-                    </th>
-                    <th>
-
-                    </th>
+                    <th>Gruppenname</th>
+                    <th style="text-align:right;">Stundensatz</th>
+                    <th style="width:80px;"></th>
                 </tr>
             </thead>
             <tbody>
@@ -96,22 +154,61 @@
                 {
                     <tr>
                         <td>
-                            <a asp-page="./HourlyRateGroups/Details" asp-route-id="@item.HourlyRateGroupId">@Html.DisplayFor(modelItem => item.HourlyRateGroupName)</a>
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.HourlyRate)
-                        </td>
-                        <td>
-                            @if(item.DeleteFlag)
+                            <a class="td-link" asp-page="./HourlyRateGroups/Details" asp-route-id="@item.HourlyRateGroupId">
+                                @item.HourlyRateGroupName
+                            </a>
+                            @if (item.DeleteFlag)
                             {
-                                <span class="badge bg-danger">gesperrt</span>
+                                <span class="badge-type badge-locked" style="margin-left:6px; font-size:.68rem;">
+                                    <i class="bi bi-lock-fill"></i> Gesperrt
+                                </span>
                             }
+                        </td>
+                        <td style="text-align:right;">
+                            <span style="font-weight:700; color:var(--purple);">@item.HourlyRate.ToString("0.00") €</span>
+                        </td>
+                        <td>
+                            <a asp-page="./HourlyRateGroups/Details" asp-route-id="@item.HourlyRateGroupId"
+                               class="btn-cm btn-cm-ghost btn-cm-sm">
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
+
+        @if (!Model.HourlyRateGroup.Any())
+        {
+            <div class="cm-empty">
+                <div class="cm-empty-icon"><i class="bi bi-clock"></i></div>
+                Noch keine Stundensatzgruppen vorhanden.
+            </div>
+        }
+
+        <div style="padding:10px 24px; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-muted);">
+            @Model.HourlyRateGroup.Count Gruppen
+        </div>
     </div>
 </div>
 
-
+<script>
+    function filterEmployees() {
+        const q      = document.getElementById('empSearch').value.toLowerCase();
+        const status = document.getElementById('empStatusFilter').value;
+        const rows   = document.querySelectorAll('#employeeTable tbody tr');
+        let visible  = 0;
+        rows.forEach(r => {
+            const name   = r.dataset.name  || '';
+            const email  = r.dataset.email || '';
+            const rStat  = r.dataset.status || '';
+            const show   =
+                (!q      || name.includes(q) || email.includes(q)) &&
+                (!status || rStat === status);
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('empCount').textContent = visible;
+    }
+    filterEmployees();
+</script>

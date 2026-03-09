@@ -2,91 +2,125 @@
 @model DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.Employee.EmployeeDisplayName;
+    bool isLocked = Model.Employee.DeleteFlag == true;
 }
 
-<h3>@Model.Employee.EmployeeDisplayName</h3>
+@await Html.PartialAsync("../_EmployeeStyles")
 
-<div style="display: flex; justify-content: space-between; align-items: center;">
-    <span style="color: grey; font-size: 0.9em;">
-        Ersteller: @(Model.Employee.CreatedByEmployee?.EmployeeDisplayName ?? "SK Tools")
-        | Erstellt am: @(Model.Employee.CreatedTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "Datum unbekannt")
-    </span>
+<div class="cm-header">
+    <div>
+        <h1>
+            @Model.Employee.EmployeeDisplayName
+            @if (isLocked)
+            {
+                <span class="badge-type badge-locked" style="font-size:.75rem; vertical-align:middle; margin-left:10px;">
+                    <i class="bi bi-lock-fill"></i> Gesperrt
+                </span>
+            }
+            else
+            {
+                <span class="badge-type badge-aktiv" style="font-size:.75rem; vertical-align:middle; margin-left:10px;">
+                    <i class="bi bi-check-circle-fill"></i> Aktiv
+                </span>
+            }
+        </h1>
+        <div class="cm-meta">Mitarbeiterdetails</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <a asp-page="./Edit" asp-route-id="@Model.Employee.EmployeeId" class="btn-cm btn-cm-ghost">
+            <i class="bi bi-pencil"></i> Bearbeiten
+        </a>
+        <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">
+            <i class="bi bi-arrow-left"></i> Zurück
+        </a>
+    </div>
 </div>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Letzte Änderung</h5>
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Änderer</dt>
-                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Employee.LatestModifier.EmployeeDisplayName)</dd>
 
-                    <dt class="col-sm-4">Zeitpunkt</dt>
-                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Employee.LatestModificationTimestamp)</dd>
-                </dl>
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Änderung</dt>
-                    <dd class="col-sm-8">@Html.DisplayFor(model => model.Employee.LatestModificationText)</dd>
+<div class="cm-meta-row">
+    <span><i class="bi bi-person"></i> Erstellt von: <strong>@(Model.Employee.CreatedByEmployee?.EmployeeDisplayName ?? "SK Tools")</strong></span>
+    <span><i class="bi bi-calendar3"></i> @(Model.Employee.CreatedTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "Datum unbekannt")</span>
+</div>
 
-                </dl>
+<div class="em-detail-grid">
+
+    <div>
+        <div class="cm-card" style="padding:0; overflow:hidden;">
+            <div class="cm-colorbar"></div>
+            <div style="padding:20px 24px;">
+                <div class="cm-card-title">Stammdaten</div>
+                <div class="cm-info-grid">
+                    <div class="cm-info-item">
+                        <label><i class="bi bi-person"></i> Anzeigename</label>
+                        <span>@Model.Employee.EmployeeDisplayName</span>
+                    </div>
+                    <div class="cm-info-item">
+                        <label><i class="bi bi-envelope"></i> E-Mail-Adresse</label>
+                        <span>@(Model.Employee.IdentityUser?.Email ?? "–")</span>
+                    </div>
+                    <div class="cm-info-item">
+                        <label><i class="bi bi-clock"></i> Stundensatzgruppe</label>
+                        <span>
+                            @if (Model.Employee.HourlyRateGroup != null)
+                            {
+                                <span class="rate-chip">@Model.Employee.HourlyRateGroup.HourlyRateGroupName</span>
+                            }
+                            else
+                            {
+
+                                <span style="opacity:.4;">–</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="cm-info-item">
+                        <label><i class="bi bi-currency-euro"></i> Stundensatz</label>
+                        <span style="font-weight:700; color:var(--purple);">
+                            @(Model.Employee.HourlyRateGroup != null ? Model.Employee.HourlyRateGroup.HourlyRate.ToString("0.00") + " €" : "–")
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Status</h5>
-                <p class="card-text">
-                    @{
-                        bool isDeleteFlag = Model.Employee.DeleteFlag == true;
-                    }
-                    @if (!isDeleteFlag)
-                    {
-                        <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Employee.EmployeeId" style="display:inline;">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-archive"></i> Sperren
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Employee.EmployeeId" style="display:inline;">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-arrow-counterclockwise"></i> Entsperren
-                            </button>
-                        </form>
-                    }
 
-                </p>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <div class="cm-card">
+            <div class="cm-card-title">Status & Aktionen</div>
+            @if (!isLocked)
+            {
+                <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Employee.EmployeeId">
+                    <button type="submit" class="btn-cm btn-cm-danger" style="width:100%; justify-content:center;">
+                        <i class="bi bi-lock-fill"></i> Mitarbeiter sperren
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Employee.EmployeeId">
+                    <button type="submit" class="btn-cm btn-cm-success" style="width:100%; justify-content:center;">
+                        <i class="bi bi-arrow-counterclockwise"></i> Entsperren
+                    </button>
+                </form>
+            }
+        </div>
+
+        <div class="cm-card">
+            <div class="cm-card-title">Letzte Änderung</div>
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:.85rem;">
+                <div>
+                    <div style="font-size:.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">Änderer</div>
+                    <div>@(Model.Employee.LatestModifier?.EmployeeDisplayName ?? "–")</div>
+                </div>
+                <div>
+                    <div style="font-size:.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">Zeitpunkt</div>
+                    <div>@(Model.Employee.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "–")</div>
+                </div>
+                <div>
+                    <div style="font-size:.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">Änderungstext</div>
+                    <div style="color:var(--text-muted);">@(Model.Employee.LatestModificationText ?? "–")</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-8">
-        <dt class="col-sm-4">
-            Email Adresse
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Employee.IdentityUser.Email)
-        </dd>
-        <dt class="col-sm-4">
-            Stundensatzgruppe
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Employee.HourlyRateGroup.HourlyRateGroupName)
-        </dd>
-        <dt class="col-sm-4">
-            Stundensatz in EUR €
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(Model => Model.Employee.HourlyRateGroup.HourlyRate) €
-        </dd>
-
-    </div>
-
-</div>
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.Employee.EmployeeId">Edit</a> |
-    <a asp-page="/EmployeeManagement/Index">Back to List</a>
 </div>
