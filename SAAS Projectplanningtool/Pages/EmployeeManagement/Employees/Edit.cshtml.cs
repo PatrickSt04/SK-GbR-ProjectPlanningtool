@@ -31,7 +31,8 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
 
         [BindProperty]
         public string? SelectedRole { get; set; }
-
+        [BindProperty]
+        public string PhoneNumber { get; set; } = string.Empty;
         public async Task<IActionResult> OnGetAsync(string? id)
         {
             try
@@ -84,6 +85,10 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
 
                     if (!string.IsNullOrEmpty(SelectedRole))
                         await _userManager.AddToRoleAsync(employeeWithUser.IdentityUser, SelectedRole);
+
+
+                    employeeWithUser.IdentityUser.PhoneNumber = PhoneNumber;
+                    await _userManager.UpdateAsync(employeeWithUser.IdentityUser);
                 }
                 _context.Entry(employeeWithUser).State = EntityState.Detached;
                 var executingEmployee =

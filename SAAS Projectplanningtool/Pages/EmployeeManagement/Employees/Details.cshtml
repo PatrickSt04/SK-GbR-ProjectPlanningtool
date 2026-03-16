@@ -78,6 +78,25 @@
                             @(Model.Employee.HourlyRateGroup != null ? Model.Employee.HourlyRateGroup.HourlyRate.ToString("0.00") + " €" : "–")
                         </span>
                     </div>
+
+                    <div class="cm-info-item">
+                        <label><i class="bi bi-telephone"></i> Telefonnummer</label>
+                        @if (!string.IsNullOrEmpty(Model.Employee?.IdentityUser?.PhoneNumber))
+                        {
+                            <span>
+                                <a href="tel:@Model.Employee?.IdentityUser?.PhoneNumber"
+                                   style="color:var(--accent); text-decoration:none; font-weight:600;">
+                                    <i class="bi bi-telephone-fill" style="font-size:.8rem; margin-right:4px;"></i>
+                                    @Model.Employee?.IdentityUser?.PhoneNumber
+                                </a>
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="opacity:.4;">–</span>
+                        }
+                    </div>
+
                 </div>
             </div>
             @*Hier werden die Freigegebenen Projekte angezeigt, falls der User ein Viewer ist *@

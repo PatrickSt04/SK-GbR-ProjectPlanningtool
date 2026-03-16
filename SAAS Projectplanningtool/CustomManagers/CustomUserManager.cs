@@ -21,7 +21,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
             return await GetEmployeeAsync(user);
         }
 
-        public async Task<IdentityUser?> CreateIdentityUser(string email, string roleId, RoleManager<IdentityRole> roleManager)
+        public async Task<IdentityUser?> CreateIdentityUser(string email, string? phoneNumber, string roleId, RoleManager<IdentityRole> roleManager)
         {
             await _semaphore.WaitAsync(); // Verhindert parallele Zugriffe
             try
@@ -31,7 +31,7 @@ namespace SAAS_Projectplanningtool.CustomManagers
                 {
                     await EnsureEmailIsUniqueAsync(email);
 
-                    var initialPassword = await CreateNewIdentityUserAsync(email, roleId, roleManager);
+                    var initialPassword = await CreateNewIdentityUserAsync(email, phoneNumber, roleId, roleManager);
 
                     await transaction.CommitAsync();
                     return await userManager.FindByEmailAsync(email);
@@ -62,10 +62,10 @@ namespace SAAS_Projectplanningtool.CustomManagers
             return await context.Users.AnyAsync(u => u.Email == email);
         }
 
-        private async Task<string> CreateNewIdentityUserAsync(string email, string roleId, RoleManager<IdentityRole> roleManager)
+        private async Task<string> CreateNewIdentityUserAsync(string email, string? phoneNumber, string roleId, RoleManager<IdentityRole> roleManager)
         {
             var initialPassword = "Password123!";
-            var userToBeCreated = new IdentityUser { UserName = email, Email = email };
+            var userToBeCreated = new IdentityUser { UserName = email, Email = email, PhoneNumber = phoneNumber };
 
             var result = await userManager.CreateAsync(userToBeCreated, initialPassword);
             if (!result.Succeeded)

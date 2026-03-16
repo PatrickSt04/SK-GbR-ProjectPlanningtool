@@ -472,4 +472,113 @@
         padding: 4px 12px;
         border-radius: 20px;
     }
+
+    .phone-wrap-outer {
+        position: relative;
+    }
+
+    .phone-wrap {
+        display: flex;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        transition: border .15s;
+        background: var(--surface);
+    }
+
+        .phone-wrap:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+        }
+
+    .phone-flag-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 12px;
+        border: none;
+        border-right: 1.5px solid var(--border);
+        background: var(--surface-2);
+        cursor: pointer;
+        font-family: var(--font);
+        font-size: .875rem;
+        color: var(--text);
+        white-space: nowrap;
+        min-width: 100px;
+        transition: background .15s;
+    }
+
+        .phone-flag-btn:hover {
+            background: var(--accent-light);
+        }
+
+        .phone-flag-btn .arrow {
+            font-size: .65rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+    .phone-number-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 9px 12px;
+        font-family: var(--font);
+        font-size: .875rem;
+        color: var(--text);
+        background: transparent;
+    }
+
+    .phone-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        z-index: 100;
+        max-height: 260px;
+        overflow-y: auto;
+        display: none;
+    }
+
+        .phone-dropdown.open {
+            display: block;
+        }
+
+    .phone-search {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+        .phone-search input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-family: var(--font);
+            font-size: .82rem;
+            background: transparent;
+        }
+
+    .phone-opt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: .82rem;
+        transition: background .1s;
+    }
+
+        .phone-opt:hover, .phone-opt.selected {
+            background: var(--accent-light);
+        }
+
+        .phone-opt .dial {
+            color: var(--text-muted);
+            font-size: .78rem;
+            margin-left: auto;
+        }
 </style>

@@ -35,6 +35,30 @@
                     <span asp-validation-for="Employee.EmployeeDisplayName" class="text-danger"></span>
                 </div>
 
+                @* Formular-Feld *@
+                <div class="cm-form-group">
+                    <label>Telefonnummer</label>
+                    <div class="phone-wrap-outer">
+                        <div class="phone-wrap" id="phoneWrap">
+                            <button type="button" class="phone-flag-btn" id="flagBtn" onclick="toggleDropdown()">
+                                <span id="flagEmoji">🇩🇪</span>
+                                <span id="dialCode">+49</span>
+                                <span class="arrow">▼</span>
+                            </button>
+                            <input class="phone-number-input" id="phoneNumber" type="tel"
+                                   placeholder="170 1234567" oninput="updatePhone()" autocomplete="tel-national">
+                        </div>
+                        @* Dieses hidden input wird an den Server gesendet *@
+                        <input type="hidden" asp-for="PhoneNumber" id="fullPhone" />
+                        <div class="phone-dropdown" id="dropdown">
+                            <div class="phone-search">
+                                <input type="text" placeholder="Land suchen…" id="phoneSearch" oninput="filterCountries()">
+                            </div>
+                            <div id="countryList"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="cm-form-group">
                     <label asp-for="Employee.HourlyRateGroupId">Stundensatzgruppe</label>
                     <select asp-for="Employee.HourlyRateGroupId" class="cm-input cm-select" asp-items="Model.HourlyRateGroups"></select>
@@ -65,3 +89,64 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+<script>
+    const COUNTRIES = [
+        {code:'DE',name:'Deutschland',dial:'+49',flag:'🇩🇪'},
+        {code:'AT',name:'Österreich', dial:'+43',flag:'🇦🇹'},
+        {code:'CH',name:'Schweiz',    dial:'+41',flag:'🇨🇭'},
+        {code:'LU',name:'Luxemburg',  dial:'+352',flag:'🇱🇺'},
+        {code:'GB',name:'Großbritannien',dial:'+44',flag:'🇬🇧'},
+        {code:'US',name:'USA',        dial:'+1', flag:'🇺🇸'},
+        {code:'FR',name:'Frankreich', dial:'+33',flag:'🇫🇷'},
+        {code:'IT',name:'Italien',    dial:'+39',flag:'🇮🇹'},
+        {code:'ES',name:'Spanien',    dial:'+34',flag:'🇪🇸'},
+        {code:'NL',name:'Niederlande',dial:'+31',flag:'🇳🇱'},
+        {code:'PL',name:'Polen',      dial:'+48',flag:'🇵🇱'},
+        {code:'TR',name:'Türkei',     dial:'+90',flag:'🇹🇷'},
+    ];
+    let selectedCountry = COUNTRIES[0];
+    let filteredCountries = [...COUNTRIES];
+
+    function renderCountryList() {
+        document.getElementById('countryList').innerHTML = filteredCountries.map(c =>
+            `<div class="phone-opt${c.code===selectedCountry.code?' selected':''}" onclick="selectCountry('${c.code}')">
+                <span>${c.flag}</span><span>${c.name}</span>
+                <span class="dial">${c.dial}</span>
+            </div>`
+        ).join('');
+    }
+    function filterCountries() {
+        const q = document.getElementById('phoneSearch').value.toLowerCase();
+        filteredCountries = COUNTRIES.filter(c => c.name.toLowerCase().includes(q) || c.dial.includes(q));
+        renderCountryList();
+    }
+    function selectCountry(code) {
+        selectedCountry = COUNTRIES.find(c => c.code === code);
+        document.getElementById('flagEmoji').textContent = selectedCountry.flag;
+        document.getElementById('dialCode').textContent = selectedCountry.dial;
+        closeDropdown();
+        updatePhone();
+        document.getElementById('phoneNumber').focus();
+    }
+    function toggleDropdown() {
+        const dd = document.getElementById('dropdown');
+        if (dd.classList.contains('open')) { closeDropdown(); }
+        else {
+            filteredCountries = [...COUNTRIES];
+            renderCountryList();
+            dd.classList.add('open');
+            document.getElementById('phoneSearch').value = '';
+            setTimeout(() => document.getElementById('phoneSearch').focus(), 50);
+        }
+    }
+    function closeDropdown() { document.getElementById('dropdown').classList.remove('open'); }
+    function updatePhone() {
+        const num = document.getElementById('phoneNumber').value.trim();
+        document.getElementById('fullPhone').value = num ? selectedCountry.dial + ' ' + num : '';
+    }
+    document.addEventListener('click', e => {
+        if (!document.getElementById('phoneWrap').contains(e.target) &&
+            !document.getElementById('dropdown').contains(e.target)) closeDropdown();
+    });
+    renderCountryList();
+</script>
