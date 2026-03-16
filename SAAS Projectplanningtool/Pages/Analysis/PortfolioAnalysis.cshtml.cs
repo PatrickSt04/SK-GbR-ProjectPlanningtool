@@ -55,7 +55,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
             // Load projects with related data
             var projects = await _context.Project
                 .Include(p => p.State)
-                .Include(p => p.ResponsiblePerson)
+                .Include(p => p.ProjectLead)
+                .Include(p => p.Instructor)
                 .Include(p => p.ProjectBudget)
                 .Include(p => p.ProjectSections)
                     .ThenInclude(s => s.ProjectTasks)
@@ -133,7 +134,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
             // Progress vs Time Scatter
             ProgressVsTime = projects
                 .Where(p => p.IsArchived != true && p.StartDate.HasValue && p.EndDate.HasValue)
-                .Select(p => {
+                .Select(p =>
+                {
                     var totalDuration = (p.EndDate.Value.ToDateTime(TimeOnly.MinValue) - p.StartDate.Value.ToDateTime(TimeOnly.MinValue)).Days;
                     var elapsedDuration = (DateTime.Today - p.StartDate.Value.ToDateTime(TimeOnly.MinValue)).Days;
                     var timeProgress = totalDuration > 0 ? (decimal)elapsedDuration / totalDuration * 100 : 0;
@@ -162,7 +164,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
                        p.EndDate.HasValue &&
                        p.EndDate.Value < today &&
                        p.State?.StateName != "Abgeschlossen")
-                .Select(p => {
+                .Select(p =>
+                {
                     var daysOverdue = (today.ToDateTime(TimeOnly.MinValue) - p.EndDate.Value.ToDateTime(TimeOnly.MinValue)).Days;
                     var tasks = p.ProjectSections?.SelectMany(s => s.ProjectTasks ?? new List<ProjectTask>()) ?? new List<ProjectTask>();
                     var taskProgress = tasks.Any() ?
@@ -174,7 +177,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
                         ProjectName = p.ProjectName,
                         DaysOverdue = daysOverdue,
                         CompletionRate = taskProgress,
-                        ResponsiblePerson = p.ResponsiblePerson?.EmployeeDisplayName ?? "N/A",
+                        ProjectLead = p.ProjectLead?.EmployeeDisplayName ?? "N/A",
+                        Instructor = p.Instructor?.EmployeeDisplayName ?? "N/A",
                         BudgetRemaining = p.ProjectBudget != null ?
                             p.ProjectBudget.InitialBudget - _projectStatisticsCalculator.CalculateBudgetStatisticsAsync(p.ProjectId, User).Result.UsedBudget : 0
                     };
@@ -203,7 +207,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
             // Risk Projects (composite score)
             RiskProjects = projects
                 .Where(p => p.IsArchived != true)
-                .Select(p => {
+                .Select(p =>
+                {
                     var riskScore = 0m;
 
                     // Overdue factor
@@ -239,7 +244,7 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
                         ProjectName = p.ProjectName,
                         RiskScore = riskScore,
                         Status = p.State?.StateName ?? "Undefined",
-                        ResponsiblePerson = p.ResponsiblePerson?.EmployeeDisplayName ?? "N/A"
+                        ResponsiblePerson = p.ProjectLead?.EmployeeDisplayName ?? "N/A"
                     };
                 })
                 .OrderByDescending(r => r.RiskScore)
@@ -296,7 +301,8 @@ namespace SAAS_Projectplanningtool.Pages.Analysis
             public string ProjectName { get; set; }
             public int DaysOverdue { get; set; }
             public decimal CompletionRate { get; set; }
-            public string ResponsiblePerson { get; set; }
+            public string ProjectLead { get; set; }
+            public string Instructor { get; set; }
             public double BudgetRemaining { get; set; }
         }
 

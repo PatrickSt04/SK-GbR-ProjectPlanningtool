@@ -120,7 +120,8 @@ namespace SAAS_Projectplanningtool.Pages
                     WorkerActiveProjects = await _context.Project
                         .Include(p => p.Customer)
                         .Include(p => p.State)
-                        .Include(p => p.ResponsiblePerson)
+                        .Include(p => p.ProjectLead)
+                        .Include(p => p.Instructor)
                         .Where(p => p.CompanyId == CurrentCompany.CompanyId)
                         .Where(p => p.IsArchived != true)
                         .OrderBy(p => p.ProjectName)

@@ -269,7 +269,7 @@
                             var stateColor = project.State?.Color ?? "#94a3b8";
                             var isArchived = project.IsArchived == true;
                             var hasDateRange = project.StartDate != null && project.EndDate != null;
-                            var hasPerson = project.ResponsiblePerson != null;
+                            var hasPerson = project.ProjectLead != null;
                             var hasAddress = !string.IsNullOrWhiteSpace(project.City);
 
                             // Hellere Hintergrundfarbe für das State-Badge (20% Opacity)
@@ -314,7 +314,7 @@
                                         {
                                             <div class="vsp-meta-item">
                                                 <i class="bi bi-person-circle"></i>
-                                                <span>@project.ResponsiblePerson!.EmployeeDisplayName</span>
+                                                <span>@project.ProjectLead!.EmployeeDisplayName</span>
                                             </div>
                                         }
                                         @if (hasAddress)

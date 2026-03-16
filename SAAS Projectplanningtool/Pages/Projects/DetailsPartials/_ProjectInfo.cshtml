@@ -2,32 +2,113 @@
 @model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
 
 <!-- Project Information Section -->
-<section class="project-info-section">
+@* <section class="project-info-section"> *@
+<div class="project-info-section">
     <div class="card">
         <div class="card-header">
             <h2><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
         </div>
         <div class="card-body">
             <div class="info-grid">
-                <div class="info-item">
+                @* <div class="info-item">
                     <label>Projektleiter</label>
                     <span>@Model.Project.ResponsiblePerson?.EmployeeDisplayName</span>
-                </div>
-                <div class="info-item">
+                </div> *@
+                @if (Model.Project?.ProjectLead?.IdentityUser != null)
+                {
+                    <div class="info-item">
+                        <label><i class="fas fa-user-tie me-1"></i>Schnellkontakt Projektleiter</label>
+                        <span class="d-flex flex-column gap-1">
+                            @if (!string.IsNullOrEmpty(Model.Project.ProjectLead.IdentityUser.Email))
+                            {
+                                <a href="mailto:@Model.Project.ProjectLead.IdentityUser.Email"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-envelope me-1"></i>@Model.Project.ProjectLead.IdentityUser.Email
+                                </a>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Project.ProjectLead.IdentityUser.PhoneNumber))
+                            {
+                                <a href="tel:@Model.Project.ProjectLead.IdentityUser.PhoneNumber"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-phone me-1"></i>@Model.Project.ProjectLead.IdentityUser.PhoneNumber
+                                </a>
+                            }
+                        </span>
+                    </div>
+                }
+
+                @if (Model.Project?.Instructor?.IdentityUser != null)
+                {
+                    <div class="info-item">
+                        <label><i class="fas fa-hard-hat me-1"></i>Schnellkontakt Bauleiter</label>
+                        <span class="d-flex flex-column gap-1">
+                            @if (!string.IsNullOrEmpty(Model.Project.Instructor.IdentityUser.Email))
+                            {
+                                <a href="mailto:@Model.Project.Instructor.IdentityUser.Email"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-envelope me-1"></i>@Model.Project.Instructor.IdentityUser.Email
+                                </a>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Project.Instructor.IdentityUser.PhoneNumber))
+                            {
+                                <a href="tel:@Model.Project.Instructor.IdentityUser.PhoneNumber"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-phone me-1"></i>@Model.Project.Instructor.IdentityUser.PhoneNumber
+                                </a>
+                            }
+                        </span>
+                    </div>
+                }
+
+                @* <div class="info-item">
                     <label>Kunde</label>
-                    <span>@Model.Project.Customer?.CustomerName</span>
+                    <span>@Model.Project?.Customer?.CustomerName</span>
+                </div> *@
+                <div class="info-item">
+                    <label>Kunde - @Model.Project?.Customer?.CustomerName</label>
+                    <span class="d-flex flex-column gap-1">
+
+                        @{
+                            var primaryContact = Model.Project?.Customer?.ContactPersons?
+                            .FirstOrDefault(c => c.IsPrimary)
+                            ?? Model.Project?.Customer?.ContactPersons?.FirstOrDefault();
+                        }
+
+                        @if (primaryContact != null)
+                        {
+                            @if (!string.IsNullOrEmpty(primaryContact.Email))
+                            {
+                                <a href="mailto:@primaryContact.Email"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-envelope me-1"></i>@primaryContact.Email
+                                </a>
+                            }
+                            @if (!string.IsNullOrEmpty(primaryContact.Phone))
+                            {
+                                <a href="tel:@primaryContact.Phone"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-phone me-1"></i>@primaryContact.Phone
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <span>@Model.Project?.Customer?.CustomerName</span>
+                        }
+
+                    </span>
                 </div>
                 <div class="info-item">
                     <label>Status</label>
-                    <span class="project-status">@Model.Project.State?.StateName</span>
+                    <span class="project-status">@Model.Project?.State?.StateName</span>
                 </div>
                 <div class="info-item">
                     <label>Beschreibung</label>
-                    <span>@(Model.Project.ProjectDescription ?? "Keine Beschreibung vorhanden")</span>
+                    <span>@(Model.Project?.ProjectDescription ?? "Keine Beschreibung vorhanden")</span>
                 </div>
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(Model.Project.Street) && !string.IsNullOrWhiteSpace(Model.Project.PostalCode))
+            @if (!string.IsNullOrWhiteSpace(Model.Project?.Street) && !string.IsNullOrWhiteSpace(Model.Project.PostalCode))
             {
                 var fullAddress = $"{Model.Project.Street}, {Model.Project.PostalCode} {Model.Project.City}";
                 <div class="mt-3">
@@ -38,7 +119,8 @@
             }
         </div>
     </div>
-</section>
+    @* </section> *@
+</div>
 
 <script>
     function openInMaps(address) {

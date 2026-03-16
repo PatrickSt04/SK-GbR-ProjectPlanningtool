@@ -147,8 +147,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 await _logger.Log(null, User, null, "Projects/ProjectPageModel<PublishProjectLeadsAsync>Beginn");
                 //var plannerRole = await _context.Roles
-                   // .FirstOrDefaultAsync(r => r.Name == "Planner");
-                   var plannerRole = await _roleManager.FindByNameAsync("Planner");
+                // .FirstOrDefaultAsync(r => r.Name == "Planner");
+                var plannerRole = await _roleManager.FindByNameAsync("Planner");
 
                 if (plannerRole == null)
                 {
@@ -163,7 +163,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 var usersInRole = await _userManager.GetUsersInRoleAsync("Planner");
                 var userIdsInRole = usersInRole.Select(u => u.Id).ToList();
 
-// Employees anhand der User-IDs filtern
+                // Employees anhand der User-IDs filtern
                 var projectLeads = await _context.Employee
                     .Where(e => userIdsInRole.Contains(e.IdentityUserId))
                     .Where(e => e.CompanyId == employee.CompanyId)
@@ -314,7 +314,9 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .Include(p => p.Company)
                 .Include(p => p.CreatedByEmployee)
                 .Include(p => p.Customer)
-                .Include(p => p.ResponsiblePerson)
+    .ThenInclude(c => c.ContactPersons)   // ← NEU
+                .Include(p => p.ProjectLead).ThenInclude(e => e.IdentityUser)
+.Include(p => p.Instructor).ThenInclude(e => e.IdentityUser)
                 .Include(p => p.State)
                 .Include(p => p.ProjectBudget)
                     .ThenInclude(pb => pb.BudgetRecalculations)

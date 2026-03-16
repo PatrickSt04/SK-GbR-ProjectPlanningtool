@@ -71,7 +71,7 @@ namespace SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees
                         // Get shared projects if employee is viewer
                         var projectReleaseManager = new ProjectReleaseManager(_context, _userManager);
                         var releasedProjectIDs = await projectReleaseManager.GetReleasedProjectIDsForViewer(Employee);
-                        ViewerSharedProjects = await _context.Project.Include(p => p.State).Include(p => p.ResponsiblePerson).Include(p => p.Customer)
+                        ViewerSharedProjects = await _context.Project.Include(p => p.State).Include(p => p.ProjectLead).Include(p => p.Customer)
                             .Where(p => releasedProjectIDs.Contains(p.ProjectId)).ToListAsync();
                     }
                 }

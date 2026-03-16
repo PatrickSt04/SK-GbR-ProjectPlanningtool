@@ -45,11 +45,18 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="Project.ResponsiblePersonId" class="control-label">Projektverantwortliche*r</label>
-                <select required asp-for="Project.ResponsiblePersonId" class="form-control" asp-items="Model.ProjectLeads">
+                <label asp-for="Project.ProjectLeadId" class="control-label">Projektleiter*in</label>
+                <select required asp-for="Project.ProjectLeadId" class="form-control" asp-items="Model.ProjectLeads">
                     <option value="">-- Bitte wählen --</option>
                 </select>
-                <span asp-validation-for="Project.ResponsiblePersonId" class="text-danger"></span>
+                <span asp-validation-for="Project.ProjectLeadId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Project.InstructorId" class="control-label">Bauleiter*in</label>
+                <select required asp-for="Project.InstructorId" class="form-control" asp-items="Model.ProjectLeads">
+                    <option value="">-- Bitte wählen --</option>
+                </select>
+                <span asp-validation-for="Project.InstructorId" class="text-danger"></span>
             </div>
             <!-- Weitere Felder wie Name, StartDate, etc. -->
 

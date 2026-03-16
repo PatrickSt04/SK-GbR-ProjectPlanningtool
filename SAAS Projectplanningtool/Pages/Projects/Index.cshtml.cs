@@ -17,7 +17,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ProjectStatisticsCalculator _projectStatisticsCalculator;
-        private readonly CustomUserManager  _customUserManager;
+        private readonly CustomUserManager _customUserManager;
 
         public ProjectsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
@@ -117,7 +117,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 CurrentCompany = CurrentEmployee.Company;
                 if (CurrentEmployee.IdentityUser != null)
                     CurrentUserRoles = await _userManager.GetRolesAsync(CurrentEmployee.IdentityUser);
-                
+
 
                 if (CurrentCompany == null)
                 {
@@ -148,7 +148,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         private async Task LoadPermissions()
         {
-            
+
             var userRole = CurrentUserRoles;
 
             // Set permissions based on role
@@ -177,7 +177,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var usersInRole = await _userManager.GetUsersInRoleAsync("Planner");
             var userIdsInRole = usersInRole.Select(u => u.Id).ToList();
 
-// Employees anhand der User-IDs filtern
+            // Employees anhand der User-IDs filtern
             var AvailableProjectManagers = await _context.Employee
                 .Where(e => userIdsInRole.Contains(e.IdentityUserId))
                 .Where(e => e.CompanyId == companyId)
@@ -225,7 +225,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var query = _context.Project
                 .Include(p => p.Customer)
                 .Include(p => p.State)
-                .Include(p => p.ResponsiblePerson)
+                .Include(p => p.ProjectLead)
                 .Include(p => p.ProjectBudget)
                 .Where(p => p.CompanyId == companyId);
 
@@ -292,7 +292,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             // Manager filter
             if (!string.IsNullOrWhiteSpace(ManagerFilter))
             {
-                query = query.Where(p => p.ResponsiblePersonId == ManagerFilter);
+                query = query.Where(p => p.ProjectLeadId == ManagerFilter);
             }
 
             // Date filter
@@ -342,8 +342,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     query.OrderBy(p => p.State!.StateName) :
                     query.OrderByDescending(p => p.State!.StateName),
                 "ResponsiblePerson" => SortDirection == "asc" ?
-                    query.OrderBy(p => p.ResponsiblePerson!.EmployeeDisplayName) :
-                    query.OrderByDescending(p => p.ResponsiblePerson!.EmployeeDisplayName),
+                    query.OrderBy(p => p.ProjectLead!.EmployeeDisplayName) :
+                    query.OrderByDescending(p => p.ProjectLead!.EmployeeDisplayName),
                 _ => query.OrderBy(p => p.ProjectName)
             };
         }
@@ -438,7 +438,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 var query = _context.Project
                     .Include(p => p.Customer)
                     .Include(p => p.State)
-                    .Include(p => p.ResponsiblePerson)
+                    .Include(p => p.ProjectLead)
+                    .Include(p => p.Instructor)
                     .Include(p => p.ProjectBudget)
                     .Where(p => p.CompanyId == companyId);
 
@@ -527,7 +528,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             if (string.IsNullOrWhiteSpace(managerId))
                 return query;
 
-            return query.Where(p => p.ResponsiblePersonId == managerId);
+            return query.Where(p => p.ProjectLeadId == managerId);
         }
 
         public static IQueryable<Project> FilterByDateRange(this IQueryable<Project> query, string? dateFilter)
@@ -576,8 +577,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     query.OrderBy(p => p.State!.StateName) :
                     query.OrderByDescending(p => p.State!.StateName),
                 "ResponsiblePerson" => sortDirection == "asc" ?
-                    query.OrderBy(p => p.ResponsiblePerson!.EmployeeDisplayName) :
-                    query.OrderByDescending(p => p.ResponsiblePerson!.EmployeeDisplayName),
+                    query.OrderBy(p => p.ProjectLead!.EmployeeDisplayName) :
+                    query.OrderByDescending(p => p.ProjectLead!.EmployeeDisplayName),
                 _ => query.OrderBy(p => p.ProjectName)
             };
         }

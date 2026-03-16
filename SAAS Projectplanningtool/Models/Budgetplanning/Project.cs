@@ -43,9 +43,14 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         // Responsible person 
         // Reference to Employee
-        public string? ResponsiblePersonId { get; set; }
-        [ForeignKey(nameof(ResponsiblePersonId))]
-        public Employee? ResponsiblePerson { get; set; }
+        public string? ProjectLeadId { get; set; }
+        [ForeignKey(nameof(ProjectLeadId))]
+        public Employee? ProjectLead { get; set; }
+        // Responsible person 
+        // Reference to Employee
+        public string? InstructorId { get; set; }
+        [ForeignKey(nameof(InstructorId))]
+        public Employee? Instructor { get; set; }
 
         public string? StateId { get; set; }
         [ForeignKey(nameof(StateId))]
