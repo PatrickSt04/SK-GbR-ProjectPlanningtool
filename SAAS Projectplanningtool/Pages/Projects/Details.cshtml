@@ -14,28 +14,9 @@
 
     <!-- Statistics -->
     @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_Statistics.cshtml", Model)
-
-    @* <!-- Two Column Layout -->
-    <div class="two-column-layout">
-        <!-- Left Column -->
-        <div class="left-column">
-            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
-
-            @if (Model.Project.LatestModifier != null)
-            {
-                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
-            }
-        </div>
-
-        <!-- Right Column: Task Catalog -->
-        @if (!User.IsInRole("Viewer"))
-        {
-            <div class="right-column">
-                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_TaskCatalog.cshtml", Model)
-            </div>
-        }
-    </div> *@
-        @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
+    
+    <!-- TaskCatalog -->
+    @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
     <div class="two-column-layout">
         <!-- Left Column -->
         <div class="left-column">
