@@ -229,6 +229,39 @@ namespace SAAS_Projectplanningtool.Pages
             }
 
         }
+        //private async Task LoadBudgetData()
+        //{
+        //    var companyId = CurrentCompany!.CompanyId;
+
+        //    var tmp_ProjectsWithBudget = await _context.Project
+        //        .Include(p => p.ProjectBudget)
+        //        .Where(p => p.CompanyId == companyId &&
+        //                   p.IsArchived != true //&&
+        //                   //p.ProjectBudget != null
+        //                   )
+        //        .Take(10)
+        //        .ToListAsync();
+
+        //    // Erst ProjectsWithBudget befüllen (BEVOR HighBudget berechnet wird!)
+        //    ProjectsWithBudget = new List<ProjectWithBudget>();
+        //    foreach (var project in tmp_ProjectsWithBudget)
+        //    {
+        //        var budgetStats = await _projectStatisticsCalculator
+        //            .CalculateBudgetStatisticsAsync(project.ProjectId, User);
+        //        ProjectsWithBudget.Add(new ProjectWithBudget
+        //        {
+        //            Project = project,
+        //            UsedBudget = budgetStats.UsedBudget
+        //        });
+        //    }
+
+        //    // High budget projects aus den bereits berechneten Daten ableiten
+        //    HighBudgetProjects = ProjectsWithBudget
+        //        .Where(p => p.Project.ProjectBudget != null &&
+        //                   p.Project.ProjectBudget.InitialBudget > 0 &&
+        //                   (p.UsedBudget / p.Project.ProjectBudget.InitialBudget) > 0.9)
+        //        .ToList();
+        //}
 
         private async Task LoadTaskData()
         {

@@ -14,44 +14,25 @@
 
     <!-- Statistics -->
     @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_Statistics.cshtml", Model)
-
-    @* <!-- Two Column Layout -->
-    <div class="two-column-layout">
-        <!-- Left Column -->
-        <div class="left-column">
-            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
-
-            @if (Model.Project.LatestModifier != null)
+    
+    <!-- TaskCatalog -->
+    @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
+    <div class="row">
+        <div class="col -12 col-md-5">
+            @if (Model.Project?.LatestModifier != null)
             {
                 @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
             }
         </div>
 
-        <!-- Right Column: Task Catalog -->
-        @if (!User.IsInRole("Viewer"))
-        {
-            <div class="right-column">
-                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_TaskCatalog.cshtml", Model)
-            </div>
-        }
-    </div> *@
-        @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
-    <div class="two-column-layout">
-        <!-- Left Column -->
-        <div class="left-column">
-           
-            <!-- Right Column: Task Catalog -->
             @if (!User.IsInRole("Viewer"))
             {
-                <div class="right-column">
+                <div class="col-12 col-md-7">
                     @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_TaskCatalog.cshtml", Model)
                 </div>
             }
         </div>
-        @if (Model.Project?.LatestModifier != null)
-        {
-            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
-        }
+        
     </div>
 
     @if (!User.IsInRole("Viewer"))
