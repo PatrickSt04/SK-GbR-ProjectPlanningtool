@@ -505,8 +505,8 @@
                         @:allProjects.push({
                         @:    id: '@project.Project.ProjectId',
                         @:    name: '@Html.Raw(project.Project.ProjectName.Replace("'", "\\'"))',
-                        @:    planned: @(project.Project.ProjectBudget?.InitialBudget ?? 0),
-                        @:    used: @project.UsedBudget
+                        @:    planned: @((project.Project.ProjectBudget?.InitialBudget ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                        @:    used: @(project.UsedBudget.ToString(System.Globalization.CultureInfo.InvariantCulture))
                         @:});
     }
 
@@ -726,4 +726,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         updateBudgetCharts();
     });
+
+   @* updateBudgetCharts(); *@
 </script>

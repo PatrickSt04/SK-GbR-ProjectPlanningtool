@@ -17,22 +17,22 @@
     
     <!-- TaskCatalog -->
     @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
-    <div class="two-column-layout">
-        <!-- Left Column -->
-        <div class="left-column">
-           
-            <!-- Right Column: Task Catalog -->
+    <div class="row">
+        <div class="col -12 col-md-5">
+            @if (Model.Project?.LatestModifier != null)
+            {
+                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
+            }
+        </div>
+
             @if (!User.IsInRole("Viewer"))
             {
-                <div class="right-column">
+                <div class="col-12 col-md-7">
                     @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_TaskCatalog.cshtml", Model)
                 </div>
             }
         </div>
-        @if (Model.Project?.LatestModifier != null)
-        {
-            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
-        }
+        
     </div>
 
     @if (!User.IsInRole("Viewer"))
