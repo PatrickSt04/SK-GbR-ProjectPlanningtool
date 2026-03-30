@@ -1,0 +1,56 @@
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.IndexModel
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="bi bi-clock-history me-2"></i>Stundensatzgruppen</h2>
+        <div class="card-actions">
+            <a asp-page="./HourlyRateGroups/Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Anlegen
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <table class="cm-table" id="rateTable">
+            <thead>
+                <tr>
+                    <th>Gruppenname</th>
+                    <th class="text-end">Stundensatz</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.HourlyRateGroup)
+                {
+                    <tr>
+                        <td>
+                            <a class="td-link" asp-page="./HourlyRateGroups/Details" asp-route-id="@item.HourlyRateGroupId">
+                                @item.HourlyRateGroupName
+                            </a>
+                            @if (item.DeleteFlag)
+                            {
+                                <span class="badge-type badge-locked badge-inline-sm">
+                                    <i class="bi bi-lock-fill"></i> Gesperrt
+                                </span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <span class="cm-text-rate">@item.HourlyRate.ToString("0.00") €</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (!Model.HourlyRateGroup.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-clock"></i>
+                <p>Noch keine Stundensatzgruppen vorhanden.</p>
+            </div>
+        }
+
+        <div class="cm-card-footer">
+            @Model.HourlyRateGroup.Count Gruppen
+        </div>
+    </div>
+</div>

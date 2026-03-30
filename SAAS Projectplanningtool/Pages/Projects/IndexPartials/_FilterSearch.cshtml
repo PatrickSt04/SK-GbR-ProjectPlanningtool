@@ -1,0 +1,98 @@
+﻿@model SAAS_Projectplanningtool.Pages.Projects.ProjectsModel
+
+<!-- Filter and Search Section -->
+<div class="filter-section">
+    <div class="card">
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Suche</label>
+                        <div class="input-group">
+                            <input type="text" name="searchTerm" value="@Model.SearchTerm"
+                                   class="form-control" placeholder="Projektname, Beschreibung...">
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select name="statusFilter" class="form-select">
+                            <option value="">Alle Status</option>
+                            @foreach (var status in Model.AvailableStatuses)
+                            {
+                                <option value="@status.StateId" selected="@(status.StateId == Model.StatusFilter)">
+                                    @status.StateName
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Kunde</label>
+                        <select name="customerFilter" class="form-select">
+                            <option value="">Alle Kunden</option>
+                            @foreach (var customer in Model.AvailableCustomers)
+                            {
+                                <option value="@customer.CustomerId" selected="@(customer.CustomerId == Model.CustomerFilter)">
+                                    @customer.CustomerName
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Projektleiter</label>
+                        <select name="managerFilter" class="form-select">
+                            <option value="">Alle Projektleiter</option>
+                            @foreach (var manager in Model.AvailableProjectManagers)
+                            {
+                                <option value="@manager.EmployeeId" selected="@(manager.EmployeeId.ToString() == Model.ManagerFilter)">
+                                    @manager.EmployeeDisplayName
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Zeitraum</label>
+                        <select name="dateFilter" class="form-select">
+                            <option value="">Alle Zeiträume</option>
+                            <option value="thisMonth" selected="@(Model.DateFilter == "thisMonth")">Dieser Monat</option>
+                            <option value="thisQuarter" selected="@(Model.DateFilter == "thisQuarter")">Dieses Quartal</option>
+                            <option value="thisYear" selected="@(Model.DateFilter == "thisYear")">Dieses Jahr</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <a asp-page="Index" class="btn btn-outline-secondary w-100" title="Filter zurücksetzen">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Controls -->
+<div class="view-controls mb-3">
+    <div class="d-flex align-items-center">
+        <span class="text-muted me-2">@Model.Projects.Count() von @(Model.TotalPages * Model.PageSize) Projekte</span>
+    </div>
+    <div class="d-flex align-items-center">
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="viewType" id="cardView" autocomplete="off" checked>
+            <label class="btn btn-outline-secondary" for="cardView">
+                <i class="fas fa-th-large"></i>
+            </label>
+            <input type="radio" class="btn-check" name="viewType" id="tableView" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="tableView">
+                <i class="fas fa-list"></i>
+            </label>
+        </div>
+        <select class="form-select ms-2" style="width: auto;" onchange="changePageSize(this.value)">
+            <option value="10" selected="@(Model.PageSize == 10)">10 pro Seite</option>
+            <option value="25" selected="@(Model.PageSize == 25)">25 pro Seite</option>
+            <option value="50" selected="@(Model.PageSize == 50)">50 pro Seite</option>
+            <option value="100" selected="@(Model.PageSize == 100)">100 pro Seite</option>
+        </select>
+    </div>
+</div>

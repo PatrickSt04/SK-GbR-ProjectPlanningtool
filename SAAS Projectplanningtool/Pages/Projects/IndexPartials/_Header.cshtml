@@ -1,0 +1,41 @@
+﻿@model SAAS_Projectplanningtool.Pages.Projects.ProjectsModel
+
+<!-- Header Section -->
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="fas fa-project-diagram me-2"></i>Projekte</h1>
+            <p class="header-subtitle">Verwalten Sie alle Ihre Projekte an einem Ort</p>
+        </div>
+        <div class="header-actions">
+            @if (Model.CanCreateProjects)
+            {
+                <a asp-page="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Neues Projekt
+                </a>
+            }
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="exportProjects('excel')">
+                            <i class="fas fa-file-excel me-2"></i>Excel
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="exportProjects('pdf')">
+                            <i class="fas fa-file-pdf me-2"></i>PDF
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="exportProjects('csv')">
+                            <i class="fas fa-file-csv me-2"></i>CSV
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

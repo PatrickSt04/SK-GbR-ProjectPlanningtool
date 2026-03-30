@@ -1,0 +1,51 @@
+﻿@model SAAS_Projectplanningtool.Pages.Projects.ProjectsModel
+
+<!-- Statistics Cards -->
+<div class="statistics-section mb-4">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="stat-card stat-active">
+                <div class="stat-icon">
+                    <i class="fas fa-play-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.ActiveProjectsCount</h3>
+                    <p>Aktive Projekte</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-archived">
+                <div class="stat-icon">
+                    <i class="fas fa-archive"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.ArchivedProjectsCount</h3>
+                    <p>Archiviert</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-planning">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.UpcomingProjectsCount</h3>
+                    <p>In Planung</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-overdue">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@Model.OverdueProjectsCount</h3>
+                    <p>Überfällig</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

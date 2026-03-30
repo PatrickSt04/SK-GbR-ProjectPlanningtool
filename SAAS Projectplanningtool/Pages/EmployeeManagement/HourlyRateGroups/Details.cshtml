@@ -3,119 +3,18 @@
 
 @{
     ViewData["Title"] = Model.HourlyRateGroup.HourlyRateGroupName;
-    bool isLocked = Model.HourlyRateGroup.DeleteFlag == true;
 }
 
-@await Html.PartialAsync("../_EmployeeStyles")
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 
-<div class="cm-header">
-    <div>
-        <h1>
-            @Model.HourlyRateGroup.HourlyRateGroupName
-            @if (isLocked)
-            {
-                <span class="badge-type badge-locked" style="font-size:.75rem; vertical-align:middle; margin-left:10px;">
-                    <i class="bi bi-lock-fill"></i> Gesperrt
-                </span>
-            }
-            else
-            {
-                <span class="badge-type badge-aktiv" style="font-size:.75rem; vertical-align:middle; margin-left:10px;">
-                    <i class="bi bi-check-circle-fill"></i> Aktiv
-                </span>
-            }
-        </h1>
-        <div class="cm-meta">Stundensatzgruppe – Details</div>
-    </div>
-    <div style="display:flex; gap:8px;">
-        <a asp-page="./Edit" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId" class="btn-cm btn-cm-ghost">
-            <i class="bi bi-pencil"></i> Bearbeiten
-        </a>
-        <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">
-            <i class="bi bi-arrow-left"></i> Zurück
-        </a>
-    </div>
-</div>
-
-<div class="cm-meta-row">
-    <span><i class="bi bi-person"></i> Erstellt von: <strong>@(Model.HourlyRateGroup.CreatedByEmployee?.EmployeeDisplayName ?? "SK Tools")</strong></span>
-    <span><i class="bi bi-calendar3"></i> @(Model.HourlyRateGroup.CreatedTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "Datum unbekannt")</span>
-</div>
+@await Html.PartialAsync("DetailsPartials/_Header", Model)
 
 <div class="em-detail-grid">
 
     <div>
-        <div class="cm-card" style="padding:0; overflow:hidden;">
-            <div class="cm-colorbar-rate"></div>
-            <div style="padding:20px 24px;">
-                <div class="cm-card-title">Gruppendetails</div>
-                <div class="cm-info-grid">
-                    <div class="cm-info-item">
-                        <label><i class="bi bi-tag"></i> Gruppenname</label>
-                        <span>@Model.HourlyRateGroup.HourlyRateGroupName</span>
-                    </div>
-                    <div class="cm-info-item">
-                        <label><i class="bi bi-currency-euro"></i> Stundensatz</label>
-                        <span class="rate-chip" style="font-size:1rem;">@Model.HourlyRateGroup.HourlyRate.ToString("0.00") €/Std.</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @await Html.PartialAsync("DetailsPartials/_GroupDetails", Model)
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:16px;">
+    @await Html.PartialAsync("DetailsPartials/_Sidebar", Model)
 
-        <div class="cm-card">
-            <div class="cm-card-title">Status & Aktionen</div>
-            @if (!isLocked)
-            {
-                @if (Model.isUsedInEmployee)
-                {
-                    <div style="font-size:.8rem; color:var(--text-muted); margin-bottom:10px; padding:10px; background:var(--warning-bg); border-radius:var(--radius-sm); border:1px solid #fde68a;">
-                        <i class="bi bi-info-circle-fill" style="color:var(--warning);"></i>
-                        Diese Gruppe wird aktuell von Mitarbeitern verwendet und kann nicht gelöscht werden.
-                    </div>
-                    <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId">
-                        <button type="submit" class="btn-cm btn-cm-danger" style="width:100%; justify-content:center;">
-                            <i class="bi bi-lock-fill"></i> Gruppe sperren
-                        </button>
-                    </form>
-                }
-                else
-                {
-                    <form method="post" asp-page-handler="Delete" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId">
-                        <button type="submit" class="btn-cm btn-cm-danger" style="width:100%; justify-content:center;">
-                            <i class="bi bi-trash3-fill"></i> Gruppe löschen
-                        </button>
-                    </form>
-                }
-            }
-            else
-            {
-                <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId">
-                    <button type="submit" class="btn-cm btn-cm-success" style="width:100%; justify-content:center;">
-                        <i class="bi bi-arrow-counterclockwise"></i> Wiederherstellen
-                    </button>
-                </form>
-            }
-        </div>
-
-        <div class="cm-card">
-            <div class="cm-card-title">Letzte Änderung</div>
-            <div style="display:flex; flex-direction:column; gap:10px; font-size:.85rem;">
-                <div>
-                    <div style="font-size:.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">Änderer</div>
-                    <div>@(Model.HourlyRateGroup.LatestModifier?.EmployeeDisplayName ?? "–")</div>
-                </div>
-                <div>
-                    <div style="font-size:.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">Zeitpunkt</div>
-                    <div>@(Model.HourlyRateGroup.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "–")</div>
-                </div>
-                <div>
-                    <div style="font-size:.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;">Änderungstext</div>
-                    <div style="color:var(--text-muted);">@(Model.HourlyRateGroup.LatestModificationText ?? "–")</div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>

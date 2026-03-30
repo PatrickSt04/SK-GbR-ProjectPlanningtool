@@ -1,0 +1,70 @@
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups.DetailsModel
+
+@{
+    bool isLocked = Model.HourlyRateGroup.DeleteFlag == true;
+}
+
+<div class="cm-sidebar">
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Status & Aktionen</h5>
+        </div>
+        <div class="card-body">
+            @if (!isLocked)
+            {
+                @if (Model.isUsedInEmployee)
+                {
+                    <div class="cm-info-notice">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Diese Gruppe wird aktuell von Mitarbeitern verwendet und kann nicht gelöscht werden.
+                    </div>
+                    <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-lock-fill me-1"></i>Gruppe sperren
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-trash3-fill me-1"></i>Gruppe löschen
+                        </button>
+                    </form>
+                }
+            }
+            else
+            {
+                <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.HourlyRateGroup.HourlyRateGroupId">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Wiederherstellen
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Letzte Änderung</h5>
+        </div>
+        <div class="card-body">
+            <div class="cm-detail-list">
+                <div>
+                    <div class="cm-detail-label">Änderer</div>
+                    <div>@(Model.HourlyRateGroup.LatestModifier?.EmployeeDisplayName ?? "–")</div>
+                </div>
+                <div>
+                    <div class="cm-detail-label">Zeitpunkt</div>
+                    <div>@(Model.HourlyRateGroup.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "–")</div>
+                </div>
+                <div>
+                    <div class="cm-detail-label">Änderungstext</div>
+                    <div class="cm-text-muted">@(Model.HourlyRateGroup.LatestModificationText ?? "–")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

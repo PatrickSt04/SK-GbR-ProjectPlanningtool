@@ -5,19 +5,23 @@
     ViewData["Title"] = "Mitarbeiter löschen";
 }
 
-@await Html.PartialAsync("../_EmployeeStyles")
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 
-<div class="cm-header">
-    <div>
-        <h1>Mitarbeiter löschen</h1>
-        <div class="cm-meta">Dieser Vorgang kann nicht rückgängig gemacht werden</div>
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-trash3 me-2"></i>Mitarbeiter löschen</h1>
+            <p class="header-subtitle">Dieser Vorgang kann nicht rückgängig gemacht werden</p>
+        </div>
+        <div class="header-actions">
+            <a asp-page="/EmployeeManagement/Index" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Abbrechen
+            </a>
+        </div>
     </div>
-    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">
-        <i class="bi bi-arrow-left"></i> Abbrechen
-    </a>
 </div>
 
-<div style="max-width:560px;">
+<div class="cm-form-container-lg">
     <div class="cm-alert">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <div>
@@ -25,18 +29,20 @@
         </div>
     </div>
 
-    <div class="cm-card" style="padding:0; overflow:hidden;">
-        <div class="cm-colorbar" style="background:linear-gradient(90deg,var(--danger),#f87171);"></div>
-        <div style="padding:24px;">
-            <div class="cm-card-title">Datensatz-Details</div>
-            <div class="cm-info-grid" style="margin-bottom:24px;">
+    <div class="card">
+        <div class="cm-colorbar cm-colorbar-danger"></div>
+        <div class="card-header">
+            <h5>Datensatz-Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="cm-info-grid cm-mb-lg">
                 <div class="cm-info-item">
                     <label>Anzeigename</label>
                     <span>@Model.Employee.EmployeeDisplayName</span>
                 </div>
                 <div class="cm-info-item">
                     <label>E-Mail</label>
-                    <span style="color:var(--text-muted);">@(Model.Employee.IdentityUser?.Email ?? "–")</span>
+                    <span class="cm-text-muted">@(Model.Employee.IdentityUser?.Email ?? "–")</span>
                 </div>
                 <div class="cm-info-item">
                     <label>Rolle(n)</label>
@@ -45,12 +51,12 @@
                         {
                             foreach (var role in Model.EmployeeRoles)
                             {
-                                <span class="badge-type badge-role" style="margin-right:4px;">@role</span>
+                                <span class="badge-type badge-role me-1">@role</span>
                             }
                         }
                         else
                         {
-                            <span style="color:var(--text-muted);">Keine Rolle</span>
+                            <span class="cm-text-muted">Keine Rolle</span>
                         }
                     </span>
                 </div>
@@ -60,12 +66,12 @@
                 </div>
             </div>
 
-            <form method="post" style="display:flex; gap:10px;">
+            <form method="post" class="cm-form-actions">
                 <input type="hidden" asp-for="Employee.EmployeeId" />
-                <button type="submit" class="btn-cm btn-cm-danger">
-                    <i class="bi bi-trash3-fill"></i> Endgültig löschen
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash3-fill me-1"></i>Endgültig löschen
                 </button>
-                <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">Abbrechen</a>
+                <a asp-page="/EmployeeManagement/Index" class="btn btn-outline-secondary">Abbrechen</a>
             </form>
         </div>
     </div>

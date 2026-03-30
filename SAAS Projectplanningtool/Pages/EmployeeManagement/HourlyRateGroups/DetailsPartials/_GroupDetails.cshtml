@@ -1,0 +1,20 @@
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.HourlyRateGroups.DetailsModel
+
+<div class="card">
+    <div class="cm-colorbar-rate"></div>
+    <div class="card-header">
+        <h5><i class="bi bi-clock-history me-2"></i>Gruppendetails</h5>
+    </div>
+    <div class="card-body">
+        <div class="cm-info-grid">
+            <div class="cm-info-item">
+                <label><i class="bi bi-tag"></i> Gruppenname</label>
+                <span>@Model.HourlyRateGroup.HourlyRateGroupName</span>
+            </div>
+            <div class="cm-info-item">
+                <label><i class="bi bi-currency-euro"></i> Stundensatz</label>
+                <span class="rate-chip rate-chip-lg">@Model.HourlyRateGroup.HourlyRate.ToString("0.00") €/Std.</span>
+            </div>
+        </div>
+    </div>
+</div>
