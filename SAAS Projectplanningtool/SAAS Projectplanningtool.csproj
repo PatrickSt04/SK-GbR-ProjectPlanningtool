@@ -36,4 +36,8 @@
 	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration" Version="8.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Pages\Projects\IndexPartials\" />
+	</ItemGroup>
+
 </Project>

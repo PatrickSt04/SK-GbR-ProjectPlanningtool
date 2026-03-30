@@ -212,12 +212,6 @@
 }
 
 /* ===== Project Details Layout ===== */
-.project-details-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
 .two-column-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -1,10 +1,5 @@
 ﻿/* ===== DASHBOARD SPECIFIC STYLES ===== */
 
-/* Dashboard Container Animations */
-.dashboard-container {
-    animation: fadeInUp 0.6s ease-out;
-}
-
 .overview-cards .stat-card {
     animation: fadeInUp 0.6s ease-out;
     animation-delay: calc(var(--card-index, 0) * 0.1s);
@@ -309,46 +304,6 @@
     }
 }
 
-/* Dark Mode Support (Optional) */
-@media (prefers-color-scheme: dark) {
-    .dashboard-container {
-        background: #1a1a1a;
-        color: #e0e0e0;
-    }
-
-    .stat-card,
-    .budget-section,
-    .tasks-cockpit,
-    .resources-section,
-    .activities-section,
-    .quick-actions,
-    .calendar-section,
-    .customers-section,
-    .system-info {
-        background: #2d2d2d;
-        border-color: #404040;
-        color: #e0e0e0;
-    }
-
-    .task-item,
-    .budget-item,
-    .workload-item,
-    .customer-item {
-        background: #353535;
-        border-color: #404040;
-    }
-
-    .calendar-day {
-        background: #353535;
-        color: #e0e0e0;
-    }
-
-    .search-input {
-        background: #353535;
-        border-color: #404040;
-        color: #e0e0e0;
-    }
-}
 
 /* Print Styles */
 @media print {
