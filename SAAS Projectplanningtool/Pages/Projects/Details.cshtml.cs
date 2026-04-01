@@ -60,6 +60,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private const int TimeTrackingPageSize = 15;
         #endregion
 
+        #region Project hourly rate groups
+        [BindProperty]
+        public List<ProjectHourlyRateGroup> ProjectHourlyRateGroups { get; set; } = new();
+        #endregion
 
         public bool ScheduleAlreadyExists { get; set; } = false;
         public async Task<IActionResult> OnGetAsync(string id)
@@ -110,6 +114,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         }
                     }
                 }
+                #region Project hourly rate groups
+                ProjectHourlyRateGroups = await _context.ProjectHourlyRateGroup
+                   .Where(c => c.ProjectId == id)
+                   .Include(c => c.HourlyRateGroup)
+                   .ToListAsync();
+                #endregion
+
 
                 #region Time Tracking: Mitarbeiter- und Zeiteintr�ge laden
                 if (employee != null && employee.CompanyId != null)
@@ -159,15 +170,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 #endregion
 
-
-
                 ViewData["AllStates"] = await _context.State.ToListAsync();
-
-
-
-
-
-
                 await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
                 return Page();
             }

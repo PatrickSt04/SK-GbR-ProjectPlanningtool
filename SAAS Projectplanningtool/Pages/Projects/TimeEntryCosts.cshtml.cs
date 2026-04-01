@@ -77,7 +77,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 TimeEntriesWithCosts = timeEntries.Select(t =>
                 {
-                    var rate = (decimal)(t.Employee?.HourlyRateGroup?.HourlyRate ?? 0f);
+                    var rate = (decimal)(t.Employee?.HourlyRateGroup?.HourlyRate ?? 0);
                     return new TimeEntryWithCost
                     {
                         TimeEntryId = t.TimeEntryId,

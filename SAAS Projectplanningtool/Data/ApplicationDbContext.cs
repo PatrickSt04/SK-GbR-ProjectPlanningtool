@@ -38,6 +38,7 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.CRM.ContactHistoryEntry> ContactHistoryEntry { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.ArticleManagement.Article> Article { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.ArticleManagement.ArticleCategory> ArticleCategory { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectHourlyRateGroup> ProjectHourlyRateGroup { get; set; } = default!;
         public DbSet<TimeEntry> TimeEntry { get; set; } = default!;
 
 

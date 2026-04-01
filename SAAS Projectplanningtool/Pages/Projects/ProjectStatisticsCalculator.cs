@@ -137,7 +137,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     {
                         HourlyRateGroupName = group.Key,
                         TotalWorkingHours = totalHours,
-                        TotalCosts = totalHours * hourlyRate
+                        TotalCosts = totalHours * (double)hourlyRate
                     };
                 })
                 .OrderByDescending(b => b.TotalCosts)

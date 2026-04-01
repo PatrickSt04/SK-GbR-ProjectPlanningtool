@@ -1,0 +1,44 @@
+﻿@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+<!-- Project Information Section -->
+<div class="row">
+    @* <div class="col-12 col-md-5"> *@
+    <div class="project-info-section">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-info-circle me-2"></i>Stundensatzgruppen</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    @if (Model.ProjectHourlyRateGroups.Any())
+                    {
+                        foreach (var hrg in Model.ProjectHourlyRateGroups)
+                        {
+                            if (hrg.HourlyRateGroup == null)
+                            {
+                                continue;
+                            }
+                            <div class="info-item">
+                                <label>@hrg.HourlyRateGroup?.HourlyRateGroupName</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-5">
+                                    <label>Standard Stundensatz: @hrg.HourlyRateGroup?.HourlyRate</label>
+                                </div>
+                                <div class="col-6">
+                                    <label>Projektspezifischer Stundensatz: @hrg.ProjectHourlyRate</label>
+                                </div>
+                            </div>
+                                
+                        }
+                    }
+                    else
+                    {
+                        <label>Keine Stundensatzgruppen gefunden.</label>
+                    }
+                </div>
+            </div>
+            @* </div> *@
+        </div>
+    </div>

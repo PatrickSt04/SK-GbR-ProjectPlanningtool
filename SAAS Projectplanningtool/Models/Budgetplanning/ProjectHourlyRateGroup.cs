@@ -2,33 +2,39 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
-namespace SAAS_Projectplanningtool.Models
+namespace SAAS_Projectplanningtool.Models.Budgetplanning
 {
-    public class HourlyRateGroup
+    public class ProjectHourlyRateGroup
     {
         [Key]
-        [NotNull] public string HourlyRateGroupId { get; set; } = Guid.NewGuid().ToString();
+        [NotNull] public string ProjectHourlyRateGroupId { get; set; } = Guid.NewGuid().ToString();
         // Company dependency
         public string? CompanyId { get; set; }
         [ForeignKey(nameof(CompanyId))]
         public Company? Company { get; set; }
-        // The hourly rate associated with this group
-        public required decimal HourlyRate {  get; set; }
-        // The name of the hourly rate group
-        public required string HourlyRateGroupName { get; set; }
 
-        // Latest Modification Attributes
+        // Project dependency
+        public string? ProjectId { get; set; }
+        [ForeignKey(nameof(ProjectId))]
+        public Project? Project { get; set; }
+
+        // HRG dependency
+        public string? HourlyRateGroupId { get; set; }
+        [ForeignKey(nameof(HourlyRateGroupId))]
+        public HourlyRateGroup? HourlyRateGroup { get; set; }
+
+        public decimal? ProjectHourlyRate { get; set; }
+
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]
         public Employee? LatestModifier { get; set; }
 
         public DateTime? LatestModificationTimestamp { get; set; }
         public string? LatestModificationText { get; set; }
-        public bool DeleteFlag { get; set; } = false;
+
         public string? CreatedById { get; set; }
         [ForeignKey(nameof(CreatedById))]
         public Employee? CreatedByEmployee { get; set; }
         public DateTime? CreatedTimestamp { get; set; }
-
     }
 }

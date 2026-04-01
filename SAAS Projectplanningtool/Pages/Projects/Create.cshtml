@@ -5,230 +5,415 @@
     ViewData["Title"] = "Neues Projekt";
 }
 
+@* ================================================================
+   CSS-Einbindung: shared.css + project.css müssen aktiv sein.
+   Falls noch nicht in _Layout.cshtml verlinkt, hier ergänzen:
+   <link rel="stylesheet" href="~/css/shared.css" asp-append-version="true" />
+   <link rel="stylesheet" href="~/css/project.css" asp-append-version="true" />
+   ================================================================ *@
 
-<h1>Projektanlage</h1>
-<hr />
+<!-- Page Header (shared.css: .page-header) -->
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1>Projektanlage</h1>
+            <div class="project-meta">
+                <span>Neues Projekt anlegen und konfigurieren</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form method="post">
     <div class="row">
 
-
+        <!-- ================================================
+             SPALTE 1: Projektdaten
+             ================================================ -->
         <div class="col-md-4">
-
-            <div class="form-group">
-                <label asp-for="Project.ProjectName" class="control-label">Name</label>
-                <input required asp-for="Project.ProjectName" class="form-control" />
-                <span asp-validation-for="Project.ProjectName" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Project.ProjectDescription" class="control-label">Beschreibung</label>
-                <textarea required asp-for="Project.ProjectDescription" class="form-control"></textarea>
-                <span asp-validation-for="Project.ProjectDescription" class="text-danger"></span>
-            </div>
-
-
-            <div class="form-group">
-                <label asp-for="Project.CustomerId" class="control-label">Kunde</label>
-                @if (Model.customer == null)
-                {
-                    <select required asp-for="Project.CustomerId" class="form-control" asp-items="Model.Customers">
-                        <option value="">-- Bitte wählen --</option>
-                    </select>
-                }
-                else
-                {
-                    <input required asp-for="Project.CustomerId" class="form-control" value="@Model.customer.CustomerId" readonly style="display:none" />
-                    <input class="form-control" value="@Model.customer.CustomerName" readonly />
-                }
-
-                <span asp-validation-for="Project.CustomerId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Project.ProjectLeadId" class="control-label">Projektleiter*in</label>
-                <select required asp-for="Project.ProjectLeadId" class="form-control" asp-items="Model.ProjectLeads">
-                    <option value="">-- Bitte wählen --</option>
-                </select>
-                <span asp-validation-for="Project.ProjectLeadId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Project.InstructorId" class="control-label">Bauleiter*in</label>
-                <select required asp-for="Project.InstructorId" class="form-control" asp-items="Model.ProjectLeads">
-                    <option value="">-- Bitte wählen --</option>
-                </select>
-                <span asp-validation-for="Project.InstructorId" class="text-danger"></span>
-            </div>
-            <!-- Weitere Felder wie Name, StartDate, etc. -->
-
-            <div class="form-group">
-                <input type="submit" value="Speichern & Weiter zur Budgetplanung" class="btn btn-primary" />
-            </div>
-
-        </div>
-
-        <div class="col-md-4">
-            <div class="form-group mt-3">
-                <h5>Projektadresse</h5>
-                <hr />
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Project.Street" class="control-label">Straße & Hausnummer</label>
-                <input asp-for="Project.Street" class="form-control" placeholder="z.B. Mooswinkl 1" />
-                <span asp-validation-for="Project.Street" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Project.PostalCode" class="control-label">PLZ</label>
-                <input asp-for="Project.PostalCode" class="form-control" placeholder="z.B. 84387" />
-                <span asp-validation-for="Project.PostalCode" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Project.City" class="control-label">Ort</label>
-                <input asp-for="Project.City" class="form-control" placeholder="z.B. Julbach" />
-                <span asp-validation-for="Project.City" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Project.Country" class="control-label">Land</label>
-                <input asp-for="Project.Country" class="form-control" placeholder="z.B. Deutschland" />
-                <span asp-validation-for="Project.Country" class="text-danger"></span>
-            </div>
-
-            <h5>Arbeitszeit-Konfiguration</h5>
-            <hr />
-
-            <!-- Quick Presets -->
-            <div class="quick-presets">
-                <h6>Schnelleinstellungen:</h6>
-                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" onclick="setStandardWorkWeek()">
-                    Standard (Mo-Fr 8:00-17:00)
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" onclick="setFlexibleWorkWeek()">
-                    Flexibel (Mo-Fr 9:00-18:00)
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" onclick="setPartTimeWeek()">
-                    Teilzeit (Mo-Mi 8:00-16:00)
-                </button>
-            </div>
-
-            <div class="working-hours-section">
-                <h6>Arbeitstage & -zeiten</h6>
-
-                <div class="working-time-row" id="monday-row">
-                    <div class="form-check day-checkbox">
-                        <input class="form-check-input" asp-for="WorkingTime.Monday.IsActive" id="monday" onchange="toggleDay('monday')">
-                        <label class="form-check-label" for="monday">Montag</label>
-                    </div>
-                    <div class="d-flex align-items-center mt-2" id="monday-times">
-                        <input type="time" asp-for="WorkingTime.Monday.StartTime" class="form-control time-input" />
-                        <span class="mx-2">bis</span>
-                        <input type="time" asp-for="WorkingTime.Monday.EndTime" class="form-control time-input" />
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <h5>📋 Projektdaten</h5>
                 </div>
+                <div class="card-body">
 
-                <div class="working-time-row" id="tuesday-row">
-                    <div class="form-check day-checkbox">
-                        <input class="form-check-input" asp-for="WorkingTime.Tuesday.IsActive" id="tuesday" onchange="toggleDay('tuesday')">
-                        <label class="form-check-label" for="tuesday">Dienstag</label>
+                    <div class="form-group">
+                        <label asp-for="Project.ProjectName" class="control-label">Projektname</label>
+                        <input required asp-for="Project.ProjectName" class="form-control"
+                               placeholder="z.B. Neubau Einfamilienhaus" />
+                        <span asp-validation-for="Project.ProjectName" class="text-danger"></span>
                     </div>
-                    <div class="d-flex align-items-center mt-2" id="tuesday-times">
-                        <input type="time" asp-for="WorkingTime.Tuesday.StartTime" class="form-control time-input" />
-                        <span class="mx-2">bis</span>
-                        <input type="time" asp-for="WorkingTime.Tuesday.EndTime" class="form-control time-input" />
+
+                    <div class="form-group">
+                        <label asp-for="Project.ProjectDescription" class="control-label">Beschreibung</label>
+                        <textarea required asp-for="Project.ProjectDescription"
+                                  class="form-control" rows="4"
+                                  placeholder="Kurze Beschreibung des Projekts..."></textarea>
+                        <span asp-validation-for="Project.ProjectDescription" class="text-danger"></span>
                     </div>
+
+                    <div class="form-group">
+                        <label asp-for="Project.CustomerId" class="control-label">Kunde</label>
+                        @if (Model.customer == null)
+                        {
+                            <select required asp-for="Project.CustomerId"
+                                    class="form-control" asp-items="Model.Customers">
+                                <option value="">-- Bitte wählen --</option>
+                            </select>
+                        }
+                        else
+                        {
+                            <input required asp-for="Project.CustomerId"
+                                   value="@Model.customer.CustomerId"
+                                   readonly style="display:none" />
+                            <input class="form-control"
+                                   value="@Model.customer.CustomerName" readonly />
+                        }
+                        <span asp-validation-for="Project.CustomerId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Project.ProjectLeadId" class="control-label">Projektleiter*in</label>
+                        <select required asp-for="Project.ProjectLeadId"
+                                class="form-control" asp-items="Model.ProjectLeads">
+                            <option value="">-- Bitte wählen --</option>
+                        </select>
+                        <span asp-validation-for="Project.ProjectLeadId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Project.InstructorId" class="control-label">Bauleiter*in</label>
+                        <select required asp-for="Project.InstructorId"
+                                class="form-control" asp-items="Model.ProjectLeads">
+                            <option value="">-- Bitte wählen --</option>
+                        </select>
+                        <span asp-validation-for="Project.InstructorId" class="text-danger"></span>
+                    </div>
+
                 </div>
+            </div>
 
-                <div class="working-time-row" id="wednesday-row">
-                    <div class="form-check day-checkbox">
-                        <input class="form-check-input" asp-for="WorkingTime.Wednesday.IsActive" id="wednesday" onchange="toggleDay('wednesday')">
-                        <label class="form-check-label" for="wednesday">Mittwoch</label>
-                    </div>
-                    <div class="d-flex align-items-center mt-2" id="wednesday-times">
-                        <input type="time" asp-for="WorkingTime.Wednesday.StartTime" class="form-control time-input" />
-                        <span class="mx-2">bis</span>
-                        <input type="time" asp-for="WorkingTime.Wednesday.EndTime" class="form-control time-input" />
-                    </div>
+            <!-- Projektadresse -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>📍 Projektadresse</h5>
                 </div>
+                <div class="card-body">
 
-                <div class="working-time-row" id="thursday-row">
-                    <div class="form-check day-checkbox">
-                        <input class="form-check-input" asp-for="WorkingTime.Thursday.IsActive" id="thursday" onchange="toggleDay('thursday')">
-                        <label class="form-check-label" for="thursday">Donnerstag</label>
+                    <div class="form-group">
+                        <label asp-for="Project.Street" class="control-label">Straße & Hausnummer</label>
+                        <input asp-for="Project.Street" class="form-control"
+                               placeholder="z.B. Mooswinkl 1" />
+                        <span asp-validation-for="Project.Street" class="text-danger"></span>
                     </div>
-                    <div class="d-flex align-items-center mt-2" id="thursday-times">
-                        <input type="time" asp-for="WorkingTime.Thursday.StartTime" class="form-control time-input" />
-                        <span class="mx-2">bis</span>
-                        <input type="time" asp-for="WorkingTime.Thursday.EndTime" class="form-control time-input" />
-                    </div>
-                </div>
 
-                <div class="working-time-row" id="friday-row">
-                    <div class="form-check day-checkbox">
-                        <input class="form-check-input" asp-for="WorkingTime.Friday.IsActive" id="friday" onchange="toggleDay('friday')">
-                        <label class="form-check-label" for="friday">Freitag</label>
+                    <div class="row">
+                        <div class="col-5">
+                            <div class="form-group">
+                                <label asp-for="Project.PostalCode" class="control-label">PLZ</label>
+                                <input asp-for="Project.PostalCode" class="form-control"
+                                       placeholder="84387" />
+                                <span asp-validation-for="Project.PostalCode" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-7">
+                            <div class="form-group">
+                                <label asp-for="Project.City" class="control-label">Ort</label>
+                                <input asp-for="Project.City" class="form-control"
+                                       placeholder="Julbach" />
+                                <span asp-validation-for="Project.City" class="text-danger"></span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center mt-2" id="friday-times">
-                        <input type="time" asp-for="WorkingTime.Friday.StartTime" class="form-control time-input" />
-                        <span class="mx-2">bis</span>
-                        <input type="time" asp-for="WorkingTime.Friday.EndTime" class="form-control time-input" />
-                    </div>
-                </div>
 
-                <div class="working-time-row" id="saturday-row">
-                    <div class="form-check day-checkbox">
-                        <input class="form-check-input" asp-for="WorkingTime.Saturday.IsActive" id="saturday" onchange="toggleDay('saturday')">
-                        <label class="form-check-label" for="saturday">Samstag</label>
+                    <div class="form-group">
+                        <label asp-for="Project.Country" class="control-label">Land</label>
+                        <input asp-for="Project.Country" class="form-control"
+                               placeholder="z.B. Deutschland" />
+                        <span asp-validation-for="Project.Country" class="text-danger"></span>
                     </div>
-                    <div class="d-flex align-items-center mt-2" id="saturday-times">
-                        <input type="time" asp-for="WorkingTime.Saturday.StartTime" class="form-control time-input" />
-                        <span class="mx-2">bis</span>
-                        <input type="time" asp-for="WorkingTime.Saturday.EndTime" class="form-control time-input" />
-                    </div>
-                </div>
 
-                <div class="working-time-row" id="sunday-row">
-                    <div class="form-check day-checkbox">
-                        <input class="form-check-input" asp-for="WorkingTime.Sunday.IsActive" id="sunday" onchange="toggleDay('sunday')">
-                        <label class="form-check-label" for="sunday">Sonntag</label>
-                    </div>
-                    <div class="d-flex align-items-center mt-2" id="sunday-times">
-                        <input type="time" asp-for="WorkingTime.Sunday.StartTime" class="form-control time-input" />
-                        <span class="mx-2">bis</span>
-                        <input type="time" asp-for="WorkingTime.Sunday.EndTime" class="form-control time-input" />
-                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- ================================================
+             SPALTE 2: Arbeitszeit-Konfiguration
+             ================================================ -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🕐 Arbeitszeit-Konfiguration</h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- Schnelleinstellungen -->
+                    <div class="form-group">
+                        <label class="control-label">Schnelleinstellungen</label>
+                        <div class="action-buttons">
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="setStandardWorkWeek()">
+                                Mo–Fr 08:00–17:00
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="setFlexibleWorkWeek()">
+                                Mo–Fr 09:00–18:00
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="setPartTimeWeek()">
+                                Mo–Mi 08:00–16:00
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Arbeitstage & -zeiten -->
+                    <label class="control-label mb-2">Arbeitstage & -zeiten</label>
+
+                    @{
+                        // Lokale Hilfsdaten für die Schleifenlose, lesbare Darstellung
+                        var days = new[]
+                        {
+                            new { Id = "monday",    Label = "Montag",     For = "WorkingTime.Monday" },
+                            new { Id = "tuesday",   Label = "Dienstag",   For = "WorkingTime.Tuesday" },
+                            new { Id = "wednesday", Label = "Mittwoch",   For = "WorkingTime.Wednesday" },
+                            new { Id = "thursday",  Label = "Donnerstag", For = "WorkingTime.Thursday" },
+                            new { Id = "friday",    Label = "Freitag",    For = "WorkingTime.Friday" },
+                            new { Id = "saturday",  Label = "Samstag",    For = "WorkingTime.Saturday" },
+                            new { Id = "sunday",    Label = "Sonntag",    For = "WorkingTime.Sunday" },
+                        };
+                    }
+
+                    <div class="working-hours-section">
+                        <!-- Montag -->
+                        <div class="working-time-row" id="monday-row">
+                            <div class="form-check day-checkbox">
+                                <input class="form-check-input" asp-for="WorkingTime.Monday.IsActive"
+                                       id="monday" onchange="toggleDay('monday')" />
+                                <label class="form-check-label" for="monday">Montag</label>
+                            </div>
+                            <div class="d-flex align-items-center mt-1" id="monday-times">
+                                <input type="time" asp-for="WorkingTime.Monday.StartTime" class="form-control time-input" />
+                                <span class="mx-2 text-muted">bis</span>
+                                <input type="time" asp-for="WorkingTime.Monday.EndTime" class="form-control time-input" />
+                            </div>
+                        </div>
+
+                        <!-- Dienstag -->
+                        <div class="working-time-row" id="tuesday-row">
+                            <div class="form-check day-checkbox">
+                                <input class="form-check-input" asp-for="WorkingTime.Tuesday.IsActive"
+                                       id="tuesday" onchange="toggleDay('tuesday')" />
+                                <label class="form-check-label" for="tuesday">Dienstag</label>
+                            </div>
+                            <div class="d-flex align-items-center mt-1" id="tuesday-times">
+                                <input type="time" asp-for="WorkingTime.Tuesday.StartTime" class="form-control time-input" />
+                                <span class="mx-2 text-muted">bis</span>
+                                <input type="time" asp-for="WorkingTime.Tuesday.EndTime" class="form-control time-input" />
+                            </div>
+                        </div>
+
+                        <!-- Mittwoch -->
+                        <div class="working-time-row" id="wednesday-row">
+                            <div class="form-check day-checkbox">
+                                <input class="form-check-input" asp-for="WorkingTime.Wednesday.IsActive"
+                                       id="wednesday" onchange="toggleDay('wednesday')" />
+                                <label class="form-check-label" for="wednesday">Mittwoch</label>
+                            </div>
+                            <div class="d-flex align-items-center mt-1" id="wednesday-times">
+                                <input type="time" asp-for="WorkingTime.Wednesday.StartTime" class="form-control time-input" />
+                                <span class="mx-2 text-muted">bis</span>
+                                <input type="time" asp-for="WorkingTime.Wednesday.EndTime" class="form-control time-input" />
+                            </div>
+                        </div>
+
+                        <!-- Donnerstag -->
+                        <div class="working-time-row" id="thursday-row">
+                            <div class="form-check day-checkbox">
+                                <input class="form-check-input" asp-for="WorkingTime.Thursday.IsActive"
+                                       id="thursday" onchange="toggleDay('thursday')" />
+                                <label class="form-check-label" for="thursday">Donnerstag</label>
+                            </div>
+                            <div class="d-flex align-items-center mt-1" id="thursday-times">
+                                <input type="time" asp-for="WorkingTime.Thursday.StartTime" class="form-control time-input" />
+                                <span class="mx-2 text-muted">bis</span>
+                                <input type="time" asp-for="WorkingTime.Thursday.EndTime" class="form-control time-input" />
+                            </div>
+                        </div>
+
+                        <!-- Freitag -->
+                        <div class="working-time-row" id="friday-row">
+                            <div class="form-check day-checkbox">
+                                <input class="form-check-input" asp-for="WorkingTime.Friday.IsActive"
+                                       id="friday" onchange="toggleDay('friday')" />
+                                <label class="form-check-label" for="friday">Freitag</label>
+                            </div>
+                            <div class="d-flex align-items-center mt-1" id="friday-times">
+                                <input type="time" asp-for="WorkingTime.Friday.StartTime" class="form-control time-input" />
+                                <span class="mx-2 text-muted">bis</span>
+                                <input type="time" asp-for="WorkingTime.Friday.EndTime" class="form-control time-input" />
+                            </div>
+                        </div>
+
+                        <!-- Samstag -->
+                        <div class="working-time-row" id="saturday-row">
+                            <div class="form-check day-checkbox">
+                                <input class="form-check-input" asp-for="WorkingTime.Saturday.IsActive"
+                                       id="saturday" onchange="toggleDay('saturday')" />
+                                <label class="form-check-label" for="saturday">Samstag</label>
+                            </div>
+                            <div class="d-flex align-items-center mt-1" id="saturday-times">
+                                <input type="time" asp-for="WorkingTime.Saturday.StartTime" class="form-control time-input" />
+                                <span class="mx-2 text-muted">bis</span>
+                                <input type="time" asp-for="WorkingTime.Saturday.EndTime" class="form-control time-input" />
+                            </div>
+                        </div>
+
+                        <!-- Sonntag -->
+                        <div class="working-time-row" id="sunday-row">
+                            <div class="form-check day-checkbox">
+                                <input class="form-check-input" asp-for="WorkingTime.Sunday.IsActive"
+                                       id="sunday" onchange="toggleDay('sunday')" />
+                                <label class="form-check-label" for="sunday">Sonntag</label>
+                            </div>
+                            <div class="d-flex align-items-center mt-1" id="sunday-times">
+                                <input type="time" asp-for="WorkingTime.Sunday.StartTime" class="form-control time-input" />
+                                <span class="mx-2 text-muted">bis</span>
+                                <input type="time" asp-for="WorkingTime.Sunday.EndTime" class="form-control time-input" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================
+             SPALTE 3: Projektspezifische Stundensätze
+             ================================================ -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>💶 Stundensätze</h5>
+                </div>
+                <div class="card-body">
+
+                    <p class="text-muted" style="font-size: 0.875rem;">
+                        Vorbelegt mit dem Standardstundensatz der jeweiligen Gruppe.
+                        Passen Sie die Werte bei Bedarf projektspezifisch an.
+                    </p>
+
+                    @if (Model.ProjectHourlyRateGroups == null || !Model.ProjectHourlyRateGroups.Any())
+                    {
+                        <!-- shared.css: .empty-state -->
+                        <div class="empty-state">
+                            <i class="bi bi-currency-euro"></i>
+                            <p>Keine Stundensatzgruppen vorhanden.</p>
+                            <small class="text-muted">
+                                Bitte legen Sie zunächst Stundensatzgruppen
+                                für Ihr Unternehmen an.
+                            </small>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-sm table-bordered mt-2">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Gruppe</th>
+                                    <th class="text-right">Standard</th>
+                                    <th class="text-right">Projekt (€/h)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.ProjectHourlyRateGroups.Count; i++)
+                                {
+                                    <!-- Binding-Kontext: HourlyRateGroupId + CompanyId als hidden -->
+                                    <input type="hidden" asp-for="ProjectHourlyRateGroups[i].HourlyRateGroupId" />
+                                    <input type="hidden" asp-for="ProjectHourlyRateGroups[i].CompanyId" />
+
+                                    <tr>
+                                        <!-- Gruppenname (nur Anzeige) -->
+                                        <td class="align-middle">
+                                            <span class="text-truncate" style="max-width: 120px; display: block;"
+                                                  title="@Model.ProjectHourlyRateGroups[i].HourlyRateGroup?.HourlyRateGroupName">
+                                                @Model.ProjectHourlyRateGroups[i].HourlyRateGroup?.HourlyRateGroupName
+                                            </span>
+                                        </td>
+
+                                        <!-- Standardstundensatz (nur Anzeige, shared.css: .status-active als Badge-Referenz) -->
+                                        <td class="align-middle text-right text-muted">
+                                            @Model.ProjectHourlyRateGroups[i].HourlyRateGroup?.HourlyRate.ToString("F2") €
+                                        </td>
+
+                                        <!-- Projektspezifischer Stundensatz (editierbar) -->
+                                        <td class="align-middle">
+                                            <input asp-for="ProjectHourlyRateGroups[i].ProjectHourlyRate"
+                                                   class="form-control form-control-sm text-right"
+                                                   type="number"
+                                                   step="0.01"
+                                                   min="0" />
+                                            <span asp-validation-for="ProjectHourlyRateGroups[i].ProjectHourlyRate"
+                                                  class="text-danger small"></span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+
+                </div>
+            </div>
+
+            <!-- Speichern-Aktion am Ende der dritten Spalte -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            Speichern &amp; Weiter zur Budgetplanung
+                        </button>
+                        <a asp-page="/Index" class="btn btn-outline-secondary">
+                            Abbrechen
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </div>
 </form>
-<div>
-    <a asp-page="/Index">Zurück zum Dashboard</a>
-</div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-}
-<script>
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', function() {
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        days.forEach(day => toggleDay(day));
-    });
 
-    function toggleDay(day) {
-        const checkbox = document.getElementById(day);
-        const timesDiv = document.getElementById(day + '-times');
+    <script>
+        // ============================================================
+        // Initialisierung: Alle Tage einmalig auf ihren Checkbox-Status
+        // prüfen und die Zeitfelder entsprechend ein-/ausblenden.
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function () {
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            days.forEach(day => toggleDay(day));
+        });
 
-        if (checkbox.checked) {
-            timesDiv.classList.remove('day-disabled');
-        } else {
-            timesDiv.classList.add('day-disabled');
+        /**
+         * Blendet den Zeitbereich eines Tages ein oder aus,
+         * abhängig vom Zustand der zugehörigen Checkbox.
+         * param {string} day - Tagesname in Kleinbuchstaben (z.B. 'monday')
+         */
+        function toggleDay(day) {
+            const checkbox = document.getElementById(day);
+            const timesDiv = document.getElementById(day + '-times');
+            if (!checkbox || !timesDiv) return;
+
+            if (checkbox.checked) {
+                timesDiv.classList.remove('day-disabled');
+            } else {
+                timesDiv.classList.add('day-disabled');
+            }
         }
-    }
-</script>
+    </script>
+}
