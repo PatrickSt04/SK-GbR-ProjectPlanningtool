@@ -43,8 +43,8 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         }
         public class InitialHRGPlanning
         {
-            public string HourlyRateGroupId { get; set; } = "";
-            public string HourlyRateGroupName { get; set; } = "";
+            public string ProjectHRGId { get; set; } = "";
+            public string ProjectHRGName { get; set; } = "";
             public decimal HourlyRate { get; set; }
             public int Amount { get; set; }
             public double EstimatedHours { get; set; }

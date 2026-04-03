@@ -34,7 +34,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         /// <summary>
         /// Berechnet detaillierte Budget-Statistiken für ein Projekt.
-        /// Kosten basieren auf Zeitbuchungen: NetWorkingHours * Employee.HourlyRateGroup.HourlyRate
+        /// Kosten basieren auf Zeitbuchungen: NetWorkingHours * effektiver Stundensatz.
+        /// Der effektive Stundensatz wird aus dem projektspezifischen Stundensatz (ProjectHourlyRateGroup)
+        /// ermittelt. Existiert kein projektspezifischer Eintrag, wird der Standard-Stundensatz
+        /// der HourlyRateGroup des Mitarbeiters als Fallback verwendet.
         /// </summary>
         public async Task<ProjectBudgetStatistics> CalculateBudgetStatisticsAsync(string projectId, ClaimsPrincipal user)
         {
@@ -54,8 +57,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 };
             }
 
+            // Projektspezifische Stundensätze einmalig laden (für alle nachfolgenden Berechnungen)
+            var projectHourlyRates = await GetProjectHourlyRateLookupAsync(projectId);
+
             // Kosten aus Zeitbuchungen berechnen
-            var usedBudgetFromTimeEntries = await CalculateUsedBudgetFromTimeEntriesAsync(projectId);
+            var usedBudgetFromTimeEntries = await CalculateUsedBudgetFromTimeEntriesAsync(projectId, projectHourlyRates);
 
             // Zusätzliche Projektkosten
             var additionalCosts = await CalculateAdditionalProjectCostsAsync(projectId);
@@ -92,7 +98,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             var budgetBreakdown = CreateBudgetBreakdown(project, usedBudgetFromTimeEntries, remainingBudget, utilizationPercentage, budgetStatus, additionalCosts);
             var taskStatistics = CalculateTaskBudgetStatistics(project);
 
-            var timeTrackingBreakdown = await CalculateTimeTrackingBreakdownAsync(projectId);
+            var timeTrackingBreakdown = await CalculateTimeTrackingBreakdownAsync(projectId, projectHourlyRates);
+
             return new ProjectBudgetStatistics
             {
                 ProjectId = projectId,
@@ -118,8 +125,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             };
         }
 
-        public async Task<List<TimeTrackingBreakdownItem>> CalculateTimeTrackingBreakdownAsync(string projectId)
+        /// <summary>
+        /// Berechnet die Zeiterfassungs-Aufschlüsselung nach Stundensatzgruppe.
+        /// Verwendet projektspezifische Stundensätze mit Fallback auf den Gruppenstandard.
+        /// </summary>
+        public async Task<List<TimeTrackingBreakdownItem>> CalculateTimeTrackingBreakdownAsync(
+            string projectId,
+            Dictionary<string, decimal>? projectHourlyRates = null)
         {
+            // Projektspezifische Stundensätze laden, falls nicht von außen übergeben
+            projectHourlyRates ??= await GetProjectHourlyRateLookupAsync(projectId);
+
             var timeEntries = await _context.TimeEntry
                 .Where(te => te.ProjectId == projectId)
                 .Include(te => te.Employee)
@@ -131,13 +147,19 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 .Select(group =>
                 {
                     var totalHours = group.Sum(te => te.NetWorkingHours);
-                    var hourlyRate = group.First().Employee?.HourlyRateGroup?.HourlyRate ?? 0;
+
+                    // Effektiven Stundensatz ermitteln:
+                    // 1. Projektspezifischer Satz aus dem Lookup (HourlyRateGroupId als Key)
+                    // 2. Fallback: Standard-Stundensatz der HourlyRateGroup des Mitarbeiters
+                    var hourlyRateGroupId = group.First().Employee?.HourlyRateGroup?.HourlyRateGroupId;
+                    var effectiveRate = ResolveEffectiveHourlyRate(hourlyRateGroupId, projectHourlyRates,
+                        group.First().Employee?.HourlyRateGroup?.HourlyRate);
 
                     return new TimeTrackingBreakdownItem
                     {
                         HourlyRateGroupName = group.Key,
                         TotalWorkingHours = totalHours,
-                        TotalCosts = totalHours * (double)hourlyRate
+                        TotalCosts = totalHours * (double)effectiveRate
                     };
                 })
                 .OrderByDescending(b => b.TotalCosts)
@@ -147,7 +169,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Berechnet erweiterte Projekt-Statistiken inklusive Budget
+        /// Berechnet erweiterte Projekt-Statistiken inklusive Budget.
         /// </summary>
         public async Task<ExtendedProjectStatistics> CalculateExtendedStatisticsAsync(string projectId, ClaimsPrincipal user)
         {
@@ -168,10 +190,52 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         #region Private Budget Calculation Methods
 
         /// <summary>
-        /// Berechnet das verwendete Budget aus allen Zeitbuchungen des Projekts.
-        /// Formel: NetWorkingHours * Employee.HourlyRateGroup.HourlyRate
+        /// Lädt alle projektspezifischen Stundensätze für ein Projekt als Dictionary.
+        /// Key: HourlyRateGroupId — Value: projektspezifischer Stundensatz.
+        /// Nicht gelöschte Gruppen mit gesetztem Stundensatz werden berücksichtigt.
         /// </summary>
-        private async Task<double> CalculateUsedBudgetFromTimeEntriesAsync(string projectId)
+        public async Task<Dictionary<string, decimal>> GetProjectHourlyRateLookupAsync(string projectId)
+        {
+            return await _context.ProjectHourlyRateGroup
+                .Include(phrg => phrg.HourlyRateGroup)
+                .Where(phrg =>
+                    phrg.ProjectId == projectId &&
+                    phrg.HourlyRateGroupId != null &&
+                    phrg.ProjectHourlyRate != null &&
+                    phrg.HourlyRateGroup != null &&
+                    !phrg.HourlyRateGroup.DeleteFlag)
+                .ToDictionaryAsync(
+                    phrg => phrg.HourlyRateGroupId!,
+                    phrg => phrg.ProjectHourlyRate!.Value);
+        }
+
+        /// <summary>
+        /// Ermittelt den effektiven Stundensatz für eine Stundensatzgruppe:
+        /// Projektspezifischer Satz hat Vorrang, Fallback ist der Gruppenstandard.
+        /// </summary>
+        /// <param name="hourlyRateGroupId">ID der Stundensatzgruppe des Mitarbeiters.</param>
+        /// <param name="projectRates">Lookup der projektspezifischen Stundensätze.</param>
+        /// <param name="fallbackRate">Standard-Stundensatz der HourlyRateGroup als Fallback.</param>
+        public decimal ResolveEffectiveHourlyRate(
+            string? hourlyRateGroupId,
+            Dictionary<string, decimal> projectRates,
+            decimal? fallbackRate)
+        {
+            // Projektspezifischen Satz bevorzugen
+            if (hourlyRateGroupId != null && projectRates.TryGetValue(hourlyRateGroupId, out var projectRate))
+                return projectRate;
+
+            // Fallback: Standard-Stundensatz der Gruppe
+            return (fallbackRate ?? 0);
+        }
+
+        /// <summary>
+        /// Berechnet das verwendete Budget aus allen Zeitbuchungen des Projekts.
+        /// Formel: NetWorkingHours * effektiver Stundensatz (projektspezifisch oder Gruppenstandard)
+        /// </summary>
+        private async Task<double> CalculateUsedBudgetFromTimeEntriesAsync(
+            string projectId,
+            Dictionary<string, decimal> projectHourlyRates)
         {
             var timeEntries = await _context.TimeEntry
                 .Where(te => te.ProjectId == projectId)
@@ -183,18 +247,19 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
             foreach (var entry in timeEntries)
             {
-                var hourlyRate = entry.Employee?.HourlyRateGroup?.HourlyRate;
-                if (hourlyRate == null)
-                    continue;
+                var hourlyRateGroupId = entry.Employee?.HourlyRateGroup?.HourlyRateGroupId;
+                var fallbackRate = entry.Employee?.HourlyRateGroup?.HourlyRate;
 
-                totalCosts += entry.NetWorkingHours * (double)hourlyRate;
+                var effectiveRate = ResolveEffectiveHourlyRate(hourlyRateGroupId, projectHourlyRates, fallbackRate);
+
+                totalCosts += entry.NetWorkingHours * (double)effectiveRate;
             }
 
             return totalCosts;
         }
 
         /// <summary>
-        /// Berechnet die zusätzlichen Projektkosten
+        /// Berechnet die zusätzlichen Projektkosten.
         /// </summary>
         private async Task<AdditionalCostBreakdown> CalculateAdditionalProjectCostsAsync(string projectId)
         {
@@ -218,7 +283,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Bestimmt den Budget-Status basierend auf der Nutzung
+        /// Bestimmt den Budget-Status basierend auf der prozentualen Nutzung.
         /// </summary>
         private BudgetStatus DetermineBudgetStatus(double utilizationPercentage)
         {
@@ -233,7 +298,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Erstellt die detaillierte Budget-Aufschlüsselung auf Section-Ebene
+        /// Erstellt die detaillierte Budget-Aufschlüsselung auf Section-Ebene.
         /// </summary>
         private BudgetBreakdown CreateBudgetBreakdown(Project project, double usedBudgetFromTimeEntries,
             double remainingBudget, double utilizationPercentage, BudgetStatus status,
@@ -266,7 +331,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Erstellt die Aufschlüsselung einer Section (strukturell, ohne Einzelkosten pro Task)
+        /// Erstellt die Aufschlüsselung einer Section (strukturell, ohne Einzelkosten pro Task).
         /// </summary>
         private SectionBudgetBreakdown CreateSectionBudgetBreakdown(ProjectSection section, int level)
         {
@@ -366,7 +431,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         /// <summary>
-        /// Berechnet Task-spezifische Statistiken (nur noch Datumsbasiert, keine Kosten mehr auf Taskebene)
+        /// Berechnet Task-spezifische Statistiken (datumsbasiert).
         /// </summary>
         private TaskBudgetStatistics CalculateTaskBudgetStatistics(Project project)
         {
@@ -445,12 +510,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         private CostDistribution CalculateCostDistribution(BudgetBreakdown breakdown)
         {
-            // Kostenverteilung auf Task-Ebene entfällt, da Kosten nur noch projektbezogen erfasst werden
             return new CostDistribution();
         }
 
         #endregion
     }
+
+    // ================================================================
+    // Records & DTOs (unverändert)
+    // ================================================================
 
     public record ProjectStatistics(int TotalTasks, int CompletedTasks)
     {
@@ -468,7 +536,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public double InitialBudget { get; set; }
         public double UsedBudget { get; set; }
 
-        /// <summary>Kosten aus Zeitbuchungen (NetWorkingHours * HourlyRate)</summary>
+        /// <summary>Kosten aus Zeitbuchungen (NetWorkingHours * effektiver Stundensatz)</summary>
         public double UsedBudgetFromTimeEntries { get; set; }
         public double AdditionalCosts { get; set; }
         public double RemainingBudget { get; set; }
@@ -484,15 +552,16 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<TopCostSection> TopCostSections { get; set; } = new();
         public CostDistribution CostDistribution { get; set; } = new();
         public AdditionalCostBreakdown AdditionalCostBreakdown { get; set; } = new();
-
         public List<TimeTrackingBreakdownItem> TimeTrackingBreakdown { get; set; } = new();
     }
+
     public class TimeTrackingBreakdownItem
     {
         public string HourlyRateGroupName { get; set; } = string.Empty;
         public double TotalWorkingHours { get; set; }
         public double TotalCosts { get; set; }
     }
+
     public class AdditionalCostBreakdown
     {
         public double TotalAmount { get; set; }
