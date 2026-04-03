@@ -1,0 +1,48 @@
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.DetailsModel
+
+<div class="card">
+
+    <div class="card-header">
+        <h5><i class="bi bi-box-seam me-2"></i>Artikeldaten</h5>
+    </div>
+    <div class="card-body">
+        <div class="cm-info-grid">
+            <div class="cm-info-item">
+                <label> Artikelnummer</label>
+                <span class="cm-text-mono">@Model.Article.ArticleNumber</span>
+            </div>
+            <div class="cm-info-item">
+                <label>Artikelname</label>
+                <span>@Model.Article.ArticleName</span>
+            </div>
+            <div class="cm-info-item">
+                <label> Preis</label>
+                <span class="cm-text-rate">@Model.Article.Price.ToString("N2") €</span>
+            </div>
+            <div class="cm-info-item">
+                <label>Kategorie</label>
+                @if (Model.Article.ArticleCategory != null)
+                {
+                    <span>
+                        <a asp-page="ArticleCategoryDetails"
+                           asp-route-id="@Model.Article.ArticleCategoryId"
+                           class="cm-link-accent">
+                            <i class="bi bi-tag-fill me-1"></i>@Model.Article.ArticleCategory.CategoryName
+                        </a>
+                    </span>
+                }
+                else
+                {
+                    <span class="cm-text-placeholder">–</span>
+                }
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Article.Description))
+        {
+            <div class="cm-description-section">
+                <label><i class="bi bi-text-left"></i> Beschreibung</label>
+                <p class="cm-description-text">@Model.Article.Description</p>
+            </div>
+        }
+    </div>
+</div>

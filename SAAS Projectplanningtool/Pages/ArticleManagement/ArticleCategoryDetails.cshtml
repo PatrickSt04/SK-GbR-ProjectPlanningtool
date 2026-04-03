@@ -1,180 +1,22 @@
 ﻿@page
 @model SAAS_Projectplanningtool.Pages.ArticleManagement.ArticleCategoryDetailsModel
+
 @{
     ViewData["Title"] = Model.Category.CategoryName;
-    bool isLocked = Model.Category.DeleteFlag;
 }
-@await Html.PartialAsync("_ArticleStyles")
 
-<div class="cm-header">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <div style="width:48px; height:48px; border-radius:14px; background:var(--accent-light);
-                    display:flex; align-items:center; justify-content:center;
-                    font-size:1.3rem; color:var(--accent); flex-shrink:0;">
-            <i class="bi bi-tag-fill"></i>
-        </div>
-        <div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <h1 style="margin:0; font-size:1.5rem;">@Model.Category.CategoryName</h1>
-                @if (isLocked)
-                {
-                    <span class="badge-type badge-locked"><i class="bi bi-lock-fill"></i> Gesperrt</span>
-                }
-                else
-                {
-                    <span class="badge-type badge-active"><i class="bi bi-check-circle-fill"></i> Aktiv</span>
-                }
-            </div>
-            <div style="font-size:.78rem; color:var(--text-muted); margin-top:3px;">
-                Erstellt von @(Model.Category.CreatedByEmployee?.EmployeeDisplayName ?? "Unbekannt")
-                @if (Model.Category.CreatedTimestamp.HasValue)
-                {
-                    <span>· @Model.Category.CreatedTimestamp.Value.ToString("dd.MM.yyyy")</span>
-                }
-            </div>
-        </div>
-    </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <a asp-page="ArticleCategoryEdit" asp-route-id="@Model.Category.ArticleCategoryId"
-           class="btn-cm btn-cm-ghost">
-            <i class="bi bi-pencil"></i> Bearbeiten
-        </a>
-        @if (!isLocked)
-        {
-            <form method="post" asp-page-handler="SetDeleteFlag"
-                  asp-route-id="@Model.Category.ArticleCategoryId">
-                <button type="submit" class="btn-cm btn-cm-danger btn-cm-sm"
-                        onclick="return confirm('Kategorie wirklich sperren?');">
-                    <i class="bi bi-lock"></i> Sperren
-                </button>
-            </form>
-        }
-        else
-        {
-            <form method="post" asp-page-handler="UndoDeleteFlag"
-                  asp-route-id="@Model.Category.ArticleCategoryId">
-                <button type="submit" class="btn-cm btn-cm-success btn-cm-sm">
-                    <i class="bi bi-unlock"></i> Entsperren
-                </button>
-            </form>
-        }
-        <a asp-page="ArticleCategoryIndex" class="btn-cm btn-cm-ghost btn-cm-sm">
-            <i class="bi bi-arrow-left"></i> Zurück
-        </a>
-    </div>
-</div>
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 
-<!-- Info + Letzte Änderung -->
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px; align-items:start; margin-bottom:24px;">
-    <div class="cm-card">
-        <div class="cm-card-title">Details</div>
-        <div class="cm-info-grid">
-            <div class="cm-info-item">
-                <label>Kategoriename</label>
-                <span>@Model.Category.CategoryName</span>
-            </div>
-            <div class="cm-info-item">
-                <label>Aktive Artikel</label>
-                <span>@Model.Category.Articles.Count(a => !a.DeleteFlag)</span>
-            </div>
-        </div>
-        @if (!string.IsNullOrWhiteSpace(Model.Category.Description))
-        {
-            <div style="margin-top:14px; font-size:.875rem; white-space:pre-wrap; color:var(--text-muted);">
-                @Model.Category.Description
-            </div>
-        }
-    </div>
-    <div class="cm-card">
-        <div class="cm-card-title">Letzte Änderung</div>
-        <div style="font-size:.85rem;">
-            <div style="margin-bottom:8px;">
-                <div style="color:var(--text-muted); font-size:.75rem;">Bearbeiter</div>
-                <div>@(Model.Category.LatestModifier?.EmployeeDisplayName ?? "–")</div>
-            </div>
-            <div style="margin-bottom:8px;">
-                <div style="color:var(--text-muted); font-size:.75rem;">Zeitpunkt</div>
-                <div>@(Model.Category.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "–")</div>
-            </div>
-            <div>
-                <div style="color:var(--text-muted); font-size:.75rem;">Beschreibung</div>
-                <div>@(Model.Category.LatestModificationText ?? "–")</div>
-            </div>
-        </div>
-    </div>
-</div>
+@await Html.PartialAsync("Partials/_CategoryHeader", Model)
 
-<!-- Artikel dieser Kategorie -->
-<div class="cm-card" style="padding:0; overflow:hidden;">
-    <div style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center;">
-        <div class="cm-card-title" style="margin:0;">
-            Artikel in dieser Kategorie
-        </div>
-        @if (!isLocked)
-        {
-            <a asp-page="Create" asp-route-categoryId="@Model.Category.ArticleCategoryId"
-               class="btn-cm btn-cm-primary btn-cm-sm">
-                <i class="bi bi-plus-lg"></i> Neuer Artikel
-            </a>
-        }
+<div class="em-detail-grid">
+
+    <div>
+        @await Html.PartialAsync("Partials/_CategoryInfo", Model)
+        @await Html.PartialAsync("Partials/_CategoryArticleTable", Model)
     </div>
 
-    @if (Model.Category.Articles.Any())
-    {
-        <table class="cm-table">
-            <thead>
-                <tr>
-                    <th>Artikelnummer</th>
-                    <th>Artikelname</th>
-                    <th style="text-align:right;">Preis</th>
-                    <th>Status</th>
-                    <th style="width:80px;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var a in Model.Category.Articles.OrderBy(a => a.ArticleNumber))
-                {
-                    <tr>
-                        <td style="font-family:monospace; font-size:.85rem; color:var(--text-muted);">
-                            @a.ArticleNumber
-                        </td>
-                        <td>
-                            <a class="td-link" asp-page="Details" asp-route-id="@a.ArticleId">
-                                @a.ArticleName
-                            </a>
-                        </td>
-                        <td style="text-align:right; font-weight:700;">
-                            @a.Price.ToString("N2") €
-                        </td>
-                        <td>
-                            @if (a.DeleteFlag)
-                            {
-                                <span class="badge-type badge-locked"><i class="bi bi-lock-fill"></i> Gesperrt</span>
-                            }
-                            else
-                            {
-                                <span style="color:var(--success); font-size:.8rem; font-weight:600;">
-                                    <i class="bi bi-check-circle-fill"></i> Aktiv
-                                </span>
-                            }
-                        </td>
-                        <td>
-                            <a asp-page="Details" asp-route-id="@a.ArticleId"
-                               class="btn-cm btn-cm-ghost btn-cm-sm">
-                                <i class="bi bi-arrow-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <div class="cm-empty">
-            <div class="cm-empty-icon"><i class="bi bi-box-seam"></i></div>
-            Noch keine Artikel in dieser Kategorie.
-        </div>
-    }
+    @await Html.PartialAsync("Partials/_CategorySidebar", Model)
+
 </div>
 

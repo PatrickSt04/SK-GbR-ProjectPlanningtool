@@ -1,0 +1,74 @@
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.ArticleCategoryDetailsModel
+
+@{
+    bool isLocked = Model.Category.DeleteFlag;
+}
+
+<div class="card">
+    <div class="cm-colorbar"></div>
+    <div class="card-header">
+        <h5>Artikel in dieser Kategorie</h5>
+        @if (!isLocked)
+        {
+            <div class="card-actions">
+                <a asp-page="Create" asp-route-categoryId="@Model.Category.ArticleCategoryId"
+                   class="btn btn-primary btn-sm">
+                    Neuer Artikel
+                </a>
+            </div>
+        }
+    </div>
+    <div class="card-body">
+        @if (Model.Category.Articles.Any())
+        {
+            <table class="cm-table">
+                <thead>
+                    <tr>
+                        <th>Artikelnummer</th>
+                        <th>Artikelname</th>
+                        <th class="text-end">Preis</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.Category.Articles.OrderBy(a => a.ArticleNumber))
+                    {
+                        <tr>
+                            <td class="cm-text-mono">
+                                @a.ArticleNumber
+                            </td>
+                            <td>
+                                <a class="td-link" asp-page="Details" asp-route-id="@a.ArticleId">
+                                    @a.ArticleName
+                                </a>
+                            </td>
+                            <td class="text-end fw-bold">
+                                @a.Price.ToString("N2") €
+                            </td>
+                            <td>
+                                @if (a.DeleteFlag)
+                                {
+                                    <span class="badge badge-locked badge-inline-sm">
+                                        <i class="bi bi-lock-fill"></i> Gesperrt
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-aktiv badge-inline-sm">
+                                        <i class="bi bi-check-circle-fill"></i> Aktiv
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <p>Noch keine Artikel in dieser Kategorie.</p>
+            </div>
+        }
+    </div>
+</div>

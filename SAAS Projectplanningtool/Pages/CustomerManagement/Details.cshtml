@@ -9,65 +9,70 @@
     var msgOpen = Model.Customer.CustomerMessages.Count(m => m.Status != MessageStatus.Geschlossen);
 }
 
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
 @await Html.PartialAsync("_CustomerStyles")
 
-<!-- ── Page Header ── -->
-<div class="cm-header" style="flex-wrap:wrap; gap:12px;">
-    <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-        <div style="width:52px; height:52px; border-radius:14px; background:var(--accent-light);
-                    display:flex; align-items:center; justify-content:center;
-                    font-size:1.4rem; color:var(--accent); flex-shrink:0;">
-            <i class="bi @(isKunde ? "bi-building" : "bi-person-badge")"></i>
-        </div>
-        <div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <h1 style="margin:0; font-size:1.6rem;">@Model.Customer.CustomerName</h1>
-                <span class="badge-type @(isKunde ? "badge-kunde" : "badge-interessent")">
-                    <i class="bi @(isKunde ? "bi-building-check" : "bi-person-badge")"></i>
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1>
+                @Model.Customer.CustomerName
+                <span class="badge @(isKunde ? "badge-kunde" : "badge-interessent") badge-inline">
                     @(isKunde ? "Kunde" : "Interessent")
                 </span>
                 @if (isLocked)
                 {
-                    <span class="badge-type badge-locked"><i class="bi bi-lock-fill"></i> Gesperrt</span>
+                    <span class="badge badge-locked badge-inline">
+                        Gesperrt
+                    </span>
                 }
-            </div>
-            <div style="font-size:.78rem; color:var(--text-muted); margin-top:3px;">
-                Erstellt von @(Model.Customer.CreatedByEmployee?.EmployeeDisplayName ?? "Unbekannt")
+            </h1>
+            <div class="project-meta">
+                <span class="creator-info">
+                    Erstellt von: <strong>@(Model.Customer.CreatedByEmployee?.EmployeeDisplayName ?? "Unbekannt")</strong>
+                </span>
                 @if (Model.Customer.CreatedTimestamp.HasValue)
                 {
-                    <span>· @Model.Customer.CreatedTimestamp.Value.ToString("dd.MM.yyyy")</span>
+                    <span class="creation-date">
+                        @Model.Customer.CreatedTimestamp.Value.ToString("dd.MM.yyyy")
+                    </span>
                 }
             </div>
         </div>
-    </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        @if (!isKunde)
-        {
-            <form method="post" asp-page-handler="UpgradeToKunde" asp-route-id="@Model.Customer.CustomerId" style="display:inline;">
-                <button type="submit" class="btn-cm btn-cm-success">
-                    <i class="bi bi-arrow-up-circle"></i> Zu Kunde aufwerten
-                </button>
-            </form>
-        }
-        <a asp-page="./Edit" asp-route-id="@Model.Customer.CustomerId" class="btn-cm btn-cm-ghost">
-            <i class="bi bi-pencil"></i> Bearbeiten
-        </a>
-        @if (!isLocked)
-        {
-            <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Customer.CustomerId" style="display:inline;">
-                <button type="submit" class="btn-cm btn-cm-danger btn-cm-sm">
-                    <i class="bi bi-lock"></i> Sperren
-                </button>
-            </form>
-        }
-        else
-        {
-            <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Customer.CustomerId" style="display:inline;">
-                <button type="submit" class="btn-cm btn-cm-success btn-cm-sm">
-                    <i class="bi bi-unlock"></i> Entsperren
-                </button>
-            </form>
-        }
+        <div class="header-actions">
+            @if (!isKunde)
+            {
+                <form method="post" asp-page-handler="UpgradeToKunde" asp-route-id="@Model.Customer.CustomerId">
+                    <button type="submit" class="btn btn-success">
+                        Zu Kunde aufwerten
+                    </button>
+                </form>
+            }
+            <a asp-page="./Edit" asp-route-id="@Model.Customer.CustomerId" class="btn btn-outline-light">
+                Bearbeiten
+            </a>
+            @if (!isLocked)
+            {
+                <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Customer.CustomerId">
+                    <button type="submit" class="btn btn-danger">
+                        Sperren
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Customer.CustomerId">
+                    <button type="submit" class="btn btn-success">
+                        Entsperren
+                    </button>
+                </form>
+            }
+            <a asp-page="Index" class="btn btn-outline-light">
+                Zurück
+            </a>
+        </div>
     </div>
 </div>
 
@@ -76,21 +81,18 @@
     @if (!string.IsNullOrEmpty(Model.Customer.ContactPhone))
     {
         <div style="display:flex; align-items:center; gap:7px; font-size:.875rem;">
-            <i class="bi bi-telephone-fill" style="color:var(--accent);"></i>
             <span>@Model.Customer.ContactPhone</span>
         </div>
     }
     @if (!string.IsNullOrEmpty(Model.Customer.ContactEmail))
     {
         <div style="display:flex; align-items:center; gap:7px; font-size:.875rem;">
-            <i class="bi bi-envelope-fill" style="color:var(--accent);"></i>
             <a href="mailto:@Model.Customer.ContactEmail" style="color:inherit;">@Model.Customer.ContactEmail</a>
         </div>
     }
     @if (!string.IsNullOrEmpty(Model.Customer.Website))
     {
         <div style="display:flex; align-items:center; gap:7px; font-size:.875rem;">
-            <i class="bi bi-globe" style="color:var(--accent);"></i>
             <a href="@Model.Customer.Website" target="_blank" rel="noopener" style="color:inherit;">@Model.Customer.Website</a>
         </div>
     }
@@ -99,38 +101,38 @@
 <!-- ── Tabs ── -->
 <div class="cm-tabs">
     <button class="cm-tab active" onclick="switchTab('stammdaten', this)">
-        <i class="bi bi-card-list"></i> Stammdaten
+        Stammdaten
     </button>
     <button class="cm-tab" onclick="switchTab('ansprechpartner', this)">
-        <i class="bi bi-people"></i> Ansprechpartner
+        Ansprechpartner
         @if (Model.Customer.ContactPersons.Any())
         {
             <span class="cm-tab-count">@Model.Customer.ContactPersons.Count</span>
         }
     </button>
     <button class="cm-tab" onclick="switchTab('projekte', this)">
-        <i class="bi bi-kanban"></i> Projekte
+        Projekte
         @if (Model.Customer.Projects?.Any() == true)
         {
             <span class="cm-tab-count">@Model.Customer.Projects.Count()</span>
         }
     </button>
     <button class="cm-tab" onclick="switchTab('zuschlaege', this)">
-        <i class="bi bi-percent"></i> Zuschlagsätze
+        Zuschlagsätze
         @if (Model.Customer.MaterialSurcharges.Any())
         {
             <span class="cm-tab-count">@Model.Customer.MaterialSurcharges.Count</span>
         }
     </button>
     <button class="cm-tab" onclick="switchTab('nachrichten', this)">
-        <i class="bi bi-chat-dots"></i> Nachrichten
+        Nachrichten
         @if (msgOpen > 0)
         {
             <span class="cm-tab-count">@msgOpen</span>
         }
     </button>
     <button class="cm-tab" onclick="switchTab('historie', this)">
-        <i class="bi bi-clock-history"></i> Kontakt-Historie
+        Kontakt-Historie
         @if (Model.Customer.ContactHistoryEntries.Any())
         {
             <span class="cm-tab-count">@Model.Customer.ContactHistoryEntries.Count</span>
