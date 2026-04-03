@@ -1,0 +1,59 @@
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees.DetailsModel
+
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-person-vcard me-2"></i>Stammdaten</h5>
+    </div>      
+    <div class="card-body">
+        <div class="cm-info-grid">
+            <div class="cm-info-item">
+                <label><i class="bi bi-person"></i> Anzeigename</label>
+                <span>@Model.Employee.EmployeeDisplayName</span>
+            </div>
+            <div class="cm-info-item">
+                <label><i class="bi bi-envelope"></i> E-Mail-Adresse</label>
+                <span>@(Model.Employee.IdentityUser?.Email ?? "–")</span>
+            </div>
+            <div class="cm-info-item">
+                <label><i class="bi bi-clock"></i> Stundensatzgruppe</label>
+                <span>
+                    @if (Model.Employee.HourlyRateGroup != null)
+                    {
+                        <span class="badge">@Model.Employee.HourlyRateGroup.HourlyRateGroupName</span>
+                    }
+                    else
+                    {
+                        <span class="cm-text-placeholder">–</span>
+                    }
+                </span>
+            </div>
+            <div class="cm-info-item">
+                <label><i class="bi bi-currency-euro"></i> Stundensatz</label>
+                <span class="cm-text-rate">
+                    @(Model.Employee.HourlyRateGroup != null ? Model.Employee.HourlyRateGroup.HourlyRate.ToString("0.00") + " €" : "–")
+                </span>
+            </div>
+            <div class="cm-info-item">
+                <label><i class="bi bi-telephone"></i> Telefonnummer</label>
+                @if (!string.IsNullOrEmpty(Model.Employee?.IdentityUser?.PhoneNumber))
+                {
+                    <span>
+                        <a href="tel:@Model.Employee?.IdentityUser?.PhoneNumber" class="cm-link-accent">
+                            <i class="bi bi-telephone-fill me-1"></i>
+                            @Model.Employee?.IdentityUser?.PhoneNumber
+                        </a>
+                    </span>
+                }
+                else
+                {
+                    <span class="cm-text-placeholder">–</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (Model.EmployeeIsViewer)
+    {
+        @await Html.PartialAsync("DetailsPartials/_ViewerSharedProjects", Model)
+    }
+</div>

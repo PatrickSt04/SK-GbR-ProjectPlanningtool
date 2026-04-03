@@ -1,0 +1,102 @@
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees.DetailsModel
+
+<div class="vsp-section-header">
+    <h5>
+        <i class="bi bi-folder-symlink"></i>&nbsp; Freigegebene Projekte
+    </h5>
+    @if (Model.ViewerSharedProjects != null && Model.ViewerSharedProjects.Any())
+    {
+        <span class="vsp-count-chip">@Model.ViewerSharedProjects.Count() Projekte</span>
+    }
+</div>
+
+@if (Model.ViewerSharedProjects != null && Model.ViewerSharedProjects.Any())
+{
+    <div class="vsp-grid">
+        @foreach (var project in Model.ViewerSharedProjects)
+        {
+            var stateColor = project.State?.Color ?? "#94a3b8";
+            var isArchived = project.IsArchived == true;
+            var hasDateRange = project.StartDate != null && project.EndDate != null;
+            var hasPerson = project.ProjectLead != null;
+            var hasAddress = !string.IsNullOrWhiteSpace(project.City);
+            var badgeBg = stateColor + "28";
+
+            <div class="vsp-card">
+                <div class="vsp-card-top" style="background:@stateColor;"></div>
+
+                @if (isArchived)
+                {
+                    <div class="vsp-archived-banner">
+                        <i class="bi bi-archive-fill"></i> Archiviert
+                    </div>
+                }
+
+                <div class="vsp-card-body">
+                    <div class="vsp-card-header">
+                        <div class="vsp-project-name">@project.ProjectName</div>
+                        @if (project.State != null)
+                        {
+                            <span class="vsp-state-badge" style="background:@badgeBg; color:@stateColor;">
+                                <i class="bi bi-circle-fill vsp-state-dot"></i>
+                                @project.State.StateName
+                            </span>
+                        }
+                    </div>
+
+                    <div class="vsp-meta-row">
+                        @if (project.Customer != null)
+                        {
+                            <div class="vsp-meta-item">
+                                <i class="bi bi-building"></i>
+                                <span>@project.Customer.CustomerName</span>
+                            </div>
+                        }
+                        @if (hasPerson)
+                        {
+                            <div class="vsp-meta-item">
+                                <i class="bi bi-person-circle"></i>
+                                <span>@project.ProjectLead!.EmployeeDisplayName</span>
+                            </div>
+                        }
+                        @if (hasAddress)
+                        {
+                            <div class="vsp-meta-item">
+                                <i class="bi bi-geo-alt"></i>
+                                <span>@project.City@(!string.IsNullOrWhiteSpace(project.Country) ? ", " + project.Country : "")</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="vsp-card-footer">
+                    <div class="vsp-date-range">
+                        <i class="bi bi-calendar3"></i>
+                        @if (hasDateRange)
+                        {
+                            @project.StartDate!.Value.ToString("dd.MM.yyyy")
+                            <span class="sep">→</span>
+                            @project.EndDate!.Value.ToString("dd.MM.yyyy")
+                        }
+                        else
+                        {
+                            <span class="cm-text-placeholder">Kein Zeitraum</span>
+                        }
+                    </div>
+                    <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="vsp-empty">
+        <div class="vsp-empty-icon"><i class="bi bi-folder-x"></i></div>
+        <div class="vsp-empty-title">Keine freigegebenen Projekte</div>
+        <div class="vsp-empty-text">Es wurden noch keine Projekte für Sie freigegeben.</div>
+    </div>
+}

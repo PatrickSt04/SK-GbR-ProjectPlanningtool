@@ -1,0 +1,25 @@
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.ArticleCategoryDetailsModel
+
+<div class="cm-sidebar">
+    <div class="card">
+        <div class="card-header">
+            <h5>Letzte Änderung</h5>
+        </div>
+        <div class="card-body">
+            <div class="cm-detail-list">
+                <div>
+                    <div class="cm-detail-label">Bearbeiter</div>
+                    <div>@(Model.Category.LatestModifier?.EmployeeDisplayName ?? "–")</div>
+                </div>
+                <div>
+                    <div class="cm-detail-label">Zeitpunkt</div>
+                    <div>@(Model.Category.LatestModificationTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "–")</div>
+                </div>
+                <div>
+                    <div class="cm-detail-label">Beschreibung</div>
+                    <div class="cm-text-muted">@(Model.Category.LatestModificationText ?? "–")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

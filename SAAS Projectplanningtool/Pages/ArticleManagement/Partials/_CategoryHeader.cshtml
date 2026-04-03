@@ -1,0 +1,66 @@
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.ArticleCategoryDetailsModel
+
+@{
+    bool isLocked = Model.Category.DeleteFlag;
+}
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1>
+                @Model.Category.CategoryName
+                @if (isLocked)
+                {
+                    <span class="badge badge-locked badge-inline">
+                        Gesperrt
+                    </span>
+                }
+                else
+                {
+                    <span class="badge badge-aktiv badge-inline">
+                        Aktiv
+                    </span>
+                }
+            </h1>
+            <div class="project-meta">
+                <span class="creator-info">
+                    Erstellt von: <strong>@(Model.Category.CreatedByEmployee?.EmployeeDisplayName ?? "Unbekannt")</strong>
+                </span>
+                @if (Model.Category.CreatedTimestamp.HasValue)
+                {
+                    <span class="creation-date">
+                        @Model.Category.CreatedTimestamp.Value.ToString("dd.MM.yyyy")
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="header-actions">
+            <a asp-page="ArticleCategoryEdit" asp-route-id="@Model.Category.ArticleCategoryId"
+               class="btn btn-outline-light">
+                Bearbeiten
+            </a>
+            @if (!isLocked)
+            {
+                <form method="post" asp-page-handler="SetDeleteFlag"
+                      asp-route-id="@Model.Category.ArticleCategoryId">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Kategorie wirklich sperren?');">
+                        Sperren
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="UndoDeleteFlag"
+                      asp-route-id="@Model.Category.ArticleCategoryId">
+                    <button type="submit" class="btn btn-success">
+                        Entsperren
+                    </button>
+                </form>
+            }
+            <a asp-page="ArticleCategoryIndex" class="btn btn-outline-light">
+                Zurück
+            </a>
+        </div>
+    </div>
+</div>

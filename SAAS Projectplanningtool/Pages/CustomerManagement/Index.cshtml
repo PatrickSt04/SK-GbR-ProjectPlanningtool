@@ -4,24 +4,26 @@
     ViewData["Title"] = "Kundenverwaltung";
 }
 
-@await Html.PartialAsync("_CustomerStyles")
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 
-<div class="cm-header">
-    <div>
-        <h1>Kundenverwaltung</h1>
-        <div class="cm-meta">Alle Kunden &amp; Interessenten Ihres Unternehmens</div>
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1>Kundenverwaltung</h1>
+            <p class="header-subtitle">Alle Kunden &amp; Interessenten Ihres Unternehmens</p>
+        </div>
+        <div class="header-actions">
+            <a asp-page="Create" class="btn btn-outline-light">
+                Neuen Eintrag anlegen
+            </a>
+        </div>
     </div>
-    <a asp-page="Create" class="btn-cm btn-cm-primary">
-        <i class="bi bi-plus-lg"></i> Neuen Eintrag anlegen
-    </a>
 </div>
 
-<div class="cm-card" style="padding: 0; overflow: hidden;">
-    <div class="cm-colorbar"></div>
+<div class="card" style="padding: 0; overflow: hidden;">
     <div style="padding: 18px 24px 14px;">
         <div class="cm-toolbar">
             <div class="cm-search-wrap">
-                <i class="bi bi-search"></i>
                 <input type="text" id="searchInput" class="cm-input cm-search" placeholder="Name oder Adresse suchen…" oninput="filterTable()">
             </div>
             <select id="typeFilter" class="cm-input cm-select" style="width:auto;" onchange="filterTable()">
@@ -45,7 +47,6 @@
                 <th>Adresse</th>
                 <th>Kontakt</th>
                 <th>Status</th>
-                <th style="width:80px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -63,7 +64,6 @@
                     </td>
                     <td>
                         <span class="badge-type @(isKunde ? "badge-kunde" : "badge-interessent")">
-                            <i class="bi @(isKunde ? "bi-building-check" : "bi-person-badge")"></i>
                             @(isKunde ? "Kunde" : "Interessent")
                         </span>
                     </td>
@@ -85,30 +85,24 @@
                     <td style="font-size:.85rem;">
                         @if (!string.IsNullOrEmpty(item.ContactPhone))
                         {
-                            <div><i class="bi bi-telephone" style="color:var(--text-muted);margin-right:5px;"></i>@item.ContactPhone</div>
+                            <div>@item.ContactPhone</div>
                         }
                         @if (!string.IsNullOrEmpty(item.ContactEmail))
                         {
-                            <div><i class="bi bi-envelope" style="color:var(--text-muted);margin-right:5px;"></i>@item.ContactEmail</div>
+                            <div>@item.ContactEmail</div>
                         }
                     </td>
                     <td>
                         @if (isLocked)
                         {
-                            <span class="badge-type badge-locked"><i class="bi bi-lock-fill"></i> Gesperrt</span>
+                            <span class="badge-type badge-locked">Gesperrt</span>
                         }
                         else
                         {
                             <span style="color:var(--success); font-size:.8rem; font-weight:600;">
-                                <i class="bi bi-check-circle-fill"></i> Aktiv
+                                Aktiv
                             </span>
                         }
-                    </td>
-                    <td>
-                        <a asp-page="Details" asp-route-id="@item.CustomerId"
-                           class="btn-cm btn-cm-ghost btn-cm-sm">
-                            <i class="bi bi-arrow-right"></i>
-                        </a>
                     </td>
                 </tr>
             }

@@ -4,18 +4,24 @@
     ViewData["Title"] = "Kunde bearbeiten";
 }
 
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 @await Html.PartialAsync("_CustomerStyles")
 
-<div style="max-width: 720px;">
-    <div class="cm-header">
-        <div>
-            <h1>Stammdaten bearbeiten</h1>
-            <div class="cm-meta">@Model.Customer.CustomerName</div>
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-pencil-square me-2"></i>Stammdaten bearbeiten</h1>
+            <p class="header-subtitle">@Model.Customer.CustomerName</p>
         </div>
-        <a asp-page="Details" asp-route-id="@Model.Customer.CustomerId" class="btn-cm btn-cm-ghost">
-            <i class="bi bi-arrow-left"></i> Zurück
-        </a>
+        <div class="header-actions">
+            <a asp-page="Details" asp-route-id="@Model.Customer.CustomerId" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Zurück
+            </a>
+        </div>
     </div>
+</div>
+
+<div class="cm-form-container">
 
     <form method="post">
         <div asp-validation-summary="ModelOnly" class="cm-card" style="border-left:3px solid var(--danger); color:var(--danger); font-size:.875rem;"></div>

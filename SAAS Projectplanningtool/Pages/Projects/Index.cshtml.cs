@@ -490,6 +490,46 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             public string ProjectId { get; set; } = string.Empty;
         }
+
+        // Am Ende der Klasse ProjectsModel einfügen:
+
+        public static int CalculateProgress(Project project)
+        {
+            if (project.State?.StateName == "Completed") return 100;
+            if (project.State?.StateName == "InProgress") return 50;
+            if (project.State?.StateName == "Planning") return 25;
+            return 0;
+        }
+
+        public static string GetStatusClass(string? status)
+        {
+            return status switch
+            {
+                "Active" => "bg-success",
+                "InProgress" => "bg-primary",
+                "Planning" => "bg-warning",
+                "Completed" => "bg-info",
+                "OnHold" => "bg-secondary",
+                "Cancelled" => "bg-danger",
+                _ => "bg-light text-dark"
+            };
+        }
+
+        public static string GetPriorityClass(Project project)
+        {
+            if (project.EndDate.HasValue && project.EndDate < DateOnly.FromDateTime(DateTime.Now.AddDays(7)))
+                return "priority-high";
+            if (project.EndDate.HasValue && project.EndDate < DateOnly.FromDateTime(DateTime.Now.AddDays(30)))
+                return "priority-medium";
+            return "priority-low";
+        }
+
+        public static string GetBudgetClass(double percentage)
+        {
+            if (percentage > 90) return "bg-danger";
+            if (percentage > 75) return "bg-warning";
+            return "bg-success";
+        }
     }
 
     // Extension methods for better filtering
@@ -583,4 +623,5 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             };
         }
     }
+
 }

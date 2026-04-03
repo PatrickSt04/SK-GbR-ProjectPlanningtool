@@ -5,26 +5,32 @@
     ViewData["Title"] = "Stundensatzgruppe anlegen";
 }
 
-@await Html.PartialAsync("../_EmployeeStyles")
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 
-<div class="cm-header">
-    <div>
-        <h1>Stundensatzgruppe anlegen</h1>
-        <div class="cm-meta">Neue Gruppe mit Stundensatz erstellen</div>
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-clock-history me-2"></i>Stundensatzgruppe anlegen</h1>
+            <p class="header-subtitle">Neue Gruppe mit Stundensatz erstellen</p>
+        </div>
+        <div class="header-actions">
+            <a asp-page="/EmployeeManagement/Index" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Zurück zur Übersicht
+            </a>
+        </div>
     </div>
-    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
 </div>
 
-<div style="max-width:480px;">
-    <div class="cm-card" style="padding:0; overflow:hidden;">
+<div class="cm-form-container-sm">
+    <div class="card">
         <div class="cm-colorbar-rate"></div>
-        <div style="padding:24px;">
-            <div class="cm-card-title"><i class="bi bi-clock-history"></i> &nbsp;Gruppendaten</div>
+        <div class="card-header">
+            <h5><i class="bi bi-clock-history me-2"></i>Gruppendaten</h5>
+        </div>
+        <div class="card-body">
 
             <form method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:14px;"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger cm-validation-summary"></div>
 
                 <div class="cm-form-group">
                     <label asp-for="HourlyRateGroup.HourlyRateGroupName">Name der Stundensatzgruppe</label>
@@ -38,11 +44,11 @@
                     <span asp-validation-for="HourlyRateGroup.HourlyRate" class="text-danger"></span>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:24px;">
-                    <button type="submit" class="btn-cm btn-cm-purple">
-                        <i class="bi bi-check-lg"></i> Gruppe anlegen
+                <div class="cm-form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Gruppe anlegen
                     </button>
-                    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">Abbrechen</a>
+                    <a asp-page="/EmployeeManagement/Index" class="btn btn-outline-secondary">Abbrechen</a>
                 </div>
             </form>
         </div>

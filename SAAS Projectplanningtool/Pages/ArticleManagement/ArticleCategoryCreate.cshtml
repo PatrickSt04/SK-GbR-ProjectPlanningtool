@@ -1,45 +1,56 @@
 ﻿@page
 @model SAAS_Projectplanningtool.Pages.ArticleManagement.ArticleCategoryCreateModel
+
 @{
     ViewData["Title"] = "Neue Artikelkategorie";
 }
-@await Html.PartialAsync("_ArticleStyles")
 
-<div style="max-width:600px;">
-    <div class="cm-header">
-        <div>
-            <h1>Neue Artikelkategorie</h1>
-            <div class="cm-meta">Legen Sie eine neue Kategorie für Ihre Artikel an</div>
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-plus-circle me-2"></i>Neue Artikelkategorie</h1>
+            <p class="header-subtitle">Legen Sie eine neue Kategorie für Ihre Artikel an</p>
         </div>
-        <a asp-page="ArticleCategoryIndex" class="btn-cm btn-cm-ghost">
-            <i class="bi bi-arrow-left"></i> Zurück
-        </a>
+        <div class="header-actions">
+            <a asp-page="ArticleCategoryIndex" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Zurück
+            </a>
+        </div>
     </div>
+</div>
 
+<div class="cm-form-container">
     <form method="post">
-        <div asp-validation-summary="ModelOnly" class="cm-validation-error"></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger cm-validation-summary"></div>
         <input type="hidden" asp-for="Category.ArticleCategoryId" />
         <input type="hidden" asp-for="Category.CompanyId" />
 
-        <div class="cm-card">
-            <div class="cm-card-title">Kategoriedaten</div>
-            <div class="cm-form-group">
-                <label asp-for="Category.CategoryName">Kategoriename *</label>
-                <input asp-for="Category.CategoryName" class="cm-input" placeholder="z.B. Elektronik, Rohstoffe…" />
-                <span asp-validation-for="Category.CategoryName" style="color:var(--danger); font-size:.78rem;"></span>
+        <div class="card">
+            <div class="cm-colorbar"></div>
+            <div class="card-header">
+                <h5><i class="bi bi-tag me-2"></i>Kategoriedaten</h5>
             </div>
-            <div class="cm-form-group">
-                <label asp-for="Category.Description">Beschreibung</label>
-                <textarea asp-for="Category.Description" class="cm-input" rows="3"
-                          style="resize:vertical;" placeholder="Optionale Beschreibung der Kategorie…"></textarea>
+            <div class="card-body">
+                <div class="cm-form-group">
+                    <label asp-for="Category.CategoryName">Kategoriename *</label>
+                    <input asp-for="Category.CategoryName" class="cm-input" placeholder="z.B. Elektronik, Rohstoffe…" />
+                    <span asp-validation-for="Category.CategoryName" class="text-danger"></span>
+                </div>
+                <div class="cm-form-group">
+                    <label asp-for="Category.Description">Beschreibung</label>
+                    <textarea asp-for="Category.Description" class="cm-input" rows="3"
+                              placeholder="Optionale Beschreibung der Kategorie…"></textarea>
+                </div>
             </div>
         </div>
 
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <a asp-page="ArticleCategoryIndex" class="btn-cm btn-cm-ghost">Abbrechen</a>
-            <button type="submit" class="btn-cm btn-cm-primary">
-                <i class="bi bi-check-lg"></i> Anlegen
+        <div class="cm-form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>Anlegen
             </button>
+            <a asp-page="ArticleCategoryIndex" class="btn btn-outline-secondary">Abbrechen</a>
         </div>
     </form>
 </div>

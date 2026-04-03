@@ -5,26 +5,32 @@
     ViewData["Title"] = "Mitarbeiter anlegen";
 }
 
-@await Html.PartialAsync("../_EmployeeStyles")
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 
-<div class="cm-header">
-    <div>
-        <h1>Mitarbeiter anlegen</h1>
-        <div class="cm-meta">Neuen Mitarbeiter zum Unternehmen hinzufügen</div>
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-person-plus me-2"></i>Mitarbeiter anlegen</h1>
+            <p class="header-subtitle">Neuen Mitarbeiter zum Unternehmen hinzufügen</p>
+        </div>
+        <div class="header-actions">
+            <a asp-page="/EmployeeManagement/Index" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Zurück zur Übersicht
+            </a>
+        </div>
     </div>
-    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
 </div>
 
-<div style="max-width:520px;">
-    <div class="cm-card" style="padding:0; overflow:hidden;">
+<div class="cm-form-container">
+    <div class="card">
         <div class="cm-colorbar"></div>
-        <div style="padding:24px;">
-            <div class="cm-card-title"><i class="bi bi-person-plus"></i> &nbsp;Mitarbeiterdaten</div>
+        <div class="card-header">
+            <h5><i class="bi bi-person-plus me-2"></i>Mitarbeiterdaten</h5>
+        </div>
+        <div class="card-body">
 
             <form method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:14px;"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger cm-validation-summary"></div>
 
                 <div class="cm-form-group">
                     <label asp-for="Employee.EmployeeDisplayName">Anzeigename</label>
@@ -38,7 +44,6 @@
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
-                @* Formular-Feld *@
                 <div class="cm-form-group">
                     <label>Telefonnummer</label>
                     <div class="phone-wrap-outer">
@@ -51,7 +56,6 @@
                             <input class="phone-number-input" id="phoneNumber" type="tel"
                                    placeholder="170 1234567" oninput="updatePhone()" autocomplete="tel-national">
                         </div>
-                        @* Dieses hidden input wird an den Server gesendet *@
                         <input type="hidden" asp-for="PhoneNumber" id="fullPhone" />
                         <div class="phone-dropdown" id="dropdown">
                             <div class="phone-search">
@@ -73,11 +77,11 @@
                     <select asp-for="IdentityRoleId" class="cm-input cm-select" asp-items="Model.IdentityRoles"></select>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:24px;">
-                    <button type="submit" class="btn-cm btn-cm-primary">
-                        <i class="bi bi-check-lg"></i> Mitarbeiter anlegen
+                <div class="cm-form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Mitarbeiter anlegen
                     </button>
-                    <a asp-page="/EmployeeManagement/Index" class="btn-cm btn-cm-ghost">Abbrechen</a>
+                    <a asp-page="/EmployeeManagement/Index" class="btn btn-outline-secondary">Abbrechen</a>
                 </div>
             </form>
         </div>

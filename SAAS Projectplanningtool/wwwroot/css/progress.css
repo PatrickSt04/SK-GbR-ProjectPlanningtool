@@ -1,10 +1,4 @@
-﻿:root {
-    --size: 160px; /* Durchmesser */
-    --thickness: 22px; /* Ringbreite  */
-    --track: #ECECEC; /* Hintergrundring */
-    --fill: #2C3E50; /* Fortschrittsring */
-    --font: 2rem/1 "Arial", sans-serif;
-}
+﻿
 
 .progress {
     display: inline-grid;

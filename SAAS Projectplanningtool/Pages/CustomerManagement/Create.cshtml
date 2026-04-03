@@ -4,16 +4,25 @@
     ViewData["Title"] = "Neuen Eintrag anlegen";
 }
 
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 @await Html.PartialAsync("_CustomerStyles")
 
-<div style="max-width: 720px;">
-    <div class="cm-header">
-        <div>
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
             <h1>Neuen Eintrag anlegen</h1>
-            <div class="cm-meta">Legen Sie einen neuen Kunden oder Interessenten an</div>
+            <p class="header-subtitle">Legen Sie einen neuen Kunden oder Interessenten an</p>
         </div>
-        <a asp-page="Index" class="btn-cm btn-cm-ghost"><i class="bi bi-arrow-left"></i> Zurück</a>
+        <div class="header-actions">
+            <a asp-page="Index" class="btn btn-outline-light">
+                Zurück
+            </a>
+        </div>
     </div>
+</div>
+
+<div class="cm-form-container">
 
     <form method="post" id="createForm">
         <div asp-validation-summary="ModelOnly" class="cm-card" style="border-left: 3px solid var(--danger); color: var(--danger); font-size:.875rem;"></div>

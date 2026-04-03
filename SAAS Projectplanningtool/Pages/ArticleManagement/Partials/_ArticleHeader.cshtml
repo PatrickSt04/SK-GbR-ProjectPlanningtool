@@ -1,0 +1,66 @@
+@model SAAS_Projectplanningtool.Pages.ArticleManagement.DetailsModel
+
+@{
+    bool isLocked = Model.Article.DeleteFlag;
+}
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1>
+                <span >@Model.Article.ArticleNumber</span>
+                @if (isLocked)
+                {
+                    <span class="badge badge-locked badge-inline"> 
+                        Gesperrt
+                    </span>
+                }
+                else
+                {
+                    <span class="badge badge-aktiv badge-inline">
+                        Aktiv
+                    </span>
+                }
+            </h1>
+            <div class="project-meta">
+                <span class="creator-info">
+                    <i class="bi bi-person me-1"></i>
+                    Erstellt von: <strong>@(Model.Article.CreatedByEmployee?.EmployeeDisplayName ?? "Unbekannt")</strong>
+                </span>
+                @if (Model.Article.CreatedTimestamp.HasValue)
+                {
+                    <span class="creation-date">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        @Model.Article.CreatedTimestamp.Value.ToString("dd.MM.yyyy")
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="header-actions">
+            <a asp-page="Edit" asp-route-id="@Model.Article.ArticleId" class="btn btn-outline-light">
+                Bearbeiten
+            </a>
+            <a asp-page="Index" class="btn btn-outline-light">
+                Zurück
+            </a>
+            @if (!isLocked)
+            {
+                <form method="post" asp-page-handler="SetDeleteFlag" asp-route-id="@Model.Article.ArticleId">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Artikel wirklich sperren?');">
+                        Sperren
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="UndoDeleteFlag" asp-route-id="@Model.Article.ArticleId">
+                    <button type="submit" class="btn btn-success btn-sm">
+                        Entsperren
+                    </button>
+                </form>
+            }
+            
+        </div>
+    </div>
+</div>

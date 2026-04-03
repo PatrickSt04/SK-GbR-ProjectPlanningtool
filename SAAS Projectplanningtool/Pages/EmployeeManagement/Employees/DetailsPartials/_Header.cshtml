@@ -1,0 +1,45 @@
+@model SAAS_Projectplanningtool.Pages.EmployeeManagement.Employees.DetailsModel
+
+@{
+    bool isLocked = Model.Employee.DeleteFlag == true;
+}
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1>
+                <i class="bi bi-person-fill me-2"></i>@Model.Employee.EmployeeDisplayName
+                @if (isLocked)
+                {
+                    <span class="badge badge-locked badge-inline">
+                        <i class="bi bi-lock-fill"></i> Gesperrt
+                    </span>
+                }
+                else
+                {
+                    <span class="badge badge-aktiv badge-inline">
+                        <i class="bi bi-check-circle-fill"></i> Aktiv
+                    </span>
+                }
+            </h1>
+            <div class="project-meta">
+                <span class="creator-info">
+                    <i class="bi bi-person me-1"></i>
+                    Erstellt von: <strong>@(Model.Employee.CreatedByEmployee?.EmployeeDisplayName ?? "SK Tools")</strong>
+                </span>
+                <span class="creation-date">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    @(Model.Employee.CreatedTimestamp?.ToString("dd.MM.yyyy HH:mm") ?? "Datum unbekannt")
+                </span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a asp-page="./Edit" asp-route-id="@Model.Employee.EmployeeId" class="btn btn-outline-light">
+                <i class="bi bi-pencil me-1"></i>Bearbeiten
+            </a>
+            <a asp-page="/EmployeeManagement/Index" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Zurück
+            </a>
+        </div>
+    </div>
+</div>

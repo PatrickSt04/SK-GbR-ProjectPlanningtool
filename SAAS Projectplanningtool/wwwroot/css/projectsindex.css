@@ -1,0 +1,259 @@
+﻿/* ================================================================
+   projectsIndex.css
+   Styles spezifisch für Pages/Projects/Index
+   
+   NICHT hier enthalten (bereits in shared.css):
+   - .page-header, .header-content, .header-left h1, .header-actions
+   - .statistics-section .stat-card, .stat-icon, .stat-content
+   - .stat-active/.stat-planning/.stat-archived/.stat-overdue .stat-icon
+   - .card, .card-header, .card-body
+   - .priority-high, .priority-medium, .priority-low
+   - .empty-state (Basis)
+   - .form-control, .form-control:focus
+   - .modal-*, .btn-close
+   ================================================================ */
+
+
+/* ================================================================
+   CONTAINER
+   ================================================================ */
+.projects-container {
+    padding: 20px;
+}
+
+
+/* ================================================================
+   HEADER ERGÄNZUNGEN (Basis in shared.css)
+   ================================================================ */
+.header-left p,
+.header-subtitle {
+    margin: 5px 0 0 0;
+    opacity: 0.9;
+    color: white;
+}
+
+
+/* ================================================================
+   FILTER SECTION
+   ================================================================ */
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-form .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+
+/* ================================================================
+   VIEW CONTROLS
+   ================================================================ */
+.view-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+/* ================================================================
+   PROJECT CARDS (Karten-Ansicht)
+   ================================================================ */
+.project-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+    border-left: 4px solid transparent;
+}
+
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+/* Priority-Farben kommen aus shared.css (.priority-high/medium/low) */
+
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 20px 0;
+}
+
+.project-title h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+    .project-title h5 a {
+        color: #333;
+        transition: color 0.3s ease;
+    }
+
+        .project-title h5 a:hover {
+            color: #007bff;
+        }
+
+.project-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+    margin-top: 5px;
+}
+
+.project-content {
+    padding: 20px;
+}
+
+.project-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Umbenannt von .project-meta zu .project-meta-info
+   um Konflikte mit .project-meta aus shared.css zu vermeiden */
+.project-meta-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.project-dates {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.date-item {
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* ================================================================
+   BUDGET & FORTSCHRITT (in den Karten)
+   ================================================================ */
+.project-budget,
+.project-progress {
+    margin-bottom: 15px;
+}
+
+.budget-header,
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.progress-sm {
+    height: 6px;
+}
+
+.budget-details {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+
+/* ================================================================
+   EMPTY STATE ERGÄNZUNGEN (Basis in shared.css)
+   ================================================================ */
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-state h3 {
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+
+/* ================================================================
+   TABLE VIEW
+   ================================================================ */
+.projects-table .table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.projects-table .table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.project-name-cell strong a {
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+    .project-name-cell strong a:hover {
+        color: #007bff;
+    }
+
+.budget-cell,
+.progress-cell {
+    min-width: 120px;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 768px) {
+    .projects-container {
+        padding: 10px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .header-actions {
+        justify-content: center;
+    }
+
+    .view-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-form .row > [class*="col-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
