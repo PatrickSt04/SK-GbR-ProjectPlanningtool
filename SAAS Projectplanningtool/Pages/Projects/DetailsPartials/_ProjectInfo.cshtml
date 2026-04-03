@@ -7,7 +7,17 @@
         <div class="project-info-section">
             <div class="card">
                 <div class="card-header">
-                    <h2><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
+                    <h2 class="mb-0"><i class="fas fa-info-circle me-2"></i>Projektinformationen</h2>
+                    @if (!User.IsInRole("Viewer"))
+                    {
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm card-edit-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editProjectInfoModal"
+                                title="Projektinformationen bearbeiten">
+                            <i class="fas fa-edit me-1"></i>Bearbeiten
+                        </button>
+                    }
                 </div>
                 <div class="card-body">
                     <div class="info-grid">
@@ -20,7 +30,7 @@
                                     {
                                         <div class="col-7">
                                             <a href="mailto:@Model.Project.ProjectLead.IdentityUser.Email"
-                                               class="btn btn-outline-primary btn-sm">
+                                                   class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-envelope me-1"></i>@Model.Project.ProjectLead.IdentityUser.Email
                                             </a>
                                         </div>
@@ -29,7 +39,7 @@
                                     {
                                         <div class="col-5">
                                             <a href="tel:@Model.Project.ProjectLead.IdentityUser.PhoneNumber"
-                                               class="btn btn-outline-secondary btn-sm">
+                                                   class="btn btn-outline-secondary btn-sm">
                                                 <i class="fas fa-phone me-1"></i>@Model.Project.ProjectLead.IdentityUser.PhoneNumber
                                             </a>
                                         </div>
@@ -47,7 +57,7 @@
                                     {
                                         <div class="col-7">
                                             <a href="mailto:@Model.Project.Instructor.IdentityUser.Email"
-                                               class="btn btn-outline-primary btn-sm">
+                                                   class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-envelope me-1"></i>@Model.Project.Instructor.IdentityUser.Email
                                             </a>
                                         </div>
@@ -56,7 +66,7 @@
                                     {
                                         <div class="col-5">
                                             <a href="tel:@Model.Project.Instructor.IdentityUser.PhoneNumber"
-                                               class="btn btn-outline-secondary btn-sm">
+                                                   class="btn btn-outline-secondary btn-sm">
                                                 <i class="fas fa-phone me-1"></i>@Model.Project.Instructor.IdentityUser.PhoneNumber
                                             </a>
                                         </div>
@@ -80,7 +90,7 @@
                                     {
                                         <div class="col-7">
                                             <a href="mailto:@primaryContact.Email"
-                                               class="btn btn-outline-primary btn-sm">
+                                                   class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-envelope me-1"></i>@primaryContact.Email
                                             </a>
                                         </div>
@@ -89,7 +99,7 @@
                                     {
                                         <div class="col-5">
                                             <a href="tel:@primaryContact.Phone"
-                                               class="btn btn-outline-primary btn-sm">
+                                                   class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-phone me-1"></i>@primaryContact.Phone
                                             </a>
                                         </div>

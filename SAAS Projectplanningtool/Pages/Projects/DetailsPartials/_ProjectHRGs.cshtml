@@ -1,44 +1,70 @@
 ﻿@using SAAS_Projectplanningtool.Pages.Projects
 @model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
 
-<!-- Project Information Section -->
-<div class="row">
-    @* <div class="col-12 col-md-5"> *@
+@*
+    Partial View: _ProjectHRGs.cshtml
+    Zweck:        Anzeige der projektspezifischen Stundensatzgruppen auf der Details-Seite.
+                  Zeigt je Gruppe den globalen Standard-Stundensatz sowie den projektspez.
+                  Stundensatz an. Der Edit-Button öffnet das _EditProjectHRGsModal.
+*@
+<div class="row"> 
     <div class="project-info-section">
         <div class="card">
             <div class="card-header">
-                <h2><i class="fas fa-info-circle me-2"></i>Stundensatzgruppen</h2>
+                <h2 class="mb-0"><i class="fas fa-euro-sign me-2"></i>Stundensatzgruppen</h2>
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm card-edit-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editProjectHRGsModal"
+                        title="Projektstundensätze bearbeiten">
+                    <i class="fas fa-edit me-1"></i>Bearbeiten
+                </button>
             </div>
             <div class="card-body">
                 <div class="info-grid">
-                    @if (Model.ProjectHourlyRateGroups.Any())
+                    @if (Model.ProjectHourlyRateGroups.Any(h => h.HourlyRateGroup != null))
                     {
                         foreach (var hrg in Model.ProjectHourlyRateGroups)
                         {
-                            if (hrg.HourlyRateGroup == null)
-                            {
-                                continue;
-                            }
+                            if (hrg.HourlyRateGroup == null) { continue; }
+
                             <div class="info-item">
-                                <label>@hrg.HourlyRateGroup?.HourlyRateGroupName</label>
+                                <label>@hrg.HourlyRateGroup.HourlyRateGroupName</label>
                             </div>
+
                             <div class="row">
-                                <div class="col-5">
-                                    <label>Standard Stundensatz: @hrg.HourlyRateGroup?.HourlyRate</label>
+                                <div class="col-6">
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag me-1"></i>Standard:
+                                    </small>
+                                    <span class="ms-1">@hrg.HourlyRateGroup.HourlyRate.ToString("F2") €/h</span>
                                 </div>
                                 <div class="col-6">
-                                    <label>Projektspezifischer Stundensatz: @hrg.ProjectHourlyRate</label>
+                                    <small class="text-muted">
+                                        <i class="fas fa-pen me-1"></i>Projektspez.:
+                                    </small>
+                                    @if (hrg.ProjectHourlyRate.HasValue)
+                                    {
+                                        <span >
+                                            @hrg.ProjectHourlyRate.Value.ToString("F2") €/h
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>nicht gesetzt</span>
+                                    }
                                 </div>
                             </div>
-                                
                         }
                     }
                     else
                     {
-                        <label>Keine Stundensatzgruppen gefunden.</label>
+                        <p>
+                            <i class="fas fa-info-circle me-1"></i>Keine Stundensatzgruppen gefunden.
+                        </p>
                     }
                 </div>
             </div>
-            @* </div> *@
-        </div>
+ </div> 
     </div>
+</div>

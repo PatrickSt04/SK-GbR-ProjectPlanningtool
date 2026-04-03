@@ -1,0 +1,163 @@
+﻿@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+@*
+    Partial View: _EditProjectInfoModal.cshtml
+    Zweck:        Bearbeitungs-Modal für die Projektinformations-Kachel auf der Details-Seite.
+                  Erlaubt das Ändern von Kunde, Projektadresse, Projektleiter und Bauleiter.
+    Handler:      OnPostEditProjectInfoAsync (Details.cshtml.cs)
+*@
+
+<div class="modal fade" id="editProjectInfoModal" tabindex="-1" aria-labelledby="editProjectInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="EditProjectInfo">
+
+                <!-- Hidden: Projekt-ID zur Rückleitung -->
+                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProjectInfoModalLabel">
+                        <i class="fas fa-edit me-2"></i>Projektinformationen bearbeiten
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- ===== Abschnitt: Verantwortliche ===== -->
+                    <div class="mb-4">
+                        <h6 class="modal-section-title">
+                            <i class="fas fa-users me-1"></i>Verantwortliche
+                        </h6>
+                        <div class="row g-3">
+                            <!-- Projektleiter -->
+                            <div class="col-md-6">
+                                <label for="editProjectLeadId" class="form-label">
+                                    <i class="fas fa-user-tie me-1 text-muted"></i>Projektleiter
+                                </label>
+                                <select id="editProjectLeadId" name="projectLeadId" class="form-select">
+                                    <option value="">— kein Projektleiter —</option>
+                                    @if (Model.ProjectLeads != null)
+                                    {
+                                        foreach (var item in Model.ProjectLeads)
+                                        {
+                                            var isSelected = item.Value == Model.Project?.ProjectLeadId;
+                                            <option value="@item.Value" selected="@isSelected">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Bauleiter -->
+                            <div class="col-md-6">
+                                <label for="editInstructorId" class="form-label">
+                                    <i class="fas fa-hard-hat me-1 text-muted"></i>Bauleiter
+                                </label>
+                                <select id="editInstructorId" name="instructorId" class="form-select">
+                                    <option value="">— kein Bauleiter —</option>
+                                    @if (Model.ProjectLeads != null)
+                                    {
+                                        foreach (var item in Model.ProjectLeads)
+                                        {
+                                            var isSelected = item.Value == Model.Project?.InstructorId;
+                                            <option value="@item.Value" selected="@isSelected">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3" />
+
+                    <!-- ===== Abschnitt: Kunde ===== -->
+                    <div class="mb-4">
+                        <h6 class="modal-section-title">
+                            <i class="fas fa-building me-1"></i>Kunde
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="editCustomerId" class="form-label">Kunde</label>
+                                <select id="editCustomerId" name="customerId" class="form-select" required>
+                                    <option value="">— bitte auswählen —</option>
+                                    @if (Model.Customers != null)
+                                    {
+                                        foreach (var item in Model.Customers)
+                                        {
+                                            var isSelected = item.Value == Model.Project?.CustomerId;
+                                            <option value="@item.Value" selected="@isSelected">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3" />
+
+                    <!-- ===== Abschnitt: Projektadresse ===== -->
+                    <div class="mb-2">
+                        <h6 class="modal-section-title">
+                            <i class="fas fa-map-marker-alt me-1"></i>Projektadresse
+                        </h6>
+                        <div class="row g-3">
+                            <!-- Straße -->
+                            <div class="col-12">
+                                <label for="editStreet" class="form-label">Straße &amp; Hausnummer</label>
+                                <input type="text"
+                                       id="editStreet"
+                                       name="street"
+                                       class="form-control"
+                                       value="@Model.Project?.Street"
+                                       placeholder="z.B. Mooswinkl 1" />
+                            </div>
+
+                            <!-- PLZ und Stadt -->
+                            <div class="col-md-4">
+                                <label for="editPostalCode" class="form-label">PLZ</label>
+                                <input type="text"
+                                       id="editPostalCode"
+                                       name="postalCode"
+                                       class="form-control"
+                                       value="@Model.Project?.PostalCode"
+                                       placeholder="z.B. 84387" />
+                            </div>
+                            <div class="col-md-8">
+                                <label for="editCity" class="form-label">Ort</label>
+                                <input type="text"
+                                       id="editCity"
+                                       name="city"
+                                       class="form-control"
+                                       value="@Model.Project?.City"
+                                       placeholder="z.B. Julbach" />
+                            </div>
+
+                            <!-- Land -->
+                            <div class="col-12">
+                                <label for="editCountry" class="form-label">Land</label>
+                                <input type="text"
+                                       id="editCountry"
+                                       name="country"
+                                       class="form-control"
+                                       value="@Model.Project?.Country"
+                                       placeholder="z.B. Deutschland" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /.modal-body -->
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Abbrechen
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Speichern
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,121 @@
+﻿@using SAAS_Projectplanningtool.Pages.Projects
+@model SAAS_Projectplanningtool.Pages.Projects.DetailsModel
+
+@*
+    Partial View: _EditProjectHRGsModal.cshtml
+    Zweck:        Bearbeitungs-Modal für die Projektstundensatz-Kachel auf der Details-Seite.
+                  Zeigt je Gruppe den globalen Stundensatz (readonly) sowie den projektspezifischen
+                  Stundensatz an, welcher editierbar ist.
+    Handler:      OnPostEditProjectHRGsAsync (Details.cshtml.cs)
+*@
+
+<div class="modal fade" id="editProjectHRGsModal" tabindex="-1" aria-labelledby="editProjectHRGsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="EditProjectHRGs">
+
+                <!-- Hidden: Projekt-ID zur Rückleitung -->
+                <input type="hidden" name="projectId" value="@Model.Project.ProjectId" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProjectHRGsModalLabel">
+                        <i class="fas fa-euro-sign me-2"></i>Projektstundensätze bearbeiten
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    @if (Model.ProjectHourlyRateGroups.Any(h => h.HourlyRateGroup != null))
+                    {
+                        <!-- Spaltenüberschriften -->
+                        <div class="row fw-semibold text-muted small mb-2 px-2">
+                            <div class="col-4">Stundensatzgruppe</div>
+                            <div class="col-4 text-end">
+                                <i class="fas fa-tag me-1"></i>Standard-Stundensatz
+                            </div>
+                            <div class="col-4 text-end">
+                                <i class="fas fa-pen me-1"></i>Projektspez. Stundensatz
+                            </div>
+                        </div>
+
+                        <hr class="mt-0 mb-3" />
+
+                        @foreach (var hrg in Model.ProjectHourlyRateGroups)
+                        {
+                            if (hrg.HourlyRateGroup == null) { continue; }
+
+                            <!-- Hidden: ID der ProjectHourlyRateGroup zum gezielten Update -->
+                            <input type="hidden"
+                                   name="projectHourlyRateGroupIds"
+                                   value="@hrg.ProjectHourlyRateGroupId" />
+
+                            <div class="row align-items-center mb-3 hrg-row px-2">
+
+                                <!-- Gruppenname -->
+                                <div class="col-4">
+                                    <span class="fw-semibold">@hrg.HourlyRateGroup.HourlyRateGroupName</span>
+                                </div>
+
+                                <!-- Globaler Stundensatz (nur Anzeige) -->
+                                <div class="col-4">
+                                    <div class="hrg-readonly-rate text-end">
+                                        <span class="badge bg-light text-dark border">
+                                            @hrg.HourlyRateGroup.HourlyRate.ToString("F2") €/h
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Projektspezifischer Stundensatz (editierbar) -->
+                                <div class="col-4">
+                                    <div class="input-group input-group-sm justify-content-end">
+                                        <input type="number"
+                                               class="form-control text-end hrg-input"
+                                               name="projectHourlyRates"
+                                               value="@hrg.ProjectHourlyRate?.ToString("F2")"
+                                               placeholder="@hrg.HourlyRateGroup.HourlyRate.ToString("F2")"
+                                               min="0"
+                                               step="0.01" />
+                                        <span class="input-group-text">€/h</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Diesem Projekt sind noch keine Stundensatzgruppen zugeordnet.
+                        </div>
+                    }
+
+                </div><!-- /.modal-body -->
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Abbrechen
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Speichern
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Zeilen-Hover-Effekt für bessere Lesbarkeit */
+    .hrg-row:hover {
+        background-color: var(--light-bg, #f8fafc);
+        border-radius: var(--border-radius-sm, 6px);
+        transition: background-color 0.15s ease;
+    }
+
+    /* Zahlenfeld optisch schlanker */
+    .hrg-input {
+        max-width: 100px;
+    }
+</style>
