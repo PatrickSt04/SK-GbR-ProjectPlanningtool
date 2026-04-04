@@ -140,6 +140,16 @@
         <div class="card">
             <div class="card-header">
                 <h2><i class="fas fa-info-circle me-2"></i>Beschreibung</h2>
+                @if (!User.IsInRole("Viewer"))
+                {
+                    <button type="button"
+                            class="btn btn-outline-primary btn-sm card-edit-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editProjectDescriptionModal"
+                            title="Projektbeschreibung bearbeiten">
+                        <i class="fas fa-edit me-1"></i>Bearbeiten
+                    </button>
+                }
             </div>
             <div class="card-body">
                 @(Model.Project?.ProjectDescription ?? "Keine Beschreibung vorhanden")

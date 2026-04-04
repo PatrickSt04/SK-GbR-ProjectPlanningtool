@@ -500,5 +500,47 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         }
 
         #endregion
+
+        #region Edit-Handler: Projektbeschreibung
+
+        /// <summary>
+        /// Speichert die geänderte Projektbeschreibung.
+        /// Wird vom _EditProjectDescriptionModal.cshtml ausgelöst.
+        /// </summary>
+        public async Task<IActionResult> OnPostEditProjectDescriptionAsync(
+            string projectId,
+            string? projectDescription)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectDescriptionAsync>Begin");
+
+                var project = await _context.Project.FindAsync(projectId);
+                if (project == null)
+                {
+                    return NotFound();
+                }
+
+                project.ProjectDescription = projectDescription?.Trim() ?? string.Empty;
+
+                project = await new CustomObjectModifier(_context, _userManager)
+                    .AddLatestModificationAsync(User, "Projektbeschreibung bearbeitet", project, false);
+
+                _context.Project.Update(project);
+                await _context.SaveChangesAsync();
+
+                TempData.SetMessage("Success", "Projektbeschreibung erfolgreich gespeichert.");
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectDescriptionAsync>End");
+
+                return RedirectToPage(new { id = projectId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error",
+                    new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostEditProjectDescriptionAsync>Error") });
+            }
+        }
+
+        #endregion
     }
 }
