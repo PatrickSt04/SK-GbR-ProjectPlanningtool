@@ -470,13 +470,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                     if (hrg == null) { continue; }
 
-                    // Leeres Feld → projektspez. Rate zurücksetzen (null)
+                    // Leeres Feld → projektspez. Rate bleibt erhalten
                     var rawValue = i < projectHourlyRates.Count ? projectHourlyRates[i] : null;
                     hrg.ProjectHourlyRate = decimal.TryParse(
                         rawValue,
                         System.Globalization.NumberStyles.Any,
                         System.Globalization.CultureInfo.InvariantCulture,
-                        out var parsed) ? parsed : null;
+                        out var parsed) ? parsed : hrg.ProjectHourlyRate;
 
                     // Audit-Felder setzen
                     hrg = await new CustomObjectModifier(_context, _userManager)
