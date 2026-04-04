@@ -18,41 +18,49 @@
     <!-- TaskCatalog -->
     @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectInfo.cshtml", Model)
     <div class="row">
-        <div class="col -12 col-md-5">
-            @if (Model.Project?.LatestModifier != null)
-            {
-                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
-            }
-        </div>
+        @* <div class="row"> *@
+            <div class="col-12 col-md-5">
 
-            @if (!User.IsInRole("Viewer"))
-            {
-                <div class="col-12 col-md-7">
-                    @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_TaskCatalog.cshtml", Model)
-                </div>
-            }
-        </div>
-        
+                @if (Model.Project?.LatestModifier != null)
+                {
+                    @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_LastModification.cshtml", Model)
+                }
+
+                @if (!User.IsInRole("Viewer"))
+                {
+                    @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectHRGs.cshtml", Model)
+                }
+
+            </div>
+        @* </div> *@
+        @if (!User.IsInRole("Viewer"))
+        {
+            <div class="col-12 col-md-7">
+                @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_TaskCatalog.cshtml", Model)
+            </div>
+        }
     </div>
+        
+</div>
 
-    @if (!User.IsInRole("Viewer"))
-    {
-        <!-- Full Width Sections -->
-        <div class="full-width-sections">
-            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectStructure.cshtml", Model)
-            @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_QuickActions.cshtml", Model)
-        </div>
-    }
-    else
-    {
-        <h2 class="expenses-title">
-            <i class="fas fa-receipt"></i>
-            Zeitbuchungen
-        </h2>
-        <div id="timeTracking">
-            @await Html.PartialAsync("PartialViews/_TimeTracking") @* TODO: In DetailsPartials umziehen *@
-        </div>
-    }
+@if (!User.IsInRole("Viewer"))
+{
+    <!-- Full Width Sections -->
+    <div class="full-width-sections">
+        @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_ProjectStructure.cshtml", Model)
+        @await Html.PartialAsync("~/Pages/Projects/DetailsPartials/_QuickActions.cshtml", Model)
+    </div>
+}
+else
+{
+    <h2 class="expenses-title">
+        <i class="fas fa-receipt"></i>
+        Zeitbuchungen
+    </h2>
+    <div id="timeTracking">
+        @await Html.PartialAsync("PartialViews/_TimeTracking") @* TODO: In DetailsPartials umziehen *@
+    </div>
+}
 
 </div>
 
@@ -74,6 +82,11 @@
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddTaskCatalogModal.cshtml", (ProjectHandlerPageModel)Model, new ViewDataDictionary(ViewData) { { "Context", "TaskCatalog" } })
 @await Html.PartialAsync("~/Pages/Projects/Modals/_DeleteConfirmationModal.cshtml", (ProjectHandlerPageModel)Model)
 @await Html.PartialAsync("~/Pages/Projects/Modals/_AddSectionMileStone.cshtml", (ProjectHandlerPageModel)Model)
+
+@* ===== Detail-Bearbeitungs-Modals ===== *@
+@await Html.PartialAsync("~/Pages/Projects/Modals/_EditProjectInfoModal.cshtml", Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_EditProjectHRGsModal.cshtml", Model)
+@await Html.PartialAsync("~/Pages/Projects/Modals/_EditProjectDescriptionModal.cshtml", Model)
 
 <script src="~/js/ModalFunctions.js"></script>
 

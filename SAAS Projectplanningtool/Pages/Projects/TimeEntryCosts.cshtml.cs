@@ -11,12 +11,14 @@ namespace SAAS_Projectplanningtool.Pages.Projects
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ProjectStatisticsCalculator _statisticsCalculator;
 
         public TimeEntryCostsModel(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
             : base(context, userManager, roleManager)
         {
             _context = context;
             _userManager = userManager;
+            _statisticsCalculator = new ProjectStatisticsCalculator(context, userManager);
         }
 
         public List<TimeEntryWithCost> TimeEntriesWithCosts { get; set; } = new();
@@ -74,10 +76,17 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     .OrderByDescending(t => t.WorkDate)
                     .ThenByDescending(t => t.StartTime)
                     .ToListAsync();
-
-                TimeEntriesWithCosts = timeEntries.Select(t =>
+                var projectHourlyRates = await _statisticsCalculator.GetProjectHourlyRateLookupAsync(id);
+                TimeEntriesWithCosts = timeEntries.Select(t => 
                 {
-                    var rate = (decimal)(t.Employee?.HourlyRateGroup?.HourlyRate ?? 0f);
+                    //var rate = (decimal)(t.Employee?.HourlyRateGroup?.HourlyRate ?? 0);
+                    // Neu
+            
+                    var rate = _statisticsCalculator.ResolveEffectiveHourlyRate(
+                        t.Employee?.HourlyRateGroup?.HourlyRateGroupId,
+                        projectHourlyRates,
+                        t.Employee?.HourlyRateGroup?.HourlyRate);
+
                     return new TimeEntryWithCost
                     {
                         TimeEntryId = t.TimeEntryId,
@@ -118,5 +127,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             }
             return Page();
         }
+
+       
     }
 }

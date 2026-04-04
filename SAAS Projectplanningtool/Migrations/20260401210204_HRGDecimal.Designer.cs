@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260401210204_HRGDecimal")]
+    partial class HRGDecimal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1722,11 +1725,11 @@ namespace SAAS_Projectplanningtool.Migrations
                             b1.Property<decimal>("HourlyRate")
                                 .HasColumnType("decimal(18,2)");
 
-                            b1.Property<string>("ProjectHRGId")
+                            b1.Property<string>("HourlyRateGroupId")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<string>("ProjectHRGName")
+                            b1.Property<string>("HourlyRateGroupName")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 

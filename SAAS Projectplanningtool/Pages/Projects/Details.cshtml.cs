@@ -60,6 +60,10 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         private const int TimeTrackingPageSize = 15;
         #endregion
 
+        #region Project hourly rate groups
+        [BindProperty]
+        public List<ProjectHourlyRateGroup> ProjectHourlyRateGroups { get; set; } = new();
+        #endregion
 
         public bool ScheduleAlreadyExists { get; set; } = false;
         public async Task<IActionResult> OnGetAsync(string id)
@@ -110,6 +114,13 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         }
                     }
                 }
+                #region Project hourly rate groups
+                ProjectHourlyRateGroups = await _context.ProjectHourlyRateGroup
+                   .Where(c => c.ProjectId == id)
+                   .Include(c => c.HourlyRateGroup)
+                   .ToListAsync();
+                #endregion
+
 
                 #region Time Tracking: Mitarbeiter- und Zeiteintr�ge laden
                 if (employee != null && employee.CompanyId != null)
@@ -159,15 +170,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 #endregion
 
-
+                // SelectLists für Edit-Modals vorbefüllen
+                await PublishCustomersAsync();
+                await PublishProjectLeadsAsync();
 
                 ViewData["AllStates"] = await _context.State.ToListAsync();
-
-
-
-
-
-
                 await _logger.Log(null, User, null, "Projects/Details<OnGet>End");
                 return Page();
             }
@@ -374,6 +381,166 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostReleaseProjectForViewerAsync>Error") });
             }
         }
+        #endregion
+
+        #region Edit-Handler: Projektinformationen
+
+        /// <summary>
+        /// Speichert Änderungen an Kunde, Projektadresse, Projektleiter und Bauleiter.
+        /// Wird vom _EditProjectInfoModal.cshtml ausgelöst.
+        /// </summary>
+        public async Task<IActionResult> OnPostEditProjectInfoAsync(
+            string projectId,
+            string? customerId,
+            string? projectLeadId,
+            string? instructorId,
+            string? street,
+            string? postalCode,
+            string? city,
+            string? country)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectInfoAsync>Begin");
+
+                var project = await _context.Project.FindAsync(projectId);
+                if (project == null)
+                {
+                    return NotFound();
+                }
+
+                // Pflichtfeld: Kunde darf nicht leer sein
+                if (string.IsNullOrWhiteSpace(customerId))
+                {
+                    TempData.SetMessage("Error", "Ein Kunde muss ausgewählt sein.");
+                    return RedirectToPage(new { id = projectId });
+                }
+
+                // Felder übernehmen
+                project.CustomerId = customerId;
+                project.ProjectLeadId = string.IsNullOrWhiteSpace(projectLeadId) ? null : projectLeadId;
+                project.InstructorId = string.IsNullOrWhiteSpace(instructorId) ? null : instructorId;
+                project.Street = string.IsNullOrWhiteSpace(street) ? null : street.Trim();
+                project.PostalCode = string.IsNullOrWhiteSpace(postalCode) ? null : postalCode.Trim();
+                project.City = string.IsNullOrWhiteSpace(city) ? null : city.Trim();
+                project.Country = string.IsNullOrWhiteSpace(country) ? null : country.Trim();
+
+                // Audit-Felder setzen
+                project = await new CustomObjectModifier(_context, _userManager)
+                    .AddLatestModificationAsync(User, "Projektinformationen bearbeitet", project, false);
+
+                _context.Project.Update(project);
+                await _context.SaveChangesAsync();
+
+                TempData.SetMessage("Success", "Projektinformationen erfolgreich gespeichert.");
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectInfoAsync>End");
+
+                return RedirectToPage(new { id = projectId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error",
+                    new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostEditProjectInfoAsync>Error") });
+            }
+        }
+
+        #endregion
+
+        #region Edit-Handler: Projektstundensätze
+
+        /// <summary>
+        /// Speichert die projektspezifischen Stundensätze aller zugeordneten Stundensatzgruppen.
+        /// Die Listen <paramref name="projectHourlyRateGroupIds"/> und
+        /// <paramref name="projectHourlyRates"/> sind positionskorreliert (Index 0 = erste Gruppe usw.).
+        /// Wird vom _EditProjectHRGsModal.cshtml ausgelöst.
+        /// </summary>
+        public async Task<IActionResult> OnPostEditProjectHRGsAsync(
+            string projectId,
+            List<string> projectHourlyRateGroupIds,
+            List<string?> projectHourlyRates)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectHRGsAsync>Begin");
+
+                for (int i = 0; i < projectHourlyRateGroupIds.Count; i++)
+                {
+                    var hrgId = projectHourlyRateGroupIds[i];
+                    var hrg = await _context.ProjectHourlyRateGroup.FindAsync(hrgId);
+
+                    if (hrg == null) { continue; }
+
+                    // Leeres Feld → projektspez. Rate bleibt erhalten
+                    var rawValue = i < projectHourlyRates.Count ? projectHourlyRates[i] : null;
+                    hrg.ProjectHourlyRate = decimal.TryParse(
+                        rawValue,
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var parsed) ? parsed : hrg.ProjectHourlyRate;
+
+                    // Audit-Felder setzen
+                    hrg = await new CustomObjectModifier(_context, _userManager)
+                        .AddLatestModificationAsync(User, "Projektstundensatz bearbeitet", hrg, false);
+
+                    _context.ProjectHourlyRateGroup.Update(hrg);
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData.SetMessage("Success", "Projektstundensätze erfolgreich gespeichert.");
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectHRGsAsync>End");
+
+                return RedirectToPage(new { id = projectId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error",
+                    new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostEditProjectHRGsAsync>Error") });
+            }
+        }
+
+        #endregion
+
+        #region Edit-Handler: Projektbeschreibung
+
+        /// <summary>
+        /// Speichert die geänderte Projektbeschreibung.
+        /// Wird vom _EditProjectDescriptionModal.cshtml ausgelöst.
+        /// </summary>
+        public async Task<IActionResult> OnPostEditProjectDescriptionAsync(
+            string projectId,
+            string? projectDescription)
+        {
+            try
+            {
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectDescriptionAsync>Begin");
+
+                var project = await _context.Project.FindAsync(projectId);
+                if (project == null)
+                {
+                    return NotFound();
+                }
+
+                project.ProjectDescription = projectDescription?.Trim() ?? string.Empty;
+
+                project = await new CustomObjectModifier(_context, _userManager)
+                    .AddLatestModificationAsync(User, "Projektbeschreibung bearbeitet", project, false);
+
+                _context.Project.Update(project);
+                await _context.SaveChangesAsync();
+
+                TempData.SetMessage("Success", "Projektbeschreibung erfolgreich gespeichert.");
+                await _logger.Log(null, User, null, "Projects/Details<OnPostEditProjectDescriptionAsync>End");
+
+                return RedirectToPage(new { id = projectId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("/Error",
+                    new { id = await _logger.Log(ex, User, null, "Projects/Details<OnPostEditProjectDescriptionAsync>Error") });
+            }
+        }
+
         #endregion
     }
 }

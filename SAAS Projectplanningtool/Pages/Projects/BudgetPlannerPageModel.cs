@@ -21,7 +21,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             _userManager = userManager;
             _logger = new Logger(_context, _userManager);
         }
-        public List<HourlyRateGroup> AllHourlyRateGroups { get; set; } = new List<HourlyRateGroup>();
+        public List<ProjectHourlyRateGroup> AllHourlyRateGroups { get; set; } = new List<ProjectHourlyRateGroup>();
         protected async Task<ProjectTask?> GetProjectTaskAsync(string projectTaskId)
         {
             var existing = await _context.ProjectTask

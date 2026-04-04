@@ -35,8 +35,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         // Initiale Budgetplanung (vor Terminplan)
         public class InitialHRGPlanning
         {
-            public string HourlyRateGroupId { get; set; } = "";
-            public string HourlyRateGroupName { get; set; } = "";
+            public string ProjectHRGId { get; set; } = "";
+            public string ProjectHRGName { get; set; } = "";
             public decimal HourlyRate { get; set; }
             public int Amount { get; set; }
             public double EstimatedHours { get; set; }
@@ -71,7 +71,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         {
             try
             {
-                
+
                 await _logger.Log(null, User, null, "Projects.BudgetPlanning<OnGetAsync>Begin");
                 if (id == null)
                     return NotFound();
@@ -80,16 +80,23 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 if (Project == null)
                     return NotFound();
 
-                AllHourlyRateGroups = await _context.HourlyRateGroup.ToListAsync();
+                var employee = await GetEmployeeAsync();
+                if (employee == null || employee.CompanyId == null)
+                    return NotFound();
 
+                AllHourlyRateGroups = await _context.ProjectHourlyRateGroup
+                   .Include(h => h.HourlyRateGroup)
+                   .Where(p => p.HourlyRateGroup != null && !p.HourlyRateGroup.DeleteFlag)
+                   .Where(p => p.CompanyId == employee.CompanyId)
+                   .ToListAsync();
                 ScheduleAlreadyExists = Project.ProjectSections.Any();
 
                 // Initiale HRG-Planung laden
                 InitialHRGPlannings = Project.ProjectBudget?.InitialHRGPlannings?
                     .Select(hrg => new InitialHRGPlanning
                     {
-                        HourlyRateGroupId = hrg.HourlyRateGroupId,
-                        HourlyRateGroupName = hrg.HourlyRateGroupName,
+                        ProjectHRGId = hrg.ProjectHRGId,
+                        ProjectHRGName = hrg.ProjectHRGName,
                         HourlyRate = hrg.HourlyRate,
                         Amount = hrg.Amount,
                         EstimatedHours = hrg.EstimatedHours
@@ -107,15 +114,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
 
                 #region Time Tracking: Mitarbeiter- und Zeiteintr�ge laden
-                var employee = await GetEmployeeAsync();
+                employee = await GetEmployeeAsync();
                 if (employee != null && employee.CompanyId != null)
                 {
 
                     CurrentEmployeeId = employee?.EmployeeId;
 
                     // Rolle ermitteln
-                    
-                        IsWorkerRole = User.IsInRole("Viewer");
+
+                    IsWorkerRole = User.IsInRole("Viewer");
 
                     // Mitarbeiter-Liste laden (nur f�r Nicht-Worker, f�r das Dropdown)
                     if (!IsWorkerRole && employee?.CompanyId != null)
@@ -200,8 +207,8 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                 projectBudget.InitialHRGPlannings = InitialHRGPlannings
                     .Select(hrg => new ProjectBudget.InitialHRGPlanning
                     {
-                        HourlyRateGroupId = hrg.HourlyRateGroupId,
-                        HourlyRateGroupName = hrg.HourlyRateGroupName,
+                        ProjectHRGId = hrg.ProjectHRGId,
+                        ProjectHRGName = hrg.ProjectHRGName,
                         HourlyRate = hrg.HourlyRate,
                         Amount = hrg.Amount,
                         EstimatedHours = hrg.EstimatedHours

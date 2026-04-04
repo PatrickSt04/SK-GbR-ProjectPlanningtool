@@ -59,7 +59,7 @@
                                         <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                                             <tr>
                                                 <th style="width: 30%;">Stundensatzgruppe</th>
-                                                <th style="width: 15%;">Stundensatz (€)</th>
+                                                <th style="width: 15%;">Projektspezifischer Stundensatz (€)</th>
                                                 <th style="width: 15%;">Anzahl Arbeiter</th>
                                                 <th style="width: 20%;">Geschätzte Stunden</th>
                                                 <th style="width: 20%;">Gesamtkosten (€)</th>
@@ -69,20 +69,21 @@
                                             @if (Model.AllHourlyRateGroups != null && Model.AllHourlyRateGroups.Any())
                                             {
                                                 int index = 0;
-                                                foreach (var hrg in Model.AllHourlyRateGroups.Where(h => !h.DeleteFlag))
+                                                
+                                                foreach (var hrg in Model.AllHourlyRateGroups)
                                                 {
-                                                    var savedPlanning = Model.InitialHRGPlannings?.FirstOrDefault(p => p.HourlyRateGroupId == hrg.HourlyRateGroupId);
+                                                    var savedPlanning = Model.InitialHRGPlannings?.FirstOrDefault(p => p.ProjectHRGId == hrg.ProjectHourlyRateGroupId);
                                                     var savedAmount = savedPlanning?.Amount ?? 0;
                                                     var savedHours = savedPlanning?.EstimatedHours ?? 0;
                                                     <tr data-hrg-id="@hrg.HourlyRateGroupId" data-index="@index">
                                                         <td>
-                                                            <strong>@hrg.HourlyRateGroupName</strong>
+                                                            <strong>@hrg.HourlyRateGroup?.HourlyRateGroupName</strong>
                                                             <input type="hidden" name="InitialHRGPlannings[@index].HourlyRateGroupId" value="@hrg.HourlyRateGroupId" />
-                                                            <input type="hidden" name="InitialHRGPlannings[@index].HourlyRateGroupName" value="@hrg.HourlyRateGroupName" />
-                                                            <input type="hidden" name="InitialHRGPlannings[@index].HourlyRate" value="@hrg.HourlyRate" />
+                                                            <input type="hidden" name="InitialHRGPlannings[@index].HourlyRateGroupName" value="@hrg.HourlyRateGroup?.HourlyRateGroupName" />
+                                                            <input type="hidden" name="InitialHRGPlannings[@index].HourlyRate" value="@hrg.HourlyRateGroup?.HourlyRate" />
                                                         </td>
                                                         <td>
-                                                            <span class="text-success fw-bold hourly-rate" data-rate="@hrg.HourlyRate">@hrg.HourlyRate.ToString("F2") €</span>
+                                                            <span class="text-success fw-bold hourly-rate" data-rate="@hrg.ProjectHourlyRate">@hrg.ProjectHourlyRate €</span>
                                                         </td>
                                                         <td>
                                                             <input type="number" class="form-control initial-amount-input"
@@ -287,9 +288,9 @@
 
                 <!-- Kosten aus Zeitbuchungen (klickbar) -->
                 <a asp-page="/Projects/TimeEntryCosts" asp-route-id="@Model.Project?.ProjectId"
-                   class="budget-card" style="border-top: 4px solid #9b59b6; text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
-                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(155,89,182,0.25)';"
-                   onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                       class="budget-card" style="border-top: 4px solid #9b59b6; text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(155,89,182,0.25)';"
+                       onmouseout="this.style.transform=''; this.style.boxShadow='';">
                     <div class="budget-card-header">
                         <div class="budget-card-title">Kosten aus Zeitbuchungen <i class="fas fa-external-link-alt" style="font-size: 0.7rem; opacity: 0.5; margin-left: 0.3rem;"></i></div>
                         <div class="budget-card-icon" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
@@ -304,7 +305,7 @@
                     </div>
                     <div id="timeEntryBreakdownList" style="margin-top: 1rem; display: none;">
                         <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
-                                        text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
                             <i class="fas fa-layer-group me-1"></i> Nach Stundensatzgruppe
                         </div>
                         <div id="timeEntryBreakdownItems"></div>
@@ -313,9 +314,9 @@
 
                 <!-- Zusätzliche Kosten (klickbar) -->
                 <a asp-page="/Projects/AdditionalCostsDetail" asp-route-id="@Model.Project?.ProjectId"
-                   class="budget-card" style="border-top: 4px solid var(--info-color); text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
-                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(52,152,219,0.25)';"
-                   onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                       class="budget-card" style="border-top: 4px solid var(--info-color); text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(52,152,219,0.25)';"
+                       onmouseout="this.style.transform=''; this.style.boxShadow='';">
                     <div class="budget-card-header">
                         <div class="budget-card-title">Zusätzliche Kosten <i class="fas fa-external-link-alt" style="font-size: 0.7rem; opacity: 0.5; margin-left: 0.3rem;"></i></div>
                         <div class="budget-card-icon" style="background: var(--info-color);">

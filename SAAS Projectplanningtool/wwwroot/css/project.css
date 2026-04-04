@@ -231,6 +231,25 @@
     gap: 30px;
 }
 
+/* ===== Card Header Edit Button ===== */
+/*
+ * Einheitlicher Bearbeiten-Button in Card-Headern der Details-Seite.
+ * Wird in _ProjectInfo.cshtml und _ProjectHRGs.cshtml verwendet.
+ */
+.card-edit-btn {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: var(--border-radius-sm, 6px);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+    .card-edit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.1));
+    }
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .two-column-layout {
