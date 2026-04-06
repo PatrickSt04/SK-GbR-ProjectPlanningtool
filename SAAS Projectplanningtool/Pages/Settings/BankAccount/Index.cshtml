@@ -1,0 +1,121 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Settings.BankAccount.IndexModel
+
+@{
+    ViewData["Title"] = "Bankkonten";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-bank me-2"></i>Bankkonten</h1>
+            <p class="header-subtitle">Bankverbindungen von @Model.CompanyName</p>
+        </div>
+        <div class="header-actions">
+            <a asp-page="/Settings/CompanySettings" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Firmeneinstellungen
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="cm-colorbar"></div>
+    <div class="card-header">
+        <h5><i class="bi bi-bank me-2"></i>Bankkonten</h5>
+        <div class="card-actions">
+            <a asp-page="./Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Anlegen
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="cm-toolbar-wrap">
+            <div class="cm-toolbar">
+                <div class="cm-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" class="cm-input cm-search"
+                           placeholder="IBAN, Bezeichnung oder Bank suchen…" oninput="filterTable()">
+                </div>
+                <select id="statusFilter" class="cm-input cm-select w-auto" onchange="filterTable()">
+                    <option value="aktiv">Aktive</option>
+                    <option value="">Alle</option>
+                    <option value="gesperrt">Gesperrte</option>
+                </select>
+            </div>
+        </div>
+
+        <table class="cm-table" id="bankAccountTable">
+            <thead>
+                <tr>
+                    <th>Kontobezeichnung</th>
+                    <th>IBAN</th>
+                    <th>BIC</th>
+                    <th>Kreditinstitut</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var account in Model.BankAccounts)
+                {
+                    <tr data-search="@account.AccountName.ToLower() @account.IBAN.ToLower() @(account.BankName?.ToLower() ?? "")"
+                        data-status="@(account.DeleteFlag ? "gesperrt" : "aktiv")">
+                        <td>
+                            <a class="td-link" asp-page="./Details" asp-route-id="@account.BankAccountId">
+                                @account.AccountName
+                            </a>
+                        </td>
+                        <td class="cm-text-mono">@account.IBAN</td>
+                        <td>@(account.BIC ?? "–")</td>
+                        <td>@(account.BankName ?? "–")</td>
+                        <td>
+                            @if (account.DeleteFlag)
+                            {
+                                <span class="badge badge-locked badge-inline-sm">
+                                    <i class="bi bi-lock-fill"></i> Gesperrt
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-aktiv badge-inline-sm">
+                                    <i class="bi bi-check-circle-fill"></i> Aktiv
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (!Model.BankAccounts.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-bank"></i>
+                <p>Noch keine Bankkonten vorhanden.</p>
+            </div>
+        }
+
+        <div class="cm-card-footer">
+            <span id="rowCount">@Model.BankAccounts.Count</span> Einträge
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        const q      = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const rows   = document.querySelectorAll('#bankAccountTable tbody tr');
+        let visible  = 0;
+        rows.forEach(r => {
+            const show = (!q      || r.dataset.search.includes(q)) &&
+                         (!status || r.dataset.status === status);
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('rowCount').textContent = visible;
+    }
+    filterTable();
+</script>
