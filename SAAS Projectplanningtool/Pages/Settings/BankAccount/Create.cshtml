@@ -1,0 +1,84 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Settings.BankAccount.CreateModel
+
+@{
+    ViewData["Title"] = "Bankkonto anlegen";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-plus-circle me-2"></i>Neues Bankkonto</h1>
+            <p class="header-subtitle">Neue Bankverbindung anlegen</p>
+        </div>
+        <div class="header-actions">
+            <a asp-page="./Index" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Zurück zur Übersicht
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="cm-form-container">
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger cm-validation-summary"></div>
+
+        <div class="card">
+            <div class="cm-colorbar"></div>
+            <div class="card-header">
+                <h5><i class="bi bi-bank me-2"></i>Kontodaten</h5>
+            </div>
+            <div class="card-body">
+                <div class="cm-form-group">
+                    <label asp-for="BankAccount.AccountName">Kontobezeichnung *</label>
+                    <input asp-for="BankAccount.AccountName" class="cm-input" placeholder="z.B. Geschäftskonto" />
+                    <span asp-validation-for="BankAccount.AccountName" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="cm-form-group">
+                            <label asp-for="BankAccount.IBAN">IBAN *</label>
+                            <input asp-for="BankAccount.IBAN" class="cm-input" placeholder="DE89 3704 0044 0532 0130 00" />
+                            <span asp-validation-for="BankAccount.IBAN" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="cm-form-group">
+                            <label asp-for="BankAccount.BIC">BIC</label>
+                            <input asp-for="BankAccount.BIC" class="cm-input" placeholder="COBADEFFXXX" />
+                            <span asp-validation-for="BankAccount.BIC" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cm-form-group">
+                    <label asp-for="BankAccount.BankName">Kreditinstitut</label>
+                    <input asp-for="BankAccount.BankName" class="cm-input" placeholder="z.B. Commerzbank" />
+                    <span asp-validation-for="BankAccount.BankName" class="text-danger"></span>
+                </div>
+
+                <div class="cm-form-group">
+                    <label asp-for="BankAccount.AccountHolder">Kontoinhaber</label>
+                    <input asp-for="BankAccount.AccountHolder" class="cm-input" placeholder="Name des Kontoinhabers" />
+                    <span asp-validation-for="BankAccount.AccountHolder" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="cm-form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>Anlegen
+            </button>
+            <a asp-page="./Index" class="btn btn-outline-secondary">Abbrechen</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
