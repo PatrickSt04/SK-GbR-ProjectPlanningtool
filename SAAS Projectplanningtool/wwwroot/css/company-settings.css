@@ -1,0 +1,33 @@
+﻿/* ================================================================
+   COMPANY-SETTINGS.CSS
+   Nur Arbeitszeit-Konfiguration (alles andere via shared/employee)
+   ================================================================ */
+
+.wt-row {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+}
+
+    .wt-row:last-child {
+        border-bottom: none;
+    }
+
+.wt-times {
+    transition: opacity .15s;
+}
+
+    .wt-times.disabled {
+        opacity: 0.35;
+        pointer-events: none;
+    }
+
+.wt-time-input {
+    width: 120px;
+}
+
+.wt-presets {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}

@@ -46,6 +46,7 @@ namespace SAAS_Projectplanningtool.Pages.Settings
                 .Include(c => c.License)
                 .Include(c => c.Sector)
                 .Include(c => c.Address)
+                .Include(c => c.LatestModifier)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.CompanyId == id);
 
