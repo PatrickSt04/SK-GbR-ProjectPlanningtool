@@ -7,7 +7,7 @@
                   Zeigt je Gruppe den globalen Standard-Stundensatz sowie den projektspez.
                   Stundensatz an. Der Edit-Button öffnet das _EditProjectHRGsModal.
 *@
-<div class="row"> 
+@* <div class="row"> *@
     <div class="project-info-section">
         <div class="card">
             <div class="card-header">
@@ -45,7 +45,7 @@
                                     </small>
                                     @if (hrg.ProjectHourlyRate.HasValue)
                                     {
-                                        <span >
+                                        <span>
                                             @hrg.ProjectHourlyRate.Value.ToString("F2") €/h
                                         </span>
                                     }
@@ -65,6 +65,6 @@
                     }
                 </div>
             </div>
- </div> 
+        </div>
     </div>
-</div>
+@* </div> *@
