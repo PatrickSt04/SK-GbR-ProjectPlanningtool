@@ -29,6 +29,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
 
             var article = await _context.Article
                 .Include(a => a.ArticleCategory)
+                .Include(a => a.Unit)
                 .Include(a => a.LatestModifier)
                 .Include(a => a.CreatedByEmployee)
                 .FirstOrDefaultAsync(a => a.ArticleId == id);

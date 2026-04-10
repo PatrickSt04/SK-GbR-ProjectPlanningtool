@@ -92,6 +92,74 @@ public static class DbInitializer
         company.License = Licences[1];
         context.Company.Update(company);
         await context.SaveChangesAsync();
+
+        // ── Standard-Einheiten (Baubranche) ──
+        var units = new[]
+        {
+            // Mengeneinheiten
+            new Unit { Name = "Stück",              ShortName = "Stk" },
+            new Unit { Name = "Paar",               ShortName = "Pr" },
+            new Unit { Name = "Satz",               ShortName = "Stz" },
+            new Unit { Name = "Pauschal",           ShortName = "psch" },
+
+            // Längenmaße
+            new Unit { Name = "Millimeter",         ShortName = "mm" },
+            new Unit { Name = "Zentimeter",         ShortName = "cm" },
+            new Unit { Name = "Meter",              ShortName = "m" },
+            new Unit { Name = "Laufmeter",          ShortName = "lfm" },
+            new Unit { Name = "Kilometer",          ShortName = "km" },
+
+            // Flächenmaße
+            new Unit { Name = "Quadratmeter",       ShortName = "m²" },
+            new Unit { Name = "Quadratzentimeter",  ShortName = "cm²" },
+
+            // Raummaße
+            new Unit { Name = "Kubikmeter",         ShortName = "m³" },
+            new Unit { Name = "Kubikzentimeter",    ShortName = "cm³" },
+            new Unit { Name = "Liter",              ShortName = "l" },
+
+            // Gewichtseinheiten
+            new Unit { Name = "Gramm",              ShortName = "g" },
+            new Unit { Name = "Kilogramm",          ShortName = "kg" },
+            new Unit { Name = "Tonne",              ShortName = "t" },
+
+            // Zeiteinheiten
+            new Unit { Name = "Stunde",             ShortName = "Std" },
+            new Unit { Name = "Tag",                ShortName = "Tg" },
+            new Unit { Name = "Monat",              ShortName = "Mon" },
+
+            // Verpackungs- / Gebindeeinheiten
+            new Unit { Name = "Packung",            ShortName = "Pkg" },
+            new Unit { Name = "Karton",             ShortName = "Krt" },
+            new Unit { Name = "Sack",               ShortName = "Sk" },
+            new Unit { Name = "Eimer",              ShortName = "Ei" },
+            new Unit { Name = "Dose",               ShortName = "Ds" },
+            new Unit { Name = "Rolle",              ShortName = "Rl" },
+            new Unit { Name = "Bund",               ShortName = "Bd" },
+            new Unit { Name = "Palette",            ShortName = "Pal" },
+            new Unit { Name = "Tafel",              ShortName = "Tf" },
+            new Unit { Name = "Platte",             ShortName = "Pl" },
+
+            // Transport / Logistik
+            new Unit { Name = "Fuhre",              ShortName = "Fu" },
+            new Unit { Name = "Ladung",             ShortName = "Ldg" },
+
+            // Sonstige
+            new Unit { Name = "Prozent",            ShortName = "%" },
+        };
+
+        await context.Unit.AddRangeAsync(units);
+        await context.SaveChangesAsync();
+
+        // Alle Einheiten für das Demo-Unternehmen aktivieren
+        var companyUnits = units.Select(u => new CompanyUnit
+        {
+            CompanyId = company.CompanyId,
+            UnitId = u.UnitId
+        });
+
+        await context.CompanyUnit.AddRangeAsync(companyUnits);
+        await context.SaveChangesAsync();
     }
 }
 //public static class DbInitializer
