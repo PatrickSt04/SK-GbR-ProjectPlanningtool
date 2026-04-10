@@ -5,6 +5,7 @@ using SAAS_Projectplanningtool.Models.Budgetplanning;
 using SAAS_Projectplanningtool.Models;
 using SAAS_Projectplanningtool.Models.TimeTracking;
 using SAAS_Projectplanningtool.Models.CRM;
+using SAAS_Projectplanningtool.Models.IndependentTables;
 
 
 namespace SAAS_Projectplanningtool.Data
@@ -14,6 +15,8 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Company> Company { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Address> Address { get; set; } = default!;
         public DbSet<Customer> Customer { get; set; } = default!;
+        public DbSet<Unit> Unit { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.CompanyUnit> CompanyUnit { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Employee> Employee { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.HourlyRateGroup> HourlyRateGroup { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.Project> Project { get; set; } = default!;

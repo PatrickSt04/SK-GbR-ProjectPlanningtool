@@ -24,6 +24,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
 
         [BindProperty] public Article Article { get; set; } = default!;
         public SelectList CategorySelectList { get; set; } = default!;
+        public SelectList UnitSelectList { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -33,12 +34,13 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
 
                 var article = await _context.Article
                     .Include(a => a.ArticleCategory)
+                    .Include(a => a.Unit)
                     .FirstOrDefaultAsync(a => a.ArticleId == id);
 
                 if (article == null) return NotFound();
                 Article = article;
 
-                await LoadCategorySelectListAsync(article.CompanyId, article.ArticleCategoryId);
+                await LoadSelectListsAsync(article.CompanyId, article.ArticleCategoryId, article.UnitId);
                 return Page();
             }
             catch (Exception ex)
@@ -52,7 +54,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
         {
             try
             {
-                await LoadCategorySelectListAsync(Article.CompanyId, Article.ArticleCategoryId);
+                await LoadSelectListsAsync(Article.CompanyId, Article.ArticleCategoryId, Article.UnitId);
 
                 if (!ModelState.IsValid) return Page();
 
@@ -81,16 +83,39 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
             }
         }
 
-        private async Task LoadCategorySelectListAsync(string? companyId, string? selectedId)
+        private async Task LoadSelectListsAsync(string? companyId, string? selectedCategoryId, string? selectedUnitId)
         {
-            // Only non-locked categories are selectable
             var cats = await _context.ArticleCategory
                 .Where(c => c.CompanyId == companyId && !c.DeleteFlag)
                 .OrderBy(c => c.CategoryName)
                 .ToListAsync();
 
             CategorySelectList = new SelectList(cats, nameof(ArticleCategory.ArticleCategoryId),
-                nameof(ArticleCategory.CategoryName), selectedId);
+                nameof(ArticleCategory.CategoryName), selectedCategoryId);
+
+            // Aktive Company-Units laden
+            var activeUnits = await _context.CompanyUnit
+                .Where(cu => cu.CompanyId == companyId)
+                .Include(cu => cu.Unit)
+                .Select(cu => cu.Unit!)
+                .OrderBy(u => u.Name)
+                .ToListAsync();
+
+            // Aktuell zugewiesene Unit einschließen, auch wenn deaktiviert
+            if (!string.IsNullOrWhiteSpace(selectedUnitId) &&
+                !activeUnits.Any(u => u.UnitId == selectedUnitId))
+            {
+                var currentUnit = await _context.Unit.FindAsync(selectedUnitId);
+                if (currentUnit != null)
+                {
+                    activeUnits.Add(currentUnit);
+                    activeUnits = activeUnits.OrderBy(u => u.Name).ToList();
+                }
+            }
+
+            UnitSelectList = new SelectList(
+                activeUnits.Select(u => new { u.UnitId, Display = $"{u.Name} ({u.ShortName})" }),
+                "UnitId", "Display", selectedUnitId);
         }
     }
 }

@@ -49,6 +49,8 @@ namespace SAAS_Projectplanningtool.Models
         //COLUMNTYPE AUSKOMMENTIERT FÜR MACOS
         //[Column(TypeName = "nvarchar(max)")]
         public string? DefaultWorkingHoursJson { get; set; }
+        
+        public List<Unit>? Units { get; set; }
 
         // Helper property to work with working hours in code (not mapped to database)
         [NotMapped]

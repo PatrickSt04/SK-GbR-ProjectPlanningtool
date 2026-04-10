@@ -17,6 +17,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
 
         [BindProperty] public Article Article { get; set; } = default!;
         public SelectList CategorySelectList { get; set; } = default!;
+        public SelectList UnitSelectList { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(string? categoryId = null)
         {
@@ -30,10 +31,11 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
                     ArticleNumber = "",
                     ArticleName = "",
                     CompanyId = employee.CompanyId,
-                    ArticleCategoryId = categoryId
+                    ArticleCategoryId = categoryId,
+                    UnitId = ""
                 };
 
-                await LoadCategorySelectListAsync(employee.CompanyId, categoryId);
+                await LoadSelectListsAsync(employee.CompanyId, categoryId, null);
                 return Page();
             }
             catch (Exception ex)
@@ -52,7 +54,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
 
                 if (!ModelState.IsValid)
                 {
-                    await LoadCategorySelectListAsync(employee.CompanyId, Article.ArticleCategoryId);
+                    await LoadSelectListsAsync(employee.CompanyId, Article.ArticleCategoryId, null);
                     return Page();
                 }
 
@@ -71,16 +73,27 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
             }
         }
 
-        private async Task LoadCategorySelectListAsync(string? companyId, string? selectedId)
+        private async Task LoadSelectListsAsync(string? companyId, string? selectedCategoryId, string? selectedUnitId)
         {
-            // Only non-locked categories are selectable
             var cats = await context.ArticleCategory
                 .Where(c => c.CompanyId == companyId && !c.DeleteFlag)
                 .OrderBy(c => c.CategoryName)
                 .ToListAsync();
 
             CategorySelectList = new SelectList(cats, nameof(ArticleCategory.ArticleCategoryId),
-                nameof(ArticleCategory.CategoryName), selectedId);
+                nameof(ArticleCategory.CategoryName), selectedCategoryId);
+
+            // Nur aktive Company-Units laden
+            var units = await context.CompanyUnit
+                .Where(cu => cu.CompanyId == companyId)
+                .Include(cu => cu.Unit)
+                .Select(cu => cu.Unit!)
+                .OrderBy(u => u.Name)
+                .ToListAsync();
+
+            UnitSelectList = new SelectList(
+                units.Select(u => new { u.UnitId, Display = $"{u.Name} ({u.ShortName})" }),
+                "UnitId", "Display", selectedUnitId);
         }
     }
 }

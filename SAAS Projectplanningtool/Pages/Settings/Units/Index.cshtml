@@ -1,0 +1,137 @@
+﻿@page
+@model SAAS_Projectplanningtool.Pages.Settings.Units.IndexModel
+
+@{
+    ViewData["Title"] = "Einheiten";
+}
+
+<link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+
+<div class="page-header">
+    <div class="header-content">
+        <div class="header-left">
+            <h1><i class="bi bi-rulers me-2"></i>Einheiten</h1>
+            <p class="header-subtitle">Verfügbare Einheiten für @Model.CompanyName</p>
+        </div>
+        <div class="header-actions">
+            <a asp-page="/Settings/CompanySettings" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i>Firmenverwaltung
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="cm-colorbar"></div>
+    <div class="card-header">
+        <h5><i class="bi bi-rulers me-2"></i>Einheiten aktivieren / deaktivieren</h5>
+    </div>
+    <div class="card-body">
+
+        <div class="cm-toolbar-wrap">
+            <div class="cm-toolbar">
+                <div class="cm-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" class="cm-input cm-search"
+                           placeholder="Einheit suchen…" oninput="filterTable()">
+                </div>
+                <select id="statusFilter" class="cm-input cm-select w-auto" onchange="filterTable()">
+                    <option value="">Alle</option>
+                    <option value="aktiv">Aktive</option>
+                    <option value="inaktiv">Inaktive</option>
+                </select>
+            </div>
+        </div>
+
+        <table class="cm-table" id="unitTable">
+            <thead>
+                <tr>
+                    <th>Bezeichnung</th>
+                    <th>Kurzzeichen</th>
+                    <th>Status</th>
+                    <th class="text-end">Aktion</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var unit in Model.Units)
+                {
+                    <tr data-search="@unit.Name.ToLower() @(unit.ShortName?.ToLower() ?? "")"
+                        data-status="@(unit.IsActive ? "aktiv" : "inaktiv")">
+                        <td>
+                            <span style="font-weight:600;">@unit.Name</span>
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(unit.ShortName))
+                            {
+                                <span class="badge">@unit.ShortName</span>
+                            }
+                            else
+                            {
+                                <span class="cm-text-placeholder">–</span>
+                            }
+                        </td>
+                        <td>
+                            @if (unit.IsActive)
+                            {
+                                <span class="badge badge-aktiv badge-inline-sm">
+                                    <i class="bi bi-check-circle-fill"></i> Aktiv
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-locked badge-inline-sm">
+                                    <i class="bi bi-dash-circle"></i> Inaktiv
+                                </span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="Toggle" asp-route-unitId="@unit.UnitId" style="display:inline;">
+                                @if (unit.IsActive)
+                                {
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-x-lg me-1"></i>Deaktivieren
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-check-lg me-1"></i>Aktivieren
+                                    </button>
+                                }
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (!Model.Units.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-rulers"></i>
+                <p>Noch keine Einheiten vorhanden.</p>
+            </div>
+        }
+
+        <div class="cm-card-footer">
+            <span id="rowCount">@Model.Units.Count</span> Einheiten
+            · <strong>@Model.Units.Count(u => u.IsActive)</strong> aktiv
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        const q      = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const rows   = document.querySelectorAll('#unitTable tbody tr');
+        let visible  = 0;
+        rows.forEach(r => {
+            const show = (!q      || r.dataset.search.includes(q)) &&
+                         (!status || r.dataset.status === status);
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('rowCount').textContent = visible;
+    }
+</script>

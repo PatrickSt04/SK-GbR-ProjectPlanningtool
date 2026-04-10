@@ -52,13 +52,23 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-4">
                         <div class="cm-form-group">
                             <label asp-for="Article.ArticleCategoryId">Kategorie</label>
                             <select asp-for="Article.ArticleCategoryId" class="cm-input cm-select"
                                     asp-items="Model.CategorySelectList">
                                 <option value="">– Keine Kategorie –</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="cm-form-group">
+                            <label asp-for="Article.UnitId">Einheit *</label>
+                            <select asp-for="Article.UnitId" class="cm-input cm-select"
+                                    asp-items="Model.UnitSelectList">
+                                <option value="">– Einheit wählen –</option>
+                            </select>
+                            <span asp-validation-for="Article.UnitId" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-md-4">

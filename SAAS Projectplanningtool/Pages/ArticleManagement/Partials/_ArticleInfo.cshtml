@@ -20,6 +20,23 @@
                 <span class="cm-text-rate">@Model.Article.Price.ToString("N2") €</span>
             </div>
             <div class="cm-info-item">
+                <label><i class="bi bi-rulers"></i> Einheit</label>
+                @if (Model.Article.Unit != null)
+                {
+                    <span>
+                        @Model.Article.Unit.Name
+                        @if (!string.IsNullOrWhiteSpace(Model.Article.Unit.ShortName))
+                        {
+                            <span class="badge">@Model.Article.Unit.ShortName</span>
+                        }
+                    </span>
+                }
+                else
+                {
+                    <span class="cm-text-placeholder">–</span>
+                }
+            </div>
+            <div class="cm-info-item">
                 <label>Kategorie</label>
                 @if (Model.Article.ArticleCategory != null)
                 {

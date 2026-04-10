@@ -33,6 +33,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
 
                 Articles = await _context.Article
                     .Include(a => a.ArticleCategory)
+                    .Include(a => a.Unit)
                     .Include(a => a.LatestModifier)
                     .Where(a => a.CompanyId == employee.CompanyId)
                     .OrderBy(a => a.ArticleNumber)
