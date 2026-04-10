@@ -19,6 +19,10 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
 
         public List<BudgetRecalculation> BudgetRecalculations { get; set; } = new();
 
+        // New tabular budget planning
+        public ICollection<BudgetGroup> BudgetGroups { get; set; } = new List<BudgetGroup>();
+
+        // Legacy: kept for backward compatibility with existing data
         public List<InitialHRGPlanning> InitialHRGPlannings { get; set; } = new();
 
         public List<InitialAdditionalCost> InitialAdditionalCosts { get; set; } = new();

@@ -41,6 +41,8 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.ProjectHourlyRateGroup> ProjectHourlyRateGroup { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.BankAccount> BankAccount { get; set; } = default!;
         public DbSet<TimeEntry> TimeEntry { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.BudgetGroup> BudgetGroup { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.BudgetLineItem> BudgetLineItem { get; set; } = default!;
 
 
         public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;
@@ -225,6 +227,32 @@ namespace SAAS_Projectplanningtool.Data
 
             modelBuilder.Entity<HolidayCalendarEntry>()
                 .HasIndex(hce => new { hce.CompanyId, hce.HolidayDate });
+
+            // BudgetGroup audit FK configuration
+            modelBuilder.Entity<BudgetGroup>()
+                .HasOne(bg => bg.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(bg => bg.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BudgetGroup>()
+                .HasOne(bg => bg.LatestModifier)
+                .WithMany()
+                .HasForeignKey(bg => bg.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // BudgetLineItem audit FK configuration
+            modelBuilder.Entity<BudgetLineItem>()
+                .HasOne(bli => bli.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(bli => bli.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BudgetLineItem>()
+                .HasOne(bli => bli.LatestModifier)
+                .WithMany()
+                .HasForeignKey(bli => bli.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
