@@ -355,11 +355,15 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
                 foreach (var groupDto in budgetGroups)
                 {
+                    // Skip empty default groups (no name and no items)
+                    if (string.IsNullOrWhiteSpace(groupDto.GroupName) && (groupDto.LineItems == null || groupDto.LineItems.Count == 0))
+                        continue;
+
                     var newGroup = new BudgetGroup
                     {
                         CompanyId = employee.CompanyId,
                         ProjectBudgetId = projectBudget.ProjectBudgetId,
-                        GroupName = groupDto.GroupName,
+                        GroupName = groupDto.GroupName ?? "",
                         SortOrder = groupDto.SortOrder
                     };
                     newGroup = await new CustomObjectModifier(_context, _userManager)
