@@ -119,10 +119,13 @@
             </div>
 
             <div class="budget-overview">
-                <!-- Auftragsvolumen -->
-                <div class="budget-card primary">
+                <!-- Auftragsvolumen (klickbar → öffnet Budgettabelle) -->
+                <div class="budget-card primary" id="auftragsvolumenCard" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                     onclick="toggleAuftragsvolumenTable()"
+                     onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(52,152,219,0.25)';"
+                     onmouseout="this.style.transform=''; this.style.boxShadow='';">
                     <div class="budget-card-header">
-                        <div class="budget-card-title">Auftragsvolumen</div>
+                        <div class="budget-card-title">Auftragsvolumen <i class="fas fa-edit" style="font-size: 0.7rem; opacity: 0.5; margin-left: 0.3rem;"></i></div>
                         <div class="budget-card-icon" style="background: var(--primary-gradient);">
                             <i class="fas fa-wallet"></i>
                         </div>
@@ -143,6 +146,9 @@
                                                 ? Model.Project.ProjectBudget.InitialBudget.ToString("C2", new CultureInfo("de-DE"))
                                                 : "-")
                         }
+                    </div>
+                    <div class="budget-card-subtitle" style="margin-top: 0.5rem;">
+                        <i class="fas fa-mouse-pointer me-1"></i> Klicken zum Bearbeiten
                     </div>
                 </div>
 
@@ -291,6 +297,85 @@
         </div>
     </div>
 
+
+    <!-- Auftragsvolumen Tabelle (ein-/ausklappbar) -->
+    <div id="auftragsvolumenTableSection" class="main-container mt-4" style="display: none;">
+        <div class="modern-table">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--primary-gradient); color: white;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-wallet me-2"></i>
+                        Auftragsvolumen bearbeiten
+                    </h5>
+                    <div>
+                        <button type="button" class="btn btn-light btn-sm me-2" id="avAddRowBtn">
+                            <i class="fas fa-plus me-1"></i> Zeile hinzufügen
+                        </button>
+                        <button type="button" class="btn btn-outline-light btn-sm me-2" id="avAddGroupBtn">
+                            <i class="fas fa-layer-group me-1"></i> Gruppe einfügen
+                        </button>
+                        <button type="button" class="btn btn-outline-light btn-sm" onclick="toggleAuftragsvolumenTable()">
+                            <i class="fas fa-times me-1"></i> Schließen
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0" id="avBudgetPlanningContainer">
+                    @Html.AntiForgeryToken()
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0 budget-flat-table" id="avBudgetFlatTable">
+                            <thead>
+                                <tr>
+                                    <th style="width:3%;"></th>
+                                    <th style="width:13%;">Auswahl</th>
+                                    <th style="width:24%;">Bezeichnung</th>
+                                    <th style="width:11%;">Anzahl</th>
+                                    <th style="width:13%;">Preis/Stck</th>
+                                    <th style="width:13%;">Preis</th>
+                                    <th style="width:13%;">Preis angepasst</th>
+                                    <th style="width:10%;">Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="avBudgetRowsContainer">
+                                <!-- Rows rendered by JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="budget-add-row-footer">
+                                    <td colspan="8">
+                                        <button type="button" class="btn btn-link btn-sm text-muted w-100" id="avAddRowFooterBtn">
+                                            <i class="fas fa-plus me-1"></i> Neue Zeile
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="card border-success m-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-calculator me-2 text-success"></i>
+                                        Auftragsvolumen:
+                                    </h5>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <h3 class="mb-0 text-success" id="avTotalBudgetDisplay">0,00 €</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end p-3 pt-0">
+                        <button type="button" class="modern-btn success" id="avSaveBudgetBtn">
+                            <i class="fas fa-save me-2"></i>
+                            Auftragsvolumen speichern
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Task Statistiken -->
     <div class="task-statistics">
@@ -1356,5 +1441,513 @@
         notification.innerHTML = `${message}<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>`;
         document.body.appendChild(notification);
         setTimeout(() => notification.parentNode && notification.remove(), 4000);
+    }
+
+    // ====== AUFTRAGSVOLUMEN TABLE (Dashboard View) ======
+    let avBudgetRows = [];
+    let avRowIdCounter = 0;
+    let avInitialized = false;
+
+    function toggleAuftragsvolumenTable() {
+        const section = document.getElementById('auftragsvolumenTableSection');
+        if (!section) return;
+
+        if (section.style.display === 'none' || section.style.display === '') {
+            section.style.display = 'block';
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (!avInitialized) {
+                initializeAuftragsvolumenTable();
+            }
+        } else {
+            section.style.display = 'none';
+        }
+    }
+
+    async function initializeAuftragsvolumenTable() {
+        const container = document.getElementById('avBudgetRowsContainer');
+        if (!container) return;
+
+        // Load articles and HRGs for dropdowns (reuse cached if already loaded)
+        try {
+            if (cachedArticles.length === 0 || cachedHRGs.length === 0) {
+                const [articlesRes, hrgsRes] = await Promise.all([
+                    fetch(`/Projects/BudgetPlanning?handler=SearchArticles`),
+                    fetch(`/Projects/BudgetPlanning?handler=HourlyRateGroupsJson&projectId=${PROJECT_ID}`)
+                ]);
+                if (articlesRes.ok && cachedArticles.length === 0) cachedArticles = await articlesRes.json();
+                if (hrgsRes.ok && cachedHRGs.length === 0) cachedHRGs = await hrgsRes.json();
+            }
+        } catch (err) { console.error('Error loading dropdown data for AV:', err); }
+
+        // Load existing budget groups via AJAX
+        try {
+            const response = await fetch(`/Projects/BudgetPlanning?handler=BudgetGroupsJson&projectId=${PROJECT_ID}`);
+            if (response.ok) {
+                const existingGroups = await response.json();
+                avBudgetRows = [];
+                avRowIdCounter = 0;
+                if (existingGroups && existingGroups.length > 0) {
+                    existingGroups.forEach(g => {
+                        const isDefaultGroup = !g.groupName || g.groupName.trim() === '';
+                        if (!isDefaultGroup) {
+                            avBudgetRows.push({
+                                rowType: 'group',
+                                id: 'av_' + (avRowIdCounter++),
+                                dbId: g.budgetGroupId,
+                                name: g.groupName
+                            });
+                        }
+                        g.lineItems.forEach(li => {
+                            avBudgetRows.push({
+                                rowType: 'line',
+                                id: 'av_' + (avRowIdCounter++),
+                                dbId: li.budgetLineItemId,
+                                lineType: li.lineItemType,
+                                articleId: li.articleId,
+                                hrgId: li.projectHourlyRateGroupId,
+                                description: li.description,
+                                quantity: li.quantity,
+                                unitPrice: li.unitPrice,
+                                adjustedPrice: li.adjustedPrice
+                            });
+                        });
+                    });
+                }
+            }
+        } catch (err) { console.error('Error loading budget groups for AV:', err); }
+
+        // Wire up buttons
+        document.getElementById('avAddRowBtn')?.addEventListener('click', () => { avAddLineRow(); avRenderBudgetRows(); });
+        document.getElementById('avAddRowFooterBtn')?.addEventListener('click', () => { avAddLineRow(); avRenderBudgetRows(); });
+        document.getElementById('avAddGroupBtn')?.addEventListener('click', () => { avAddGroupRow(); avRenderBudgetRows(); });
+        document.getElementById('avSaveBudgetBtn')?.addEventListener('click', avSaveBudgetPlanning);
+
+        avInitialized = true;
+        avRenderBudgetRows();
+    }
+
+    function avAddLineRow(afterIndex) {
+        const newRow = {
+            rowType: 'line',
+            id: 'av_' + (avRowIdCounter++),
+            dbId: null,
+            lineType: 2,
+            articleId: null,
+            hrgId: null,
+            description: '',
+            quantity: 0,
+            unitPrice: 0,
+            adjustedPrice: null
+        };
+        if (afterIndex !== undefined && afterIndex >= 0) {
+            avBudgetRows.splice(afterIndex + 1, 0, newRow);
+        } else {
+            avBudgetRows.push(newRow);
+        }
+        return newRow;
+    }
+
+    function avAddGroupRow(afterIndex) {
+        const newRow = {
+            rowType: 'group',
+            id: 'av_' + (avRowIdCounter++),
+            dbId: null,
+            name: 'Neue Gruppe'
+        };
+        if (afterIndex !== undefined && afterIndex >= 0) {
+            avBudgetRows.splice(afterIndex + 1, 0, newRow);
+        } else {
+            avBudgetRows.push(newRow);
+        }
+        return newRow;
+    }
+
+    function avDeleteRow(rowId) {
+        avBudgetRows = avBudgetRows.filter(r => r.id !== rowId);
+    }
+
+    function avMoveRow(rowId, direction) {
+        const idx = avBudgetRows.findIndex(r => r.id === rowId);
+        if (idx < 0) return;
+        const newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= avBudgetRows.length) return;
+        const temp = avBudgetRows[idx];
+        avBudgetRows[idx] = avBudgetRows[newIdx];
+        avBudgetRows[newIdx] = temp;
+    }
+
+    function avGetRowById(rowId) {
+        return avBudgetRows.find(r => r.id === rowId);
+    }
+
+    function avGetGroupSubtotal(groupRowIndex) {
+        let total = 0;
+        for (let i = groupRowIndex + 1; i < avBudgetRows.length; i++) {
+            if (avBudgetRows[i].rowType === 'group') break;
+            if (avBudgetRows[i].rowType === 'line') {
+                const item = avBudgetRows[i];
+                const calcPrice = item.quantity * item.unitPrice;
+                total += (item.adjustedPrice !== null && item.adjustedPrice !== undefined) ? item.adjustedPrice : calcPrice;
+            }
+        }
+        return total;
+    }
+
+    function avRenderBudgetRows() {
+        const container = document.getElementById('avBudgetRowsContainer');
+        if (!container) return;
+
+        if (avBudgetRows.length === 0) {
+            container.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">
+                <i class="fas fa-info-circle me-2"></i>Noch keine Positionen angelegt. Klicken Sie auf "Zeile hinzufügen" um zu beginnen.
+            </td></tr>`;
+            avRecalculateTotals();
+            return;
+        }
+
+        let html = '';
+        avBudgetRows.forEach((row, idx) => {
+            if (row.rowType === 'group') {
+                const subtotal = avGetGroupSubtotal(idx);
+                html += `<tr class="budget-group-row av-budget-group-row" data-row-id="${row.id}">
+                    <td class="budget-row-handle"><i class="fas fa-grip-vertical text-muted"></i></td>
+                    <td colspan="5">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-layer-group text-primary"></i>
+                            <input type="text" class="form-control form-control-sm av-budget-group-name fw-bold"
+                                   value="${escapeHtml(row.name)}" data-row-id="${row.id}"
+                                   placeholder="Gruppenname" />
+                            <span class="badge bg-primary av-budget-group-subtotal">${formatCurrency(subtotal)}</span>
+                        </div>
+                    </td>
+                    <td colspan="2" class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <button type="button" class="btn btn-outline-success btn-sm av-insert-row-after-btn" data-row-index="${idx}" title="Zeile danach einfügen">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm av-move-up-btn" data-row-id="${row.id}" title="Nach oben">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm av-move-down-btn" data-row-id="${row.id}" title="Nach unten">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm av-delete-row-btn" data-row-id="${row.id}" title="Löschen">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            } else {
+                const item = row;
+                const calcPrice = item.quantity * item.unitPrice;
+                html += avRenderLineItemRow(item, calcPrice, idx);
+            }
+        });
+
+        container.innerHTML = html;
+        avAttachEventListeners();
+        avRecalculateTotals();
+    }
+
+    function avRenderLineItemRow(item, calcPrice, rowIndex) {
+        const typeOptions = [
+            { value: 0, label: 'Material' },
+            { value: 1, label: 'Ressource' },
+            { value: 2, label: 'Freitext' }
+        ];
+        const typeSelect = typeOptions.map(opt =>
+            `<option value="${opt.value}" ${item.lineType === opt.value ? 'selected' : ''}>${opt.label}</option>`
+        ).join('');
+
+        let descriptionField = '';
+        if (item.lineType === 0) {
+            const articleOptions = cachedArticles.map(a =>
+                `<option value="${a.articleId}" data-price="${a.price}" ${item.articleId === a.articleId ? 'selected' : ''}>${a.articleNumber} - ${escapeHtml(a.articleName)}</option>`
+            ).join('');
+            descriptionField = `<select class="form-select form-select-sm av-line-article-select" data-row-id="${item.id}">
+                <option value="">-- Artikel wählen --</option>${articleOptions}</select>`;
+        } else if (item.lineType === 1) {
+            const hrgOptions = cachedHRGs.map(h =>
+                `<option value="${h.projectHourlyRateGroupId}" data-rate="${h.hourlyRate}" ${item.hrgId === h.projectHourlyRateGroupId ? 'selected' : ''}>${escapeHtml(h.name)}</option>`
+            ).join('');
+            descriptionField = `<select class="form-select form-select-sm av-line-hrg-select" data-row-id="${item.id}">
+                <option value="">-- Stundensatzgruppe wählen --</option>${hrgOptions}</select>`;
+        } else {
+            descriptionField = `<input type="text" class="form-control form-control-sm av-line-description" data-row-id="${item.id}" value="${escapeHtml(item.description)}" placeholder="Bezeichnung" />`;
+        }
+
+        const unitPriceField = item.lineType === 2
+            ? `<input type="number" class="form-control form-control-sm av-line-unit-price" data-row-id="${item.id}" value="${item.unitPrice}" step="0.01" min="0" />`
+            : `<span class="fw-bold text-success">${formatCurrency(item.unitPrice)}</span>`;
+
+        return `<tr class="budget-line-row av-budget-line-row" data-row-id="${item.id}">
+            <td class="budget-row-handle"><i class="fas fa-grip-vertical text-muted"></i></td>
+            <td><select class="form-select form-select-sm av-line-type-select" data-row-id="${item.id}">${typeSelect}</select></td>
+            <td>${descriptionField}</td>
+            <td><input type="number" class="form-control form-control-sm av-line-quantity" data-row-id="${item.id}" value="${item.quantity}" step="0.01" min="0" /></td>
+            <td>${unitPriceField}</td>
+            <td><span class="fw-bold text-primary av-line-calc-price">${formatCurrency(calcPrice)}</span></td>
+            <td><input type="number" class="form-control form-control-sm av-line-adjusted-price" data-row-id="${item.id}" value="${item.adjustedPrice !== null && item.adjustedPrice !== undefined ? item.adjustedPrice : ''}" step="0.01" min="0" placeholder="—" /></td>
+            <td>
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-outline-success btn-sm av-insert-row-after-btn" data-row-index="${rowIndex}" title="Zeile danach einfügen">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm av-delete-row-btn" data-row-id="${item.id}" title="Löschen">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }
+
+    function avAttachEventListeners() {
+        document.querySelectorAll('.av-delete-row-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                avDeleteRow(e.currentTarget.dataset.rowId);
+                avRenderBudgetRows();
+            });
+        });
+
+        document.querySelectorAll('.av-insert-row-after-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const idx = parseInt(e.currentTarget.dataset.rowIndex);
+                avAddLineRow(idx);
+                avRenderBudgetRows();
+            });
+        });
+
+        document.querySelectorAll('.av-move-up-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                avMoveRow(e.currentTarget.dataset.rowId, -1);
+                avRenderBudgetRows();
+            });
+        });
+        document.querySelectorAll('.av-move-down-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                avMoveRow(e.currentTarget.dataset.rowId, 1);
+                avRenderBudgetRows();
+            });
+        });
+
+        document.querySelectorAll('.av-budget-group-name').forEach(el => {
+            el.addEventListener('input', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (row) row.name = e.target.value;
+            });
+        });
+
+        document.querySelectorAll('.av-line-type-select').forEach(el => {
+            el.addEventListener('change', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (row) {
+                    row.lineType = parseInt(e.target.value);
+                    row.articleId = null;
+                    row.hrgId = null;
+                    row.description = '';
+                    row.unitPrice = 0;
+                    row.adjustedPrice = null;
+                }
+                avRenderBudgetRows();
+            });
+        });
+
+        document.querySelectorAll('.av-line-article-select').forEach(el => {
+            el.addEventListener('change', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (!row) return;
+                const selected = e.target.options[e.target.selectedIndex];
+                row.articleId = e.target.value || null;
+                row.description = selected?.text || '';
+                row.unitPrice = parseFloat(selected?.dataset.price) || 0;
+                avRecalculateAndUpdateUI();
+            });
+        });
+
+        document.querySelectorAll('.av-line-hrg-select').forEach(el => {
+            el.addEventListener('change', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (!row) return;
+                const selected = e.target.options[e.target.selectedIndex];
+                row.hrgId = e.target.value || null;
+                row.description = selected?.text || '';
+                row.unitPrice = parseFloat(selected?.dataset.rate) || 0;
+                avRecalculateAndUpdateUI();
+            });
+        });
+
+        document.querySelectorAll('.av-line-description').forEach(el => {
+            el.addEventListener('input', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (row) row.description = e.target.value;
+            });
+        });
+
+        document.querySelectorAll('.av-line-quantity').forEach(el => {
+            el.addEventListener('input', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (row) row.quantity = parseFloat(e.target.value) || 0;
+                avRecalculateAndUpdateUI();
+            });
+        });
+
+        document.querySelectorAll('.av-line-unit-price').forEach(el => {
+            el.addEventListener('input', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (row) row.unitPrice = parseFloat(e.target.value) || 0;
+                avRecalculateAndUpdateUI();
+            });
+        });
+
+        document.querySelectorAll('.av-line-adjusted-price').forEach(el => {
+            el.addEventListener('input', (e) => {
+                const row = avGetRowById(e.target.dataset.rowId);
+                if (row) {
+                    const val = e.target.value.trim();
+                    row.adjustedPrice = val !== '' ? parseFloat(val) : null;
+                }
+                avRecalculateAndUpdateUI();
+            });
+        });
+
+        // Tab/Enter on last input in last row → auto-add new row
+        const lastRow = avBudgetRows[avBudgetRows.length - 1];
+        if (lastRow && lastRow.rowType === 'line') {
+            const lastTr = document.querySelector(`.av-budget-line-row[data-row-id="${lastRow.id}"]`);
+            if (lastTr) {
+                const lastInput = lastTr.querySelector('.av-line-adjusted-price');
+                if (lastInput) {
+                    lastInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Tab' && !e.shiftKey) {
+                            e.preventDefault();
+                            avAddLineRow();
+                            avRenderBudgetRows();
+                            setTimeout(() => {
+                                const newLastRow = avBudgetRows[avBudgetRows.length - 1];
+                                const newTr = document.querySelector(`.av-budget-line-row[data-row-id="${newLastRow.id}"]`);
+                                if (newTr) {
+                                    const firstInput = newTr.querySelector('select, input');
+                                    if (firstInput) firstInput.focus();
+                                }
+                            }, 50);
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    function avRecalculateAndUpdateUI() {
+        avBudgetRows.forEach((row, idx) => {
+            if (row.rowType === 'line') {
+                const tr = document.querySelector(`.av-budget-line-row[data-row-id="${row.id}"]`);
+                if (!tr) return;
+                const calcPrice = row.quantity * row.unitPrice;
+                const priceEl = tr.querySelector('.av-line-calc-price');
+                if (priceEl) priceEl.textContent = formatCurrency(calcPrice);
+            } else if (row.rowType === 'group') {
+                const tr = document.querySelector(`.av-budget-group-row[data-row-id="${row.id}"]`);
+                if (!tr) return;
+                const subtotal = avGetGroupSubtotal(idx);
+                const badge = tr.querySelector('.av-budget-group-subtotal');
+                if (badge) badge.textContent = formatCurrency(subtotal);
+            }
+        });
+        avRecalculateTotals();
+    }
+
+    function avRecalculateTotals() {
+        let total = 0;
+        avBudgetRows.forEach(row => {
+            if (row.rowType === 'line') {
+                const calcPrice = row.quantity * row.unitPrice;
+                total += (row.adjustedPrice !== null && row.adjustedPrice !== undefined) ? row.adjustedPrice : calcPrice;
+            }
+        });
+        const el = document.getElementById('avTotalBudgetDisplay');
+        if (el) el.textContent = formatCurrency(total);
+    }
+
+    function avBuildGroupedPayload() {
+        const groups = [];
+        let currentGroup = null;
+        let ungroupedItems = [];
+
+        avBudgetRows.forEach(row => {
+            if (row.rowType === 'group') {
+                currentGroup = {
+                    budgetGroupId: row.dbId || null,
+                    groupName: row.name || '',
+                    sortOrder: groups.length,
+                    lineItems: []
+                };
+                groups.push(currentGroup);
+            } else if (row.rowType === 'line') {
+                const lineItem = {
+                    budgetLineItemId: row.dbId || null,
+                    lineItemType: row.lineType,
+                    articleId: row.articleId,
+                    projectHourlyRateGroupId: row.hrgId,
+                    description: row.description,
+                    quantity: row.quantity,
+                    unitPrice: row.unitPrice,
+                    adjustedPrice: row.adjustedPrice,
+                    sortOrder: currentGroup ? currentGroup.lineItems.length : ungroupedItems.length
+                };
+                if (currentGroup) {
+                    currentGroup.lineItems.push(lineItem);
+                } else {
+                    ungroupedItems.push(lineItem);
+                }
+            }
+        });
+
+        if (ungroupedItems.length > 0) {
+            groups.unshift({
+                budgetGroupId: null,
+                groupName: '',
+                sortOrder: 0,
+                lineItems: ungroupedItems
+            });
+            groups.forEach((g, idx) => g.sortOrder = idx);
+        }
+
+        return groups;
+    }
+
+    async function avSaveBudgetPlanning() {
+        const btn = document.getElementById('avSaveBudgetBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Speichern...';
+
+        const payload = avBuildGroupedPayload();
+
+        try {
+            const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+            const headers = { 'Content-Type': 'application/json' };
+            if (tokenEl) headers['RequestVerificationToken'] = tokenEl.value;
+
+            const response = await fetch(`/Projects/BudgetPlanning?handler=SaveBudgetPlanning&projectId=${PROJECT_ID}`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (result.success) {
+                showNotification('Auftragsvolumen erfolgreich gespeichert!', 'success');
+                // Reload budget statistics to update the dashboard cards
+                loadBudgetStatistics();
+                // Reload the Auftragsvolumen card value
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showNotification(result.message || 'Fehler beim Speichern', 'error');
+            }
+        } catch (err) {
+            console.error('Save error:', err);
+            showNotification('Fehler beim Speichern des Auftragsvolumens', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-2"></i>Auftragsvolumen speichern';
+        }
     }
 </script>
