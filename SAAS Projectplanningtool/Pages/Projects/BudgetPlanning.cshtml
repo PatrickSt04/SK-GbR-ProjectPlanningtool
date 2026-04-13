@@ -1757,7 +1757,7 @@
                 const row = avGetRowById(e.target.dataset.rowId);
                 if (!row) return;
                 const selected = e.target.options[e.target.selectedIndex];
-                row.articleId = e.target.value || null;
+                row.articleId = e.target.value ? e.target.value : null;
                 row.description = selected?.text || '';
                 row.unitPrice = parseFloat(selected?.dataset.price) || 0;
                 avRecalculateAndUpdateUI();
@@ -1769,7 +1769,7 @@
                 const row = avGetRowById(e.target.dataset.rowId);
                 if (!row) return;
                 const selected = e.target.options[e.target.selectedIndex];
-                row.hrgId = e.target.value || null;
+                row.hrgId = e.target.value ? e.target.value : null;
                 row.description = selected?.text || '';
                 row.unitPrice = parseFloat(selected?.dataset.rate) || 0;
                 avRecalculateAndUpdateUI();
@@ -1935,9 +1935,7 @@
             const result = await response.json();
             if (result.success) {
                 showNotification('Auftragsvolumen erfolgreich gespeichert!', 'success');
-                // Reload budget statistics to update the dashboard cards
-                loadBudgetStatistics();
-                // Reload the Auftragsvolumen card value
+                // Reload to update the Auftragsvolumen card and dashboard values
                 setTimeout(() => window.location.reload(), 1500);
             } else {
                 showNotification(result.message || 'Fehler beim Speichern', 'error');
