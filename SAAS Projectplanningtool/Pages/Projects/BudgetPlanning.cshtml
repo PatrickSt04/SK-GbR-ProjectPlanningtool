@@ -30,7 +30,7 @@
 
     @if (!Model.ScheduleAlreadyExists)
     {
-        <!-- Neue tabellarische Budgetplanung -->
+        <!-- Excel-artige Budgetplanung -->
         <div class="main-container mt-4">
             <div class="modern-table">
                 <div class="card">
@@ -40,17 +40,46 @@
                             Budgetplanung
                         </h5>
                         <div>
-                            <button type="button" class="btn btn-light btn-sm me-2" id="addGroupBtn">
-                                <i class="fas fa-layer-group me-1"></i> Gruppe hinzufügen
+                            <button type="button" class="btn btn-light btn-sm me-2" id="addRowBtn">
+                                <i class="fas fa-plus me-1"></i> Zeile hinzufügen
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm me-2" id="addGroupBtn">
+                                <i class="fas fa-layer-group me-1"></i> Gruppe einfügen
                             </button>
                         </div>
                     </div>
-                    <div class="card-body" id="budgetPlanningContainer">
+                    <div class="card-body p-0" id="budgetPlanningContainer">
                         @Html.AntiForgeryToken()
-                        <!-- Budget groups will be rendered here by JS -->
-                        <div id="budgetGroupsContainer"></div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0 budget-flat-table" id="budgetFlatTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:3%;"></th>
+                                        <th style="width:13%;">Auswahl</th>
+                                        <th style="width:24%;">Bezeichnung</th>
+                                        <th style="width:11%;">Anzahl</th>
+                                        <th style="width:13%;">Preis/Stck</th>
+                                        <th style="width:13%;">Preis</th>
+                                        <th style="width:13%;">Preis angepasst</th>
+                                        <th style="width:10%;">Aktion</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="budgetRowsContainer">
+                                    <!-- Rows rendered by JS -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="budget-add-row-footer">
+                                        <td colspan="8">
+                                            <button type="button" class="btn btn-link btn-sm text-muted w-100" id="addRowFooterBtn">
+                                                <i class="fas fa-plus me-1"></i> Neue Zeile
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
 
-                        <div class="card border-success mb-4 mt-4">
+                        <div class="card border-success m-3">
                             <div class="card-body">
                                 <div class="row align-items-center">
                                     <div class="col-md-8">
@@ -66,7 +95,7 @@
                             </div>
                         </div>
 
-                        <div class="text-end">
+                        <div class="text-end p-3 pt-0">
                             <button type="button" class="modern-btn success" id="saveBudgetBtn">
                                 <i class="fas fa-save me-2"></i>
                                 Budget als Auftragsvolumen erfassen
@@ -802,15 +831,15 @@
         if (totalEl) totalEl.textContent = totalCost.toFixed(2) + ' €';
     }
 
-    // ====== NEW TABULAR BUDGET PLANNING ======
-    let budgetGroups = [];
+    // ====== EXCEL-LIKE BUDGET PLANNING ======
+    // Flat list of rows: each row is either a 'group' header or a 'line' item
+    let budgetRows = [];
     let cachedArticles = [];
     let cachedHRGs = [];
-    let groupIdCounter = 0;
-    let lineIdCounter = 0;
+    let rowIdCounter = 0;
 
     async function initializeBudgetPlanning() {
-        const container = document.getElementById('budgetGroupsContainer');
+        const container = document.getElementById('budgetRowsContainer');
         if (!container) return;
 
         // Load articles and HRGs for dropdowns
@@ -823,143 +852,165 @@
             if (hrgsRes.ok) cachedHRGs = await hrgsRes.json();
         } catch (err) { console.error('Error loading dropdown data:', err); }
 
-        // Load existing budget groups or create initial data from server
+        // Load existing budget groups and convert to flat rows
         const existingGroups = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ExistingBudgetGroups));
         if (existingGroups && existingGroups.length > 0) {
-            budgetGroups = existingGroups.map(g => ({
-                id: 'g_' + (groupIdCounter++),
-                dbId: g.budgetGroupId,
-                name: g.groupName,
-                sortOrder: g.sortOrder,
-                items: g.lineItems.map(li => ({
-                    id: 'li_' + (lineIdCounter++),
-                    dbId: li.budgetLineItemId,
-                    type: li.lineItemType,
-                    articleId: li.articleId,
-                    hrgId: li.projectHourlyRateGroupId,
-                    description: li.description,
-                    quantity: li.quantity,
-                    unitPrice: li.unitPrice,
-                    adjustedPrice: li.adjustedPrice
-                }))
-            }));
+            existingGroups.forEach(g => {
+                // Only add group header row if it has a non-empty name (skip default/unnamed groups)
+                const isDefaultGroup = !g.groupName || g.groupName.trim() === '';
+                if (!isDefaultGroup) {
+                    budgetRows.push({
+                        rowType: 'group',
+                        id: 'r_' + (rowIdCounter++),
+                        dbId: g.budgetGroupId,
+                        name: g.groupName
+                    });
+                }
+                // Add line items
+                g.lineItems.forEach(li => {
+                    budgetRows.push({
+                        rowType: 'line',
+                        id: 'r_' + (rowIdCounter++),
+                        dbId: li.budgetLineItemId,
+                        lineType: li.lineItemType,
+                        articleId: li.articleId,
+                        hrgId: li.projectHourlyRateGroupId,
+                        description: li.description,
+                        quantity: li.quantity,
+                        unitPrice: li.unitPrice,
+                        adjustedPrice: li.adjustedPrice
+                    });
+                });
+            });
         }
 
-        // Wire up add group button
-        document.getElementById('addGroupBtn')?.addEventListener('click', () => {
-            addGroup();
-            renderBudgetGroups();
-        });
-
-        // Wire up save button
+        // Wire up buttons
+        document.getElementById('addRowBtn')?.addEventListener('click', () => { addLineRow(); renderBudgetRows(); });
+        document.getElementById('addRowFooterBtn')?.addEventListener('click', () => { addLineRow(); renderBudgetRows(); });
+        document.getElementById('addGroupBtn')?.addEventListener('click', () => { addGroupRow(); renderBudgetRows(); });
         document.getElementById('saveBudgetBtn')?.addEventListener('click', saveBudgetPlanning);
 
-        renderBudgetGroups();
+        renderBudgetRows();
     }
 
-    function addGroup(name) {
-        budgetGroups.push({
-            id: 'g_' + (groupIdCounter++),
+    function addLineRow(afterIndex) {
+        const newRow = {
+            rowType: 'line',
+            id: 'r_' + (rowIdCounter++),
             dbId: null,
-            name: name || 'Neue Gruppe',
-            sortOrder: budgetGroups.length,
-            items: []
-        });
-    }
-
-    function addLineItem(groupId) {
-        const group = budgetGroups.find(g => g.id === groupId);
-        if (!group) return;
-        group.items.push({
-            id: 'li_' + (lineIdCounter++),
-            dbId: null,
-            type: 2, // FreeText default
+            lineType: 2, // FreeText default
             articleId: null,
             hrgId: null,
             description: '',
             quantity: 0,
             unitPrice: 0,
             adjustedPrice: null
-        });
+        };
+        if (afterIndex !== undefined && afterIndex >= 0) {
+            budgetRows.splice(afterIndex + 1, 0, newRow);
+        } else {
+            budgetRows.push(newRow);
+        }
+        return newRow;
     }
 
-    function deleteLineItem(groupId, lineId) {
-        const group = budgetGroups.find(g => g.id === groupId);
-        if (!group) return;
-        group.items = group.items.filter(i => i.id !== lineId);
+    function addGroupRow(afterIndex) {
+        const newRow = {
+            rowType: 'group',
+            id: 'r_' + (rowIdCounter++),
+            dbId: null,
+            name: 'Neue Gruppe'
+        };
+        if (afterIndex !== undefined && afterIndex >= 0) {
+            budgetRows.splice(afterIndex + 1, 0, newRow);
+        } else {
+            budgetRows.push(newRow);
+        }
+        return newRow;
     }
 
-    function deleteGroup(groupId) {
-        budgetGroups = budgetGroups.filter(g => g.id !== groupId);
+    function deleteRow(rowId) {
+        budgetRows = budgetRows.filter(r => r.id !== rowId);
     }
 
-    function renderBudgetGroups() {
-        const container = document.getElementById('budgetGroupsContainer');
+    function moveRow(rowId, direction) {
+        const idx = budgetRows.findIndex(r => r.id === rowId);
+        if (idx < 0) return;
+        const newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= budgetRows.length) return;
+        const temp = budgetRows[idx];
+        budgetRows[idx] = budgetRows[newIdx];
+        budgetRows[newIdx] = temp;
+    }
+
+    function getRowById(rowId) {
+        return budgetRows.find(r => r.id === rowId);
+    }
+
+    // Calculate subtotal for a group (items between this group header and the next)
+    function getGroupSubtotal(groupRowIndex) {
+        let total = 0;
+        for (let i = groupRowIndex + 1; i < budgetRows.length; i++) {
+            if (budgetRows[i].rowType === 'group') break;
+            if (budgetRows[i].rowType === 'line') {
+                const item = budgetRows[i];
+                const calcPrice = item.quantity * item.unitPrice;
+                total += (item.adjustedPrice !== null && item.adjustedPrice !== undefined) ? item.adjustedPrice : calcPrice;
+            }
+        }
+        return total;
+    }
+
+    function renderBudgetRows() {
+        const container = document.getElementById('budgetRowsContainer');
         if (!container) return;
 
-        if (budgetGroups.length === 0) {
-            container.innerHTML = `<div class="text-center text-muted py-4"><i class="fas fa-info-circle me-2"></i>Noch keine Budgetgruppen angelegt. Klicken Sie auf "Gruppe hinzufügen" um zu beginnen.</div>`;
+        if (budgetRows.length === 0) {
+            container.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">
+                <i class="fas fa-info-circle me-2"></i>Noch keine Positionen angelegt. Klicken Sie auf "Zeile hinzufügen" oder drücken Sie <kbd>Tab</kbd>/<kbd>Enter</kbd> um zu beginnen.
+            </td></tr>`;
             recalculateTotals();
             return;
         }
 
         let html = '';
-        budgetGroups.forEach((group, gIdx) => {
-            const groupTotal = calculateGroupTotal(group);
-            html += `
-            <div class="budget-group-card mb-4" data-group-id="${group.id}">
-                <div class="budget-group-header">
-                    <div class="d-flex align-items-center flex-grow-1 gap-2">
-                        <i class="fas fa-layer-group text-primary"></i>
-                        <input type="text" class="form-control form-control-sm budget-group-name"
-                               value="${escapeHtml(group.name)}" data-group-id="${group.id}"
-                               placeholder="Gruppenname" style="max-width: 300px; font-weight: 600;" />
-                        <span class="badge bg-primary ms-2 budget-group-total">${formatCurrency(groupTotal)}</span>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-outline-success btn-sm add-line-btn" data-group-id="${group.id}">
-                            <i class="fas fa-plus me-1"></i>Zeile
-                        </button>
-                        <button type="button" class="btn btn-outline-danger btn-sm delete-group-btn" data-group-id="${group.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm mb-0 budget-lines-table">
-                        <thead>
-                            <tr>
-                                <th style="width:14%;">Auswahl</th>
-                                <th style="width:24%;">Bezeichnung</th>
-                                <th style="width:12%;">Anzahl</th>
-                                <th style="width:14%;">Preis/Stck</th>
-                                <th style="width:14%;">Preis</th>
-                                <th style="width:14%;">Preis angepasst</th>
-                                <th style="width:8%;">Aktion</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-
-            if (group.items.length === 0) {
-                html += `<tr><td colspan="7" class="text-center text-muted py-2"><em>Keine Positionen – Klicken Sie auf "+ Zeile"</em></td></tr>`;
+        budgetRows.forEach((row, idx) => {
+            if (row.rowType === 'group') {
+                const subtotal = getGroupSubtotal(idx);
+                html += `<tr class="budget-group-row" data-row-id="${row.id}">
+                    <td class="budget-row-handle"><i class="fas fa-grip-vertical text-muted"></i></td>
+                    <td colspan="5">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-layer-group text-primary"></i>
+                            <input type="text" class="form-control form-control-sm budget-group-name fw-bold"
+                                   value="${escapeHtml(row.name)}" data-row-id="${row.id}"
+                                   placeholder="Gruppenname" />
+                            <span class="badge bg-primary budget-group-subtotal">${formatCurrency(subtotal)}</span>
+                        </div>
+                    </td>
+                    <td colspan="2" class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <button type="button" class="btn btn-outline-success btn-sm insert-row-after-btn" data-row-index="${idx}" title="Zeile danach einfügen">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm move-up-btn" data-row-id="${row.id}" title="Nach oben">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm move-down-btn" data-row-id="${row.id}" title="Nach unten">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" data-row-id="${row.id}" title="Löschen">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
             } else {
-                group.items.forEach((item, iIdx) => {
-                    const calcPrice = item.quantity * item.unitPrice;
-                    const effectivePrice = item.adjustedPrice !== null && item.adjustedPrice !== undefined ? item.adjustedPrice : calcPrice;
-                    html += renderLineItemRow(group.id, item, calcPrice, effectivePrice);
-                });
+                // Line item row
+                const item = row;
+                const calcPrice = item.quantity * item.unitPrice;
+                html += renderLineItemRow(item, calcPrice, idx);
             }
-
-            html += `</tbody>
-                        <tfoot style="background: var(--light-bg);">
-                            <tr>
-                                <th colspan="4" class="text-end">Gruppensumme:</th>
-                                <th colspan="3">${formatCurrency(groupTotal)}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>`;
         });
 
         container.innerHTML = html;
@@ -967,117 +1018,125 @@
         recalculateTotals();
     }
 
-    function renderLineItemRow(groupId, item, calcPrice, effectivePrice) {
-        // Type selector
+    function renderLineItemRow(item, calcPrice, rowIndex) {
         const typeOptions = [
             { value: 0, label: 'Material' },
             { value: 1, label: 'Ressource' },
             { value: 2, label: 'Freitext' }
         ];
         const typeSelect = typeOptions.map(opt =>
-            `<option value="${opt.value}" ${item.type === opt.value ? 'selected' : ''}>${opt.label}</option>`
+            `<option value="${opt.value}" ${item.lineType === opt.value ? 'selected' : ''}>${opt.label}</option>`
         ).join('');
 
         // Description field based on type
         let descriptionField = '';
-        if (item.type === 0) {
-            // Material: Article dropdown
+        if (item.lineType === 0) {
             const articleOptions = cachedArticles.map(a =>
                 `<option value="${a.articleId}" data-price="${a.price}" ${item.articleId === a.articleId ? 'selected' : ''}>${a.articleNumber} - ${escapeHtml(a.articleName)}</option>`
             ).join('');
-            descriptionField = `<select class="form-select form-select-sm line-article-select" data-group-id="${groupId}" data-line-id="${item.id}">
+            descriptionField = `<select class="form-select form-select-sm line-article-select" data-row-id="${item.id}">
                 <option value="">-- Artikel wählen --</option>${articleOptions}</select>`;
-        } else if (item.type === 1) {
-            // Resource: HRG dropdown
+        } else if (item.lineType === 1) {
             const hrgOptions = cachedHRGs.map(h =>
                 `<option value="${h.projectHourlyRateGroupId}" data-rate="${h.hourlyRate}" ${item.hrgId === h.projectHourlyRateGroupId ? 'selected' : ''}>${escapeHtml(h.name)}</option>`
             ).join('');
-            descriptionField = `<select class="form-select form-select-sm line-hrg-select" data-group-id="${groupId}" data-line-id="${item.id}">
+            descriptionField = `<select class="form-select form-select-sm line-hrg-select" data-row-id="${item.id}">
                 <option value="">-- Stundensatzgruppe wählen --</option>${hrgOptions}</select>`;
         } else {
-            // FreeText
-            descriptionField = `<input type="text" class="form-control form-control-sm line-description" data-group-id="${groupId}" data-line-id="${item.id}" value="${escapeHtml(item.description)}" placeholder="Bezeichnung" />`;
+            descriptionField = `<input type="text" class="form-control form-control-sm line-description" data-row-id="${item.id}" value="${escapeHtml(item.description)}" placeholder="Bezeichnung" />`;
         }
 
         // Unit price: editable for FreeText, read-only for Material/Resource
-        const unitPriceField = item.type === 2
-            ? `<input type="number" class="form-control form-control-sm line-unit-price" data-group-id="${groupId}" data-line-id="${item.id}" value="${item.unitPrice}" step="0.01" min="0" />`
+        const unitPriceField = item.lineType === 2
+            ? `<input type="number" class="form-control form-control-sm line-unit-price" data-row-id="${item.id}" value="${item.unitPrice}" step="0.01" min="0" />`
             : `<span class="fw-bold text-success">${formatCurrency(item.unitPrice)}</span>`;
 
-        return `<tr class="budget-line-row" data-group-id="${groupId}" data-line-id="${item.id}">
-            <td><select class="form-select form-select-sm line-type-select" data-group-id="${groupId}" data-line-id="${item.id}">${typeSelect}</select></td>
+        return `<tr class="budget-line-row" data-row-id="${item.id}">
+            <td class="budget-row-handle"><i class="fas fa-grip-vertical text-muted"></i></td>
+            <td><select class="form-select form-select-sm line-type-select" data-row-id="${item.id}">${typeSelect}</select></td>
             <td>${descriptionField}</td>
-            <td><input type="number" class="form-control form-control-sm line-quantity" data-group-id="${groupId}" data-line-id="${item.id}" value="${item.quantity}" step="0.01" min="0" /></td>
+            <td><input type="number" class="form-control form-control-sm line-quantity" data-row-id="${item.id}" value="${item.quantity}" step="0.01" min="0" /></td>
             <td>${unitPriceField}</td>
             <td><span class="fw-bold text-primary line-calc-price">${formatCurrency(calcPrice)}</span></td>
-            <td><input type="number" class="form-control form-control-sm line-adjusted-price" data-group-id="${groupId}" data-line-id="${item.id}" value="${item.adjustedPrice !== null && item.adjustedPrice !== undefined ? item.adjustedPrice : ''}" step="0.01" min="0" placeholder="—" /></td>
-            <td><button type="button" class="btn btn-outline-danger btn-sm delete-line-btn" data-group-id="${groupId}" data-line-id="${item.id}"><i class="fas fa-trash-alt"></i></button></td>
+            <td><input type="number" class="form-control form-control-sm line-adjusted-price" data-row-id="${item.id}" value="${item.adjustedPrice !== null && item.adjustedPrice !== undefined ? item.adjustedPrice : ''}" step="0.01" min="0" placeholder="—" /></td>
+            <td>
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-outline-success btn-sm insert-row-after-btn" data-row-index="${rowIndex}" title="Zeile danach einfügen">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm delete-row-btn" data-row-id="${item.id}" title="Löschen">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </td>
         </tr>`;
     }
 
     function attachBudgetEventListeners() {
+        // Delete row (works for both group headers and line items)
+        document.querySelectorAll('.delete-row-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                deleteRow(e.currentTarget.dataset.rowId);
+                renderBudgetRows();
+            });
+        });
+
+        // Insert row after
+        document.querySelectorAll('.insert-row-after-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const idx = parseInt(e.currentTarget.dataset.rowIndex);
+                addLineRow(idx);
+                renderBudgetRows();
+            });
+        });
+
+        // Move up/down
+        document.querySelectorAll('.move-up-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                moveRow(e.currentTarget.dataset.rowId, -1);
+                renderBudgetRows();
+            });
+        });
+        document.querySelectorAll('.move-down-btn').forEach(el => {
+            el.addEventListener('click', (e) => {
+                moveRow(e.currentTarget.dataset.rowId, 1);
+                renderBudgetRows();
+            });
+        });
+
         // Group name change
         document.querySelectorAll('.budget-group-name').forEach(el => {
             el.addEventListener('input', (e) => {
-                const group = budgetGroups.find(g => g.id === e.target.dataset.groupId);
-                if (group) group.name = e.target.value;
-            });
-        });
-
-        // Add line item
-        document.querySelectorAll('.add-line-btn').forEach(el => {
-            el.addEventListener('click', (e) => {
-                addLineItem(e.currentTarget.dataset.groupId);
-                renderBudgetGroups();
-            });
-        });
-
-        // Delete group
-        document.querySelectorAll('.delete-group-btn').forEach(el => {
-            el.addEventListener('click', (e) => {
-                deleteGroup(e.currentTarget.dataset.groupId);
-                renderBudgetGroups();
-            });
-        });
-
-        // Delete line item
-        document.querySelectorAll('.delete-line-btn').forEach(el => {
-            el.addEventListener('click', (e) => {
-                const btn = e.currentTarget;
-                deleteLineItem(btn.dataset.groupId, btn.dataset.lineId);
-                renderBudgetGroups();
+                const row = getRowById(e.target.dataset.rowId);
+                if (row) row.name = e.target.value;
             });
         });
 
         // Type change → re-render
         document.querySelectorAll('.line-type-select').forEach(el => {
             el.addEventListener('change', (e) => {
-                const groupId = e.target.dataset.groupId;
-                const lineId = e.target.dataset.lineId;
-                const group = budgetGroups.find(g => g.id === groupId);
-                const item = group?.items.find(i => i.id === lineId);
-                if (item) {
-                    item.type = parseInt(e.target.value);
-                    item.articleId = null;
-                    item.hrgId = null;
-                    item.description = '';
-                    item.unitPrice = 0;
-                    item.adjustedPrice = null;
+                const row = getRowById(e.target.dataset.rowId);
+                if (row) {
+                    row.lineType = parseInt(e.target.value);
+                    row.articleId = null;
+                    row.hrgId = null;
+                    row.description = '';
+                    row.unitPrice = 0;
+                    row.adjustedPrice = null;
                 }
-                renderBudgetGroups();
+                renderBudgetRows();
             });
         });
 
         // Article selection
         document.querySelectorAll('.line-article-select').forEach(el => {
             el.addEventListener('change', (e) => {
-                const group = budgetGroups.find(g => g.id === e.target.dataset.groupId);
-                const item = group?.items.find(i => i.id === e.target.dataset.lineId);
-                if (!item) return;
+                const row = getRowById(e.target.dataset.rowId);
+                if (!row) return;
                 const selected = e.target.options[e.target.selectedIndex];
-                item.articleId = e.target.value || null;
-                item.description = selected?.text || '';
-                item.unitPrice = parseFloat(selected?.dataset.price) || 0;
+                row.articleId = e.target.value || null;
+                row.description = selected?.text || '';
+                row.unitPrice = parseFloat(selected?.dataset.price) || 0;
                 recalculateAndUpdateUI();
             });
         });
@@ -1085,13 +1144,12 @@
         // HRG selection
         document.querySelectorAll('.line-hrg-select').forEach(el => {
             el.addEventListener('change', (e) => {
-                const group = budgetGroups.find(g => g.id === e.target.dataset.groupId);
-                const item = group?.items.find(i => i.id === e.target.dataset.lineId);
-                if (!item) return;
+                const row = getRowById(e.target.dataset.rowId);
+                if (!row) return;
                 const selected = e.target.options[e.target.selectedIndex];
-                item.hrgId = e.target.value || null;
-                item.description = selected?.text || '';
-                item.unitPrice = parseFloat(selected?.dataset.rate) || 0;
+                row.hrgId = e.target.value || null;
+                row.description = selected?.text || '';
+                row.unitPrice = parseFloat(selected?.dataset.rate) || 0;
                 recalculateAndUpdateUI();
             });
         });
@@ -1099,18 +1157,16 @@
         // FreeText description
         document.querySelectorAll('.line-description').forEach(el => {
             el.addEventListener('input', (e) => {
-                const group = budgetGroups.find(g => g.id === e.target.dataset.groupId);
-                const item = group?.items.find(i => i.id === e.target.dataset.lineId);
-                if (item) item.description = e.target.value;
+                const row = getRowById(e.target.dataset.rowId);
+                if (row) row.description = e.target.value;
             });
         });
 
         // Quantity change
         document.querySelectorAll('.line-quantity').forEach(el => {
             el.addEventListener('input', (e) => {
-                const group = budgetGroups.find(g => g.id === e.target.dataset.groupId);
-                const item = group?.items.find(i => i.id === e.target.dataset.lineId);
-                if (item) item.quantity = parseFloat(e.target.value) || 0;
+                const row = getRowById(e.target.dataset.rowId);
+                if (row) row.quantity = parseFloat(e.target.value) || 0;
                 recalculateAndUpdateUI();
             });
         });
@@ -1118,9 +1174,8 @@
         // Unit price change (FreeText only)
         document.querySelectorAll('.line-unit-price').forEach(el => {
             el.addEventListener('input', (e) => {
-                const group = budgetGroups.find(g => g.id === e.target.dataset.groupId);
-                const item = group?.items.find(i => i.id === e.target.dataset.lineId);
-                if (item) item.unitPrice = parseFloat(e.target.value) || 0;
+                const row = getRowById(e.target.dataset.rowId);
+                if (row) row.unitPrice = parseFloat(e.target.value) || 0;
                 recalculateAndUpdateUI();
             });
         });
@@ -1128,50 +1183,124 @@
         // Adjusted price change
         document.querySelectorAll('.line-adjusted-price').forEach(el => {
             el.addEventListener('input', (e) => {
-                const group = budgetGroups.find(g => g.id === e.target.dataset.groupId);
-                const item = group?.items.find(i => i.id === e.target.dataset.lineId);
-                if (item) {
+                const row = getRowById(e.target.dataset.rowId);
+                if (row) {
                     const val = e.target.value.trim();
-                    item.adjustedPrice = val !== '' ? parseFloat(val) : null;
+                    row.adjustedPrice = val !== '' ? parseFloat(val) : null;
                 }
                 recalculateAndUpdateUI();
             });
         });
+
+        // Tab/Enter on last input in last row → auto-add new row
+        const lastRow = budgetRows[budgetRows.length - 1];
+        if (lastRow && lastRow.rowType === 'line') {
+            const lastTr = document.querySelector(`.budget-line-row[data-row-id="${lastRow.id}"]`);
+            if (lastTr) {
+                const lastInput = lastTr.querySelector('.line-adjusted-price');
+                if (lastInput) {
+                    lastInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Tab' && !e.shiftKey) {
+                            e.preventDefault();
+                            addLineRow();
+                            renderBudgetRows();
+                            // Focus the first input of the new last row
+                            setTimeout(() => {
+                                const newLastRow = budgetRows[budgetRows.length - 1];
+                                const newTr = document.querySelector(`.budget-line-row[data-row-id="${newLastRow.id}"]`);
+                                if (newTr) {
+                                    const firstInput = newTr.querySelector('select, input');
+                                    if (firstInput) firstInput.focus();
+                                }
+                            }, 50);
+                        }
+                    });
+                }
+            }
+        }
     }
 
     function recalculateAndUpdateUI() {
         // Update calculated prices and totals without full re-render
-        budgetGroups.forEach(group => {
-            group.items.forEach(item => {
-                const row = document.querySelector(`.budget-line-row[data-group-id="${group.id}"][data-line-id="${item.id}"]`);
-                if (!row) return;
-                const calcPrice = item.quantity * item.unitPrice;
-                row.querySelector('.line-calc-price').textContent = formatCurrency(calcPrice);
-            });
-            // Update group total badge
-            const groupCard = document.querySelector(`.budget-group-card[data-group-id="${group.id}"]`);
-            if (groupCard) {
-                const totalBadge = groupCard.querySelector('.budget-group-total');
-                const footerTh = groupCard.querySelector('tfoot th:last-child');
-                const total = calculateGroupTotal(group);
-                if (totalBadge) totalBadge.textContent = formatCurrency(total);
-                if (footerTh) footerTh.textContent = formatCurrency(total);
+        budgetRows.forEach((row, idx) => {
+            if (row.rowType === 'line') {
+                const tr = document.querySelector(`.budget-line-row[data-row-id="${row.id}"]`);
+                if (!tr) return;
+                const calcPrice = row.quantity * row.unitPrice;
+                const priceEl = tr.querySelector('.line-calc-price');
+                if (priceEl) priceEl.textContent = formatCurrency(calcPrice);
+            } else if (row.rowType === 'group') {
+                const tr = document.querySelector(`.budget-group-row[data-row-id="${row.id}"]`);
+                if (!tr) return;
+                const subtotal = getGroupSubtotal(idx);
+                const badge = tr.querySelector('.budget-group-subtotal');
+                if (badge) badge.textContent = formatCurrency(subtotal);
             }
         });
         recalculateTotals();
     }
 
-    function calculateGroupTotal(group) {
-        return group.items.reduce((sum, item) => {
-            const calcPrice = item.quantity * item.unitPrice;
-            return sum + (item.adjustedPrice !== null && item.adjustedPrice !== undefined ? item.adjustedPrice : calcPrice);
-        }, 0);
-    }
-
     function recalculateTotals() {
-        const total = budgetGroups.reduce((sum, g) => sum + calculateGroupTotal(g), 0);
+        let total = 0;
+        budgetRows.forEach(row => {
+            if (row.rowType === 'line') {
+                const calcPrice = row.quantity * row.unitPrice;
+                total += (row.adjustedPrice !== null && row.adjustedPrice !== undefined) ? row.adjustedPrice : calcPrice;
+            }
+        });
         const el = document.getElementById('totalBudgetDisplay');
         if (el) el.textContent = formatCurrency(total);
+    }
+
+    // Convert flat rows to grouped DTOs for saving
+    function buildGroupedPayload() {
+        const groups = [];
+        let currentGroup = null;
+        let ungroupedItems = [];
+
+        budgetRows.forEach(row => {
+            if (row.rowType === 'group') {
+                // Start a new group
+                currentGroup = {
+                    budgetGroupId: row.dbId || null,
+                    groupName: row.name || '',
+                    sortOrder: groups.length,
+                    lineItems: []
+                };
+                groups.push(currentGroup);
+            } else if (row.rowType === 'line') {
+                const lineItem = {
+                    budgetLineItemId: row.dbId || null,
+                    lineItemType: row.lineType,
+                    articleId: row.articleId,
+                    projectHourlyRateGroupId: row.hrgId,
+                    description: row.description,
+                    quantity: row.quantity,
+                    unitPrice: row.unitPrice,
+                    adjustedPrice: row.adjustedPrice,
+                    sortOrder: currentGroup ? currentGroup.lineItems.length : ungroupedItems.length
+                };
+                if (currentGroup) {
+                    currentGroup.lineItems.push(lineItem);
+                } else {
+                    ungroupedItems.push(lineItem);
+                }
+            }
+        });
+
+        // If there are ungrouped items, put them in a default group with empty name
+        if (ungroupedItems.length > 0) {
+            groups.unshift({
+                budgetGroupId: null,
+                groupName: '',
+                sortOrder: 0,
+                lineItems: ungroupedItems
+            });
+            // Re-number sort orders
+            groups.forEach((g, idx) => g.sortOrder = idx);
+        }
+
+        return groups;
     }
 
     async function saveBudgetPlanning() {
@@ -1179,22 +1308,7 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Speichern...';
 
-        const payload = budgetGroups.map((g, gIdx) => ({
-            budgetGroupId: g.dbId,
-            groupName: g.name,
-            sortOrder: gIdx,
-            lineItems: g.items.map((item, iIdx) => ({
-                budgetLineItemId: item.dbId,
-                lineItemType: item.type,
-                articleId: item.articleId,
-                projectHourlyRateGroupId: item.hrgId,
-                description: item.description,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                adjustedPrice: item.adjustedPrice,
-                sortOrder: iIdx
-            }))
-        }));
+        const payload = buildGroupedPayload();
 
         try {
             const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');

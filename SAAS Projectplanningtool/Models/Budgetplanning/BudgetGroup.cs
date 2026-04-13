@@ -19,8 +19,7 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         [ForeignKey(nameof(ProjectBudgetId))]
         public ProjectBudget? ProjectBudget { get; set; }
 
-        [Required]
-        public required string GroupName { get; set; }
+        public string GroupName { get; set; } = "";
 
         public int SortOrder { get; set; }
 
