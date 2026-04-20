@@ -35,6 +35,8 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
                     .Include(a => a.ArticleCategory)
                     .Include(a => a.Unit)
                     .Include(a => a.LatestModifier)
+                    .Include(a => a.PriceHistory)
+                        //.ThenInclude(ph => ph.)
                     .Where(a => a.CompanyId == employee.CompanyId)
                     .OrderBy(a => a.ArticleNumber)
                     .ToListAsync();

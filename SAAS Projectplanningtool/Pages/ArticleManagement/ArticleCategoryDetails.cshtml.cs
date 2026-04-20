@@ -31,6 +31,8 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
                 .Include(c => c.Articles)
                 .Include(c => c.LatestModifier)
                 .Include(c => c.CreatedByEmployee)
+                .Include(c => c.Articles)
+                .ThenInclude(a => a.PriceHistory)
                 .FirstOrDefaultAsync(c => c.ArticleCategoryId == id);
 
             if (category == null) return NotFound();

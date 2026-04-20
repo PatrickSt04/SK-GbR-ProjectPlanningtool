@@ -16,6 +16,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
         private readonly Logger _logger = new(context, userManager);
 
         [BindProperty] public Article Article { get; set; } = default!;
+        [BindProperty] public decimal Price { get; set; }
         public SelectList CategorySelectList { get; set; } = default!;
         public SelectList UnitSelectList { get; set; } = default!;
 
@@ -62,6 +63,18 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
                     .AddLatestModificationAsync(User, "Artikel angelegt", Article, true);
 
                 context.Article.Add(Article);
+
+                // Ersten Preis-Eintrag in die Historie schreiben
+                var priceEntry = new ArticlePriceHistory
+                {
+                    ArticleId = Article.ArticleId,
+                    Price = Price,
+                    Timestamp = DateTime.Now,
+                    Comment = "Erstanlage",
+                    CreatedById = employee.EmployeeId
+                };
+                context.ArticlePriceHistory.Add(priceEntry);
+
                 await context.SaveChangesAsync();
 
                 return RedirectToPage("./Details", new { id = Article.ArticleId });

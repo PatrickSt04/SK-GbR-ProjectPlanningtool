@@ -1,0 +1,69 @@
+﻿@model SAAS_Projectplanningtool.Pages.ArticleManagement.DetailsModel
+
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-clock-history me-2"></i>Preishistorie</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.PriceHistory.Any())
+        {
+            <table class="cm-table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th class="text-end">Preis</th>
+                        <th>Bearbeiter</th>
+                        <th>Kommentar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var isFirst = true;
+                    }
+                    @foreach (var entry in Model.PriceHistory)
+                    {
+                        <tr>
+                            <td>
+                                @entry.Timestamp.ToString("dd.MM.yyyy HH:mm")
+                                @if (isFirst)
+                                {
+                                    <span class="badge badge-aktiv badge-inline-sm">
+                                        aktuell
+                                    </span>
+                                    isFirst = false;
+                                }
+                            </td>
+                            <td class="text-end fw-bold">
+                                @entry.Price.ToString("N2") €
+                            </td>
+                            <td>
+                                @(entry.CreatedByEmployee?.EmployeeDisplayName ?? "–")
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(entry.Comment))
+                                {
+                                    <span>@entry.Comment</span>
+                                }
+                                else
+                                {
+                                    <span class="cm-text-placeholder">–</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="cm-card-footer">
+                @Model.PriceHistory.Count Einträge
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-clock-history"></i>
+                <p>Keine Preishistorie vorhanden.</p>
+            </div>
+        }
+    </div>
+</div>

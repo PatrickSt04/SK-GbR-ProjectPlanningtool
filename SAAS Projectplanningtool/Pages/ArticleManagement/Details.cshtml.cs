@@ -22,6 +22,7 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
         }
 
         public Article Article { get; set; } = default!;
+        public IList<ArticlePriceHistory> PriceHistory { get; set; } = new List<ArticlePriceHistory>();
 
         public async Task<IActionResult> OnGetAsync(string id)
         {
@@ -32,10 +33,18 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
                 .Include(a => a.Unit)
                 .Include(a => a.LatestModifier)
                 .Include(a => a.CreatedByEmployee)
+                .Include(a => a.PriceHistory)
                 .FirstOrDefaultAsync(a => a.ArticleId == id);
 
             if (article == null) return NotFound();
             Article = article;
+
+            PriceHistory = await _context.ArticlePriceHistory
+                .Include(p => p.CreatedByEmployee)
+                .Where(p => p.ArticleId == id)
+                .OrderByDescending(p => p.Timestamp)
+                .ToListAsync();
+
             return Page();
         }
 

@@ -23,6 +23,9 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
         }
 
         [BindProperty] public Article Article { get; set; } = default!;
+        [BindProperty] public decimal Price { get; set; }
+        [BindProperty] public string? PriceComment { get; set; }
+        public decimal CurrentPrice { get; set; }
         public SelectList CategorySelectList { get; set; } = default!;
         public SelectList UnitSelectList { get; set; } = default!;
 
@@ -35,10 +38,15 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
                 var article = await _context.Article
                     .Include(a => a.ArticleCategory)
                     .Include(a => a.Unit)
+                    .Include(a => a.PriceHistory)
                     .FirstOrDefaultAsync(a => a.ArticleId == id);
 
                 if (article == null) return NotFound();
                 Article = article;
+
+                // Aktuellen Preis aus Historie laden
+                CurrentPrice = article.CurrentPrice;
+                Price = CurrentPrice;
 
                 await LoadSelectListsAsync(article.CompanyId, article.ArticleCategoryId, article.UnitId);
                 return Page();
@@ -57,6 +65,31 @@ namespace SAAS_Projectplanningtool.Pages.ArticleManagement
                 await LoadSelectListsAsync(Article.CompanyId, Article.ArticleCategoryId, Article.UnitId);
 
                 if (!ModelState.IsValid) return Page();
+
+                // Aktuellen Preis aus DB laden um Änderung zu erkennen
+                var currentPriceEntry = await _context.ArticlePriceHistory
+                    .Where(p => p.ArticleId == Article.ArticleId)
+                    .OrderByDescending(p => p.Timestamp)
+                    .FirstOrDefaultAsync();
+
+                var oldPrice = currentPriceEntry?.Price ?? 0;
+
+                // Preis hat sich geändert → neuen Eintrag schreiben
+                if (Price != oldPrice)
+                {
+                    var employee = await new CustomUserManager(_context, _userManager)
+                        .GetEmployeeAsync(_userManager.GetUserId(User));
+
+                    var priceEntry = new ArticlePriceHistory
+                    {
+                        ArticleId = Article.ArticleId,
+                        Price = Price,
+                        Timestamp = DateTime.Now,
+                        Comment = !string.IsNullOrWhiteSpace(PriceComment) ? PriceComment : null,
+                        CreatedById = employee.EmployeeId
+                    };
+                    _context.ArticlePriceHistory.Add(priceEntry);
+                }
 
                 Article = await new CustomObjectModifier(_context, _userManager)
                     .AddLatestModificationAsync(User, "Artikel geändert", Article, false);

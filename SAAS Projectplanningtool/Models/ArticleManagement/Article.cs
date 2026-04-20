@@ -21,9 +21,6 @@ namespace SAAS_Projectplanningtool.Models.ArticleManagement
 
         public string? Description { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Price { get; set; } = 0;
-
         // Category FK
         public string? ArticleCategoryId { get; set; }
         [ForeignKey(nameof(ArticleCategoryId))]
@@ -37,6 +34,9 @@ namespace SAAS_Projectplanningtool.Models.ArticleManagement
 
         public bool DeleteFlag { get; set; } = false;
 
+        // Price History Navigation
+        public ICollection<ArticlePriceHistory> PriceHistory { get; set; } = new List<ArticlePriceHistory>();
+
         // Modification tracking
         public string? LatestModifierId { get; set; }
         [ForeignKey(nameof(LatestModifierId))]
@@ -48,5 +48,11 @@ namespace SAAS_Projectplanningtool.Models.ArticleManagement
         [ForeignKey(nameof(CreatedById))]
         public Employee? CreatedByEmployee { get; set; }
         public DateTime? CreatedTimestamp { get; set; }
+
+        // Helper: aktueller Preis aus Historie
+        [NotMapped]
+        public decimal CurrentPrice => PriceHistory
+            .OrderByDescending(p => p.Timestamp)
+            .FirstOrDefault()?.Price ?? 0;
     }
 }
