@@ -10,9 +10,29 @@
 @await Html.PartialAsync("Partials/_ArticleHeader", Model)
 
 <div class="row">
-
     <div class="col-12 col-md-9">
-        @await Html.PartialAsync("Partials/_ArticleInfo", Model)
+
+        @* <div class="cm-tabs">
+            <button class="cm-tab active" onclick="switchTab('artikelinfo', this)">
+                <i class="bi bi-box-seam me-1"></i> Artikeldaten
+            </button>
+            <button class="cm-tab" onclick="switchTab('preishistorie', this)">
+                <i class="bi bi-clock-history me-1"></i> Preishistorie
+                @if (Model.PriceHistory.Any())
+                {
+                    <span class="cm-tab-count">@Model.PriceHistory.Count</span>
+                }
+            </button>
+        </div> *@
+
+        <div id="tab-artikelinfo" class="cm-tab-panel active">
+            @await Html.PartialAsync("Partials/_ArticleInfo", Model)
+        </div>
+
+        <div id="tab-preishistorie" class="cm-tab-panel">
+            @await Html.PartialAsync("Partials/_ArticlePriceHistory", Model)
+        </div>
+
     </div>
 
     <div class="col-12 col-md-3">
@@ -20,3 +40,11 @@
     </div>
 </div>
 
+<script>
+    // function switchTab(name, el) {
+    //     document.querySelectorAll('.cm-tab').forEach(t => t.classList.remove('active'));
+    //     document.querySelectorAll('.cm-tab-panel').forEach(p => p.classList.remove('active'));
+    //     el.classList.add('active');
+    //     document.getElementById('tab-' + name).classList.add('active');
+    // }
+</script>

@@ -17,7 +17,7 @@
             </div>
             <div class="cm-info-item">
                 <label> Preis</label>
-                <span class="cm-text-rate">@Model.Article.Price.ToString("N2") €</span>
+                <span class="cm-text-rate">@Model.Article.CurrentPrice.ToString("N2") €</span>
             </div>
             <div class="cm-info-item">
                 <label><i class="bi bi-rulers"></i> Einheit</label>
@@ -42,8 +42,8 @@
                 {
                     <span>
                         <a asp-page="ArticleCategoryDetails"
-                           asp-route-id="@Model.Article.ArticleCategoryId"
-                           class="cm-link-accent">
+                               asp-route-id="@Model.Article.ArticleCategoryId"
+                               class="cm-link-accent">
                             <i class="bi bi-tag-fill me-1"></i>@Model.Article.ArticleCategory.CategoryName
                         </a>
                     </span>

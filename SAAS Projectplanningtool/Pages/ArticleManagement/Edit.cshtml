@@ -73,11 +73,16 @@
                     </div>
                     <div class="col-md-4">
                         <div class="cm-form-group">
-                            <label asp-for="Article.Price">Preis (€) *</label>
-                            <input asp-for="Article.Price" class="cm-input" type="number" step="0.01" min="0" />
-                            <span asp-validation-for="Article.Price" class="text-danger"></span>
+                            <label asp-for="Price">Preis (€) *</label>
+                            <input asp-for="Price" class="cm-input" type="number" step="0.01" min="0" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
                         </div>
                     </div>
+                </div>
+                <div class="cm-form-group">
+                    <label asp-for="PriceComment">Kommentar zur Preisänderung</label>
+                    <input asp-for="PriceComment" class="cm-input"
+                           placeholder="Optional – z.B. Lieferantenerhöhung, Rabattanpassung…" />
                 </div>
                 <div class="cm-form-group">
                     <label asp-for="Article.Description">Beschreibung</label>
@@ -100,4 +105,3 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
-
