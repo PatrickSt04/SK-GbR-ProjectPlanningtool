@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using SAAS_Projectplanningtool.CustomManagers;
 using SAAS_Projectplanningtool.Data;
 using SAAS_Projectplanningtool.Models;
+using SAAS_Projectplanningtool.Models.ArticleManagement;
 using SAAS_Projectplanningtool.Models.Budgetplanning;
 using SAAS_Projectplanningtool.Models.TimeTracking;
+using System.Text.Json;
 using Project = SAAS_Projectplanningtool.Models.Budgetplanning.Project;
 
 namespace SAAS_Projectplanningtool.Pages.Projects
@@ -31,6 +33,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<ProjectCostAssignment> ProjectCosts { get; set; } = new();
 
         public bool ScheduleAlreadyExists = default!;
+        public bool BudgetAlreadyExists = default!;
 
         // Initiale Budgetplanung (vor Terminplan)
         public class InitialHRGPlanning
@@ -53,6 +56,33 @@ namespace SAAS_Projectplanningtool.Pages.Projects
 
         [BindProperty]
         public List<InitialAdditionalCost> InitialAdditionalCosts { get; set; } = new();
+
+        // ====== New Tabular Budget Planning DTOs ======
+        public class BudgetLineItemDto
+        {
+            public string? BudgetLineItemId { get; set; }
+            public string? GroupId { get; set; }
+            public int LineItemType { get; set; } // 0=Material, 1=Resource, 2=FreeText
+            public string? ArticleId { get; set; }
+            public string? ProjectHourlyRateGroupId { get; set; }
+            public string Description { get; set; } = "";
+            public decimal Quantity { get; set; }
+            public decimal UnitPrice { get; set; }
+            public decimal? AdjustedPrice { get; set; }
+            public int SortOrder { get; set; }
+        }
+
+        public class BudgetGroupDto
+        {
+            public string? BudgetGroupId { get; set; }
+            public string GroupName { get; set; } = "";
+            public int SortOrder { get; set; }
+            public List<BudgetLineItemDto> LineItems { get; set; } = new();
+        }
+
+        // Available articles and HRGs for dropdowns
+        public List<Article> AvailableArticles { get; set; } = new();
+        public List<BudgetGroupDto> ExistingBudgetGroups { get; set; } = new();
 
 
         #region Time Tracking Properties
@@ -90,6 +120,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                    .Where(p => p.CompanyId == employee.CompanyId)
                    .ToListAsync();
                 ScheduleAlreadyExists = Project.ProjectSections.Any();
+                BudgetAlreadyExists = Project.ProjectBudget != null && Project.ProjectBudget.InitialBudget > 0;
 
                 // Initiale HRG-Planung laden
                 InitialHRGPlannings = Project.ProjectBudget?.InitialHRGPlannings?
@@ -111,6 +142,45 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                         AdditionalCostAmount = cost.AdditionalCostAmount
                     })
                     .ToList() ?? new List<InitialAdditionalCost>();
+
+                // Load available articles for the budget table dropdowns
+                AvailableArticles = await _context.Article
+                    .Where(a => a.CompanyId == employee.CompanyId && !a.DeleteFlag)
+                    .OrderBy(a => a.ArticleNumber)
+                    .ToListAsync();
+
+                // Load existing budget groups with line items
+                if (Project.ProjectBudgetId != null)
+                {
+                    var budgetGroups = await _context.BudgetGroup
+                        .Include(bg => bg.BudgetLineItems)
+                        .Where(bg => bg.ProjectBudgetId == Project.ProjectBudgetId)
+                        .Where(bg => bg.CompanyId == employee.CompanyId)
+                        .OrderBy(bg => bg.SortOrder)
+                        .ToListAsync();
+
+                    ExistingBudgetGroups = budgetGroups.Select(bg => new BudgetGroupDto
+                    {
+                        BudgetGroupId = bg.BudgetGroupId,
+                        GroupName = bg.GroupName,
+                        SortOrder = bg.SortOrder,
+                        LineItems = bg.BudgetLineItems
+                            .OrderBy(li => li.SortOrder)
+                            .Select(li => new BudgetLineItemDto
+                            {
+                                BudgetLineItemId = li.BudgetLineItemId,
+                                GroupId = li.BudgetGroupId,
+                                LineItemType = (int)li.LineItemType,
+                                ArticleId = li.ArticleId,
+                                ProjectHourlyRateGroupId = li.ProjectHourlyRateGroupId,
+                                Description = li.Description,
+                                Quantity = li.Quantity,
+                                UnitPrice = li.UnitPrice,
+                                AdjustedPrice = li.AdjustedPrice,
+                                SortOrder = li.SortOrder
+                            }).ToList()
+                    }).ToList();
+                }
 
 
                 #region Time Tracking: Mitarbeiter- und Zeiteintr�ge laden
@@ -233,6 +303,229 @@ namespace SAAS_Projectplanningtool.Pages.Projects
             {
                 return RedirectToPage("/Error", await _logger.Log(ex, User, null, null));
             }
+        }
+
+        // ====== New Tabular Budget Planning: Save ======
+        public async Task<IActionResult> OnPostSaveBudgetPlanningAsync(string? projectId)
+        {
+            if (string.IsNullOrEmpty(projectId))
+                return NotFound();
+
+            await SetProjectBindingAsync(projectId);
+            if (Project == null)
+                return NotFound();
+
+            try
+            {
+                var employee = await GetEmployeeAsync();
+                if (employee == null || employee.CompanyId == null)
+                    return NotFound();
+
+                // Read JSON body
+                using var reader = new StreamReader(Request.Body);
+                var body = await reader.ReadToEndAsync();
+                var budgetGroups = JsonSerializer.Deserialize<List<BudgetGroupDto>>(body, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (budgetGroups == null)
+                    return new JsonResult(new { success = false, message = "Ungültige Daten" });
+
+                var p = await _context.Project
+                    .Include(pb => pb.ProjectBudget)
+                    .FirstOrDefaultAsync(pb => pb.ProjectId == projectId);
+
+                var projectBudget = p?.ProjectBudget;
+                if (projectBudget == null)
+                    return new JsonResult(new { success = false, message = "Kein Budget gefunden" });
+
+                // Delete existing budget groups and line items for this budget
+                var existingGroups = await _context.BudgetGroup
+                    .Include(bg => bg.BudgetLineItems)
+                    .Where(bg => bg.ProjectBudgetId == projectBudget.ProjectBudgetId)
+                    .ToListAsync();
+
+                foreach (var group in existingGroups)
+                {
+                    _context.BudgetLineItem.RemoveRange(group.BudgetLineItems);
+                }
+                _context.BudgetGroup.RemoveRange(existingGroups);
+
+                // Create new groups and line items
+                decimal totalBudget = 0;
+
+                foreach (var groupDto in budgetGroups)
+                {
+                    // Skip empty default groups (no name and no items)
+                    if (string.IsNullOrWhiteSpace(groupDto.GroupName) && (groupDto.LineItems == null || groupDto.LineItems.Count == 0))
+                        continue;
+
+                    var newGroup = new BudgetGroup
+                    {
+                        CompanyId = employee.CompanyId,
+                        ProjectBudgetId = projectBudget.ProjectBudgetId,
+                        GroupName = groupDto.GroupName ?? "",
+                        SortOrder = groupDto.SortOrder
+                    };
+                    newGroup = await new CustomObjectModifier(_context, _userManager)
+                        .AddLatestModificationAsync(User, "Budgetgruppe erstellt", newGroup, true);
+
+                    decimal groupTotal = 0;
+
+                    foreach (var itemDto in groupDto.LineItems)
+                    {
+                        var newItem = new BudgetLineItem
+                        {
+                            CompanyId = employee.CompanyId,
+                            BudgetGroupId = newGroup.BudgetGroupId,
+                            SortOrder = itemDto.SortOrder,
+                            LineItemType = (BudgetLineItemType)itemDto.LineItemType,
+                            ArticleId = itemDto.LineItemType == 0 ? itemDto.ArticleId : null,
+                            ProjectHourlyRateGroupId = itemDto.LineItemType == 1 ? itemDto.ProjectHourlyRateGroupId : null,
+                            Description = itemDto.Description,
+                            Quantity = itemDto.Quantity,
+                            UnitPrice = itemDto.UnitPrice,
+                            AdjustedPrice = itemDto.AdjustedPrice
+                        };
+                        newItem = await new CustomObjectModifier(_context, _userManager)
+                            .AddLatestModificationAsync(User, "Budgetposition erstellt", newItem, true);
+
+                        newGroup.BudgetLineItems.Add(newItem);
+
+                        decimal calculatedPrice = itemDto.Quantity * itemDto.UnitPrice;
+                        decimal effectivePrice = itemDto.AdjustedPrice ?? calculatedPrice;
+                        groupTotal += effectivePrice;
+                    }
+
+                    totalBudget += groupTotal;
+                    _context.BudgetGroup.Add(newGroup);
+                }
+
+                // Update InitialBudget for backward compatibility
+                projectBudget.InitialBudget = (double)totalBudget;
+                projectBudget = await new CustomObjectModifier(_context, _userManager)
+                    .AddLatestModificationAsync(User, "Budgetplanung aktualisiert", projectBudget, false);
+
+                _context.ProjectBudget.Update(projectBudget);
+                await _context.SaveChangesAsync();
+
+                return new JsonResult(new { success = true, totalBudget = (double)totalBudget });
+            }
+            catch (Exception ex)
+            {
+                await _logger.Log(ex, User, null, "BudgetPlanning<OnPostSaveBudgetPlanningAsync>Error");
+                return new JsonResult(new { success = false, message = "Fehler beim Speichern" });
+            }
+        }
+
+        // ====== AJAX: Search articles for Material type ======
+        public async Task<JsonResult> OnGetSearchArticles(string? search)
+        {
+            var employee = await GetEmployeeAsync();
+            if (employee == null || employee.CompanyId == null)
+                return new JsonResult(new List<object>());
+
+            var query = _context.Article
+                .Where(a => a.CompanyId == employee.CompanyId && !a.DeleteFlag);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLower();
+                query = query.Where(a =>
+                    a.ArticleNumber.ToLower().Contains(searchLower) ||
+                    a.ArticleName.ToLower().Contains(searchLower));
+            }
+
+            var articles = await query
+                .OrderBy(a => a.ArticleNumber)
+                .Take(50)
+                .Select(a => new
+                {
+                    articleId = a.ArticleId,
+                    articleNumber = a.ArticleNumber,
+                    articleName = a.ArticleName,
+                    price = a.Price
+                })
+                .ToListAsync();
+
+            return new JsonResult(articles);
+        }
+
+        // ====== AJAX: Get hourly rate groups for Resource type ======
+        public async Task<JsonResult> OnGetHourlyRateGroupsJson(string? projectId)
+        {
+            var employee = await GetEmployeeAsync();
+            if (employee == null || employee.CompanyId == null)
+                return new JsonResult(new List<object>());
+
+            var query = _context.ProjectHourlyRateGroup
+                .Include(h => h.HourlyRateGroup)
+                .Where(p => p.HourlyRateGroup != null && !p.HourlyRateGroup.DeleteFlag)
+                .Where(p => p.CompanyId == employee.CompanyId);
+
+            if (!string.IsNullOrWhiteSpace(projectId))
+            {
+                query = query.Where(p => p.ProjectId == projectId);
+            }
+
+            var groups = await query
+                .Select(p => new
+                {
+                    projectHourlyRateGroupId = p.ProjectHourlyRateGroupId,
+                    name = p.HourlyRateGroup != null ? p.HourlyRateGroup.HourlyRateGroupName : "Unbekannt",
+                    hourlyRate = p.ProjectHourlyRate ?? (p.HourlyRateGroup != null ? p.HourlyRateGroup.HourlyRate : 0)
+                })
+                .ToListAsync();
+
+            return new JsonResult(groups);
+        }
+
+        // ====== AJAX: Load existing budget groups ======
+        public async Task<JsonResult> OnGetBudgetGroupsJson(string? projectId)
+        {
+            if (string.IsNullOrEmpty(projectId))
+                return new JsonResult(new List<object>());
+
+            var employee = await GetEmployeeAsync();
+            if (employee == null || employee.CompanyId == null)
+                return new JsonResult(new List<object>());
+
+            var project = await _context.Project
+                .Include(p => p.ProjectBudget)
+                .FirstOrDefaultAsync(p => p.ProjectId == projectId);
+
+            if (project?.ProjectBudget == null)
+                return new JsonResult(new List<object>());
+
+            var groups = await _context.BudgetGroup
+                .Include(bg => bg.BudgetLineItems)
+                .Where(bg => bg.ProjectBudgetId == project.ProjectBudget.ProjectBudgetId)
+                .Where(bg => bg.CompanyId == employee.CompanyId)
+                .OrderBy(bg => bg.SortOrder)
+                .Select(bg => new
+                {
+                    budgetGroupId = bg.BudgetGroupId,
+                    groupName = bg.GroupName,
+                    sortOrder = bg.SortOrder,
+                    lineItems = bg.BudgetLineItems
+                        .OrderBy(li => li.SortOrder)
+                        .Select(li => new
+                        {
+                            budgetLineItemId = li.BudgetLineItemId,
+                            lineItemType = (int)li.LineItemType,
+                            articleId = li.ArticleId,
+                            projectHourlyRateGroupId = li.ProjectHourlyRateGroupId,
+                            description = li.Description,
+                            quantity = li.Quantity,
+                            unitPrice = li.UnitPrice,
+                            adjustedPrice = li.AdjustedPrice,
+                            sortOrder = li.SortOrder
+                        }).ToList()
+                })
+                .ToListAsync();
+
+            return new JsonResult(groups);
         }
 
         // Budget-Statistiken laden (basiert jetzt auf Zeitbuchungen)

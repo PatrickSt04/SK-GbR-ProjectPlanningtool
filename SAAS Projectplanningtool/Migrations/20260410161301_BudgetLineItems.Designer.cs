@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SAAS_Projectplanningtool.Data;
 
@@ -11,9 +12,11 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260410161301_BudgetLineItems")]
+    partial class BudgetLineItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -316,9 +319,8 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("LatestModifierId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("UnitId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("ArticleId");
 
@@ -329,8 +331,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("LatestModifierId");
-
-                    b.HasIndex("UnitId");
 
                     b.ToTable("Article");
                 });
@@ -377,36 +377,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("LatestModifierId");
 
                     b.ToTable("ArticleCategory");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.ArticlePriceHistory", b =>
-                {
-                    b.Property<string>("ArticlePriceHistoryId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ArticleId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Comment")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CreatedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ArticlePriceHistoryId");
-
-                    b.HasIndex("ArticleId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.ToTable("ArticlePriceHistory");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.BankAccount", b =>
@@ -1298,28 +1268,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.ToTable("Company");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.CompanyUnit", b =>
-                {
-                    b.Property<string>("CompanyUnitId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CompanyId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UnitId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("CompanyUnitId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("UnitId");
-
-                    b.ToTable("CompanyUnit");
-                });
-
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Employee", b =>
                 {
                     b.Property<string>("EmployeeId")
@@ -1507,30 +1455,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasKey("StateId");
 
                     b.ToTable("State");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.IndependentTables.Unit", b =>
-                {
-                    b.Property<string>("UnitId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CompanyId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("ShortName")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("UnitId");
-
-                    b.HasIndex("CompanyId");
-
-                    b.ToTable("Unit");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Logfile", b =>
@@ -1769,12 +1693,6 @@ namespace SAAS_Projectplanningtool.Migrations
                         .HasForeignKey("LatestModifierId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.Unit", "Unit")
-                        .WithMany()
-                        .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("ArticleCategory");
 
                     b.Navigation("Company");
@@ -1782,8 +1700,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
-
-                    b.Navigation("Unit");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.ArticleCategory", b =>
@@ -1808,24 +1724,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.ArticlePriceHistory", b =>
-                {
-                    b.HasOne("SAAS_Projectplanningtool.Models.ArticleManagement.Article", "Article")
-                        .WithMany("PriceHistory")
-                        .HasForeignKey("ArticleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Article");
-
-                    b.Navigation("CreatedByEmployee");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.BankAccount", b =>
@@ -2457,25 +2355,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("Sector");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.CompanyUnit", b =>
-                {
-                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("SAAS_Projectplanningtool.Models.IndependentTables.Unit", "Unit")
-                        .WithMany()
-                        .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-
-                    b.Navigation("Unit");
-                });
-
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Employee", b =>
                 {
                     b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
@@ -2558,14 +2437,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.IndependentTables.Unit", b =>
-                {
-                    b.HasOne("SAAS_Projectplanningtool.Models.Company", null)
-                        .WithMany("Units")
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Logfile", b =>
@@ -2656,11 +2527,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.Article", b =>
-                {
-                    b.Navigation("PriceHistory");
-                });
-
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.ArticleCategory", b =>
                 {
                     b.Navigation("Articles");
@@ -2707,11 +2573,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("MaterialSurcharges");
 
                     b.Navigation("Projects");
-                });
-
-            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Company", b =>
-                {
-                    b.Navigation("Units");
                 });
 #pragma warning restore 612, 618
         }

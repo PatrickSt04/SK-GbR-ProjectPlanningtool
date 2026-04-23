@@ -1082,3 +1082,101 @@
         font-size: 1.1rem;
         font-weight: 700;
     }
+
+/* ====== EXCEL-LIKE FLAT BUDGET TABLE ====== */
+.budget-flat-table {
+    margin-bottom: 0;
+}
+
+.budget-flat-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.budget-flat-table thead th {
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.6rem 0.5rem;
+    border: none;
+    white-space: nowrap;
+}
+
+.budget-flat-table tbody td {
+    padding: 0.4rem 0.5rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+.budget-flat-table .form-control-sm,
+.budget-flat-table .form-select-sm {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.budget-line-row:hover {
+    background: rgba(102, 126, 234, 0.04);
+}
+
+.budget-group-row {
+    background: linear-gradient(135deg, #f0f2ff 0%, #e8ecf4 100%);
+    border-top: 2px solid var(--primary-color, #667eea);
+}
+
+.budget-group-row td {
+    padding: 0.5rem 0.5rem !important;
+}
+
+.budget-group-row .budget-group-name {
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    transition: all 0.2s ease;
+    max-width: 300px;
+    font-weight: 600;
+}
+
+.budget-group-row .budget-group-name:focus {
+    border-color: var(--primary-color) !important;
+    background: white !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15) !important;
+}
+
+.budget-group-subtotal {
+    font-size: 0.85rem;
+    padding: 0.35em 0.75em;
+}
+
+.budget-row-handle {
+    cursor: grab;
+    width: 30px;
+    text-align: center;
+}
+
+.budget-row-handle:active {
+    cursor: grabbing;
+}
+
+.budget-add-row-footer td {
+    padding: 0 !important;
+    border: none !important;
+}
+
+.budget-add-row-footer .btn-link {
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 0;
+    transition: background 0.15s ease;
+}
+
+.budget-add-row-footer .btn-link:hover {
+    background: rgba(102, 126, 234, 0.06);
+}
+
+.budget-flat-table tfoot {
+    background: var(--light-bg);
+}
+
+.budget-flat-table tfoot th {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+}
+}
