@@ -47,6 +47,9 @@ namespace SAAS_Projectplanningtool.Data
         public DbSet<TimeEntry> TimeEntry { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.BudgetGroup> BudgetGroup { get; set; } = default!;
         public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.BudgetLineItem> BudgetLineItem { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.Offer> Offer { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.OfferGroup> OfferGroup { get; set; } = default!;
+        public DbSet<SAAS_Projectplanningtool.Models.Budgetplanning.OfferLineItem> OfferLineItem { get; set; } = default!;
 
 
         public DbSet<SAAS_Projectplanningtool.Models.Logfile> Logfile { get; set; } = default!;
@@ -256,6 +259,45 @@ namespace SAAS_Projectplanningtool.Data
                 .HasOne(bli => bli.LatestModifier)
                 .WithMany()
                 .HasForeignKey(bli => bli.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Offer audit FK configuration
+            modelBuilder.Entity<Offer>()
+                .HasOne(o => o.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(o => o.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Offer>()
+                .HasOne(o => o.LatestModifier)
+                .WithMany()
+                .HasForeignKey(o => o.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // OfferGroup audit FK configuration
+            modelBuilder.Entity<OfferGroup>()
+                .HasOne(og => og.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(og => og.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OfferGroup>()
+                .HasOne(og => og.LatestModifier)
+                .WithMany()
+                .HasForeignKey(og => og.LatestModifierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // OfferLineItem audit FK configuration
+            modelBuilder.Entity<OfferLineItem>()
+                .HasOne(oli => oli.CreatedByEmployee)
+                .WithMany()
+                .HasForeignKey(oli => oli.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OfferLineItem>()
+                .HasOne(oli => oli.LatestModifier)
+                .WithMany()
+                .HasForeignKey(oli => oli.LatestModifierId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

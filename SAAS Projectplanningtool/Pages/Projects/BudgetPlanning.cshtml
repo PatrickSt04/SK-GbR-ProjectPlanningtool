@@ -284,6 +284,26 @@
                         </span>
                     </div>
                 </div>
+
+                <!-- Angebote -->
+                <a asp-page="/Projects/Offers" asp-route-id="@Model.Project?.ProjectId"
+                   class="budget-card" style="border-top: 4px solid #e67e22; text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(230,126,34,0.25)';"
+                   onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                    <div class="budget-card-header">
+                        <div class="budget-card-title">Angebote <i class="fas fa-external-link-alt" style="font-size: 0.7rem; opacity: 0.5; margin-left: 0.3rem;"></i></div>
+                        <div class="budget-card-icon" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                    </div>
+                    <div class="budget-card-value">@Model.OfferCount</div>
+                    <div class="budget-card-subtitle">
+                        @(Model.OfferCount == 1 ? "Angebot erstellt" : "Angebote erstellt")
+                    </div>
+                    <div class="budget-card-subtitle" style="margin-top: 0.5rem;">
+                        <i class="fas fa-mouse-pointer me-1"></i> Klicken zum Ansehen / Erstellen
+                    </div>
+                </a>
             </div>
         </div>
     </div>

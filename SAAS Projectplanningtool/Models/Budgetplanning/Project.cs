@@ -123,6 +123,9 @@ namespace SAAS_Projectplanningtool.Models.Budgetplanning
         // Additional Costs for Project
         public ICollection<ProjectAdditionalCosts> ProjectAdditionalCosts { get; set; } = new List<ProjectAdditionalCosts>();
 
+        // Offers for Project
+        public ICollection<Offer> Offers { get; set; } = new List<Offer>();
+
         // Projektadresse
         public string? Street { get; set; }        // z.B. "Mooswinkl 1"
         public string? PostalCode { get; set; }    // z.B. "84387"
