@@ -445,7 +445,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                     articleId = a.ArticleId,
                     articleNumber = a.ArticleNumber,
                     articleName = a.ArticleName,
-                    price = a.Price
+                    price = a.CurrentPrice //SST vorher: a.Price 
                 })
                 .ToListAsync();
 
