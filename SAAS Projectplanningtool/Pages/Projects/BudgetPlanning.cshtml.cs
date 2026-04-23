@@ -33,6 +33,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         public List<ProjectCostAssignment> ProjectCosts { get; set; } = new();
 
         public bool ScheduleAlreadyExists = default!;
+        public bool BudgetAlreadyExists = default!;
 
         // Initiale Budgetplanung (vor Terminplan)
         public class InitialHRGPlanning
@@ -119,6 +120,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                    .Where(p => p.CompanyId == employee.CompanyId)
                    .ToListAsync();
                 ScheduleAlreadyExists = Project.ProjectSections.Any();
+                BudgetAlreadyExists = Project.ProjectBudget != null && Project.ProjectBudget.InitialBudget > 0;
 
                 // Initiale HRG-Planung laden
                 InitialHRGPlannings = Project.ProjectBudget?.InitialHRGPlannings?

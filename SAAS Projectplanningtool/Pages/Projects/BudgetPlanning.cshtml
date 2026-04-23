@@ -8,6 +8,7 @@
     ViewData["Title"] = "Budgetplanung - " + Model.Project?.ProjectName;
     <link rel="stylesheet" href="~/css/TimeTracking.css" />
     <link rel="stylesheet" href="~/css/Budgetplanning.css" />
+    <link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
 }
 
 
@@ -28,80 +29,70 @@
         </h1>
     </div>
 
-    @if (!Model.ScheduleAlreadyExists)
+    @if (!Model.BudgetAlreadyExists)
     {
         <!-- Excel-artige Budgetplanung -->
         <div class="main-container mt-4">
-            <div class="modern-table">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--primary-gradient); color: white;">
-                        <h5 class="mb-0">
-                            <i class="fas fa-calculator me-2"></i>
-                            Budgetplanung
-                        </h5>
-                        <div>
-                            <button type="button" class="btn btn-light btn-sm me-2" id="addRowBtn">
-                                <i class="fas fa-plus me-1"></i> Zeile hinzufügen
-                            </button>
-                            <button type="button" class="btn btn-outline-light btn-sm me-2" id="addGroupBtn">
-                                <i class="fas fa-layer-group me-1"></i> Gruppe einfügen
-                            </button>
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div style="padding: 18px 24px 14px;">
+                    <div class="cm-toolbar">
+                        <div style="flex: 1;">
+                            <h5 style="margin: 0; font-weight: 700;">
+                                <i class="fas fa-calculator me-2"></i>Budgetplanung
+                            </h5>
                         </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm me-2" id="addRowBtn">
+                            <i class="fas fa-plus me-1"></i> Zeile hinzufügen
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="addGroupBtn">
+                            <i class="fas fa-layer-group me-1"></i> Gruppe einfügen
+                        </button>
                     </div>
-                    <div class="card-body p-0" id="budgetPlanningContainer">
-                        @Html.AntiForgeryToken()
-                        <div class="table-responsive">
-                            <table class="table table-hover table-sm mb-0 budget-flat-table" id="budgetFlatTable">
-                                <thead>
-                                    <tr>
-                                        <th style="width:3%;"></th>
-                                        <th style="width:13%;">Auswahl</th>
-                                        <th style="width:24%;">Bezeichnung</th>
-                                        <th style="width:11%;">Anzahl</th>
-                                        <th style="width:13%;">Preis/Stck</th>
-                                        <th style="width:13%;">Preis</th>
-                                        <th style="width:13%;">Preis angepasst</th>
-                                        <th style="width:10%;">Aktion</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="budgetRowsContainer">
-                                    <!-- Rows rendered by JS -->
-                                </tbody>
-                                <tfoot>
-                                    <tr class="budget-add-row-footer">
-                                        <td colspan="8">
-                                            <button type="button" class="btn btn-link btn-sm text-muted w-100" id="addRowFooterBtn">
-                                                <i class="fas fa-plus me-1"></i> Neue Zeile
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                </div>
+                @Html.AntiForgeryToken()
+                <table class="cm-table" id="budgetFlatTable">
+                    <thead>
+                        <tr>
+                            <th style="width:3%;"></th>
+                            <th style="width:13%;">Auswahl</th>
+                            <th style="width:24%;">Bezeichnung</th>
+                            <th style="width:11%;">Anzahl</th>
+                            <th style="width:13%;">Preis/Stck</th>
+                            <th style="width:13%;">Preis</th>
+                            <th style="width:13%;">Preis angepasst</th>
+                            <th style="width:10%;">Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="budgetRowsContainer">
+                        <!-- Rows rendered by JS -->
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="8" style="text-align: center;">
+                                <button type="button" class="btn btn-link btn-sm text-muted w-100" id="addRowFooterBtn">
+                                    <i class="fas fa-plus me-1"></i> Neue Zeile
+                                </button>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
 
-                        <div class="card border-success m-3">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-calculator me-2 text-success"></i>
-                                            Geplantes Auftragsvolumen:
-                                        </h5>
-                                    </div>
-                                    <div class="col-md-4 text-end">
-                                        <h3 class="mb-0 text-success" id="totalBudgetDisplay">0,00 €</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-end p-3 pt-0">
-                            <button type="button" class="modern-btn success" id="saveBudgetBtn">
-                                <i class="fas fa-save me-2"></i>
-                                Budget als Auftragsvolumen erfassen
-                            </button>
-                        </div>
+                <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-weight: 700; font-size: .9rem;">
+                            <i class="fas fa-calculator me-2 text-success"></i>Geplantes Auftragsvolumen:
+                        </span>
                     </div>
+                    <div>
+                        <span style="font-size: 1.3rem; font-weight: 700; color: var(--success);" id="totalBudgetDisplay">0,00 €</span>
+                    </div>
+                </div>
+
+                <div style="padding: 12px 24px 18px; border-top: 1px solid var(--border); text-align: right;">
+                    <button type="button" class="modern-btn success" id="saveBudgetBtn">
+                        <i class="fas fa-save me-2"></i>
+                        Budget als Auftragsvolumen erfassen
+                    </button>
                 </div>
             </div>
         </div>
@@ -109,7 +100,7 @@
 </div>
 
 
-@if (Model.ScheduleAlreadyExists)
+@if (Model.BudgetAlreadyExists)
 {
     <div class="main-container">
         <div class="budget-dashboard">
@@ -300,79 +291,69 @@
 
     <!-- Auftragsvolumen Tabelle (ein-/ausklappbar) -->
     <div id="auftragsvolumenTableSection" class="main-container mt-4" style="display: none;">
-        <div class="modern-table">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--primary-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-wallet me-2"></i>
-                        Auftragsvolumen bearbeiten
-                    </h5>
-                    <div>
-                        <button type="button" class="btn btn-light btn-sm me-2" id="avAddRowBtn">
-                            <i class="fas fa-plus me-1"></i> Zeile hinzufügen
-                        </button>
-                        <button type="button" class="btn btn-outline-light btn-sm me-2" id="avAddGroupBtn">
-                            <i class="fas fa-layer-group me-1"></i> Gruppe einfügen
-                        </button>
-                        <button type="button" class="btn btn-outline-light btn-sm" onclick="toggleAuftragsvolumenTable()">
-                            <i class="fas fa-times me-1"></i> Schließen
-                        </button>
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 18px 24px 14px;">
+                <div class="cm-toolbar">
+                    <div style="flex: 1;">
+                        <h5 style="margin: 0; font-weight: 700;">
+                            <i class="fas fa-wallet me-2"></i>Auftragsvolumen bearbeiten
+                        </h5>
                     </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2" id="avAddRowBtn">
+                        <i class="fas fa-plus me-1"></i> Zeile hinzufügen
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="avAddGroupBtn">
+                        <i class="fas fa-layer-group me-1"></i> Gruppe einfügen
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAuftragsvolumenTable()">
+                        <i class="fas fa-times me-1"></i> Schließen
+                    </button>
                 </div>
-                <div class="card-body p-0" id="avBudgetPlanningContainer">
-                    @Html.AntiForgeryToken()
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm mb-0 budget-flat-table" id="avBudgetFlatTable">
-                            <thead>
-                                <tr>
-                                    <th style="width:3%;"></th>
-                                    <th style="width:13%;">Auswahl</th>
-                                    <th style="width:24%;">Bezeichnung</th>
-                                    <th style="width:11%;">Anzahl</th>
-                                    <th style="width:13%;">Preis/Stck</th>
-                                    <th style="width:13%;">Preis</th>
-                                    <th style="width:13%;">Preis angepasst</th>
-                                    <th style="width:10%;">Aktion</th>
-                                </tr>
-                            </thead>
-                            <tbody id="avBudgetRowsContainer">
-                                <!-- Rows rendered by JS -->
-                            </tbody>
-                            <tfoot>
-                                <tr class="budget-add-row-footer">
-                                    <td colspan="8">
-                                        <button type="button" class="btn btn-link btn-sm text-muted w-100" id="avAddRowFooterBtn">
-                                            <i class="fas fa-plus me-1"></i> Neue Zeile
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+            </div>
+            @Html.AntiForgeryToken()
+            <table class="cm-table" id="avBudgetFlatTable">
+                <thead>
+                    <tr>
+                        <th style="width:3%;"></th>
+                        <th style="width:13%;">Auswahl</th>
+                        <th style="width:24%;">Bezeichnung</th>
+                        <th style="width:11%;">Anzahl</th>
+                        <th style="width:13%;">Preis/Stck</th>
+                        <th style="width:13%;">Preis</th>
+                        <th style="width:13%;">Preis angepasst</th>
+                        <th style="width:10%;">Aktion</th>
+                    </tr>
+                </thead>
+                <tbody id="avBudgetRowsContainer">
+                    <!-- Rows rendered by JS -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8" style="text-align: center;">
+                            <button type="button" class="btn btn-link btn-sm text-muted w-100" id="avAddRowFooterBtn">
+                                <i class="fas fa-plus me-1"></i> Neue Zeile
+                            </button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
 
-                    <div class="card border-success m-3">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h5 class="mb-0">
-                                        <i class="fas fa-calculator me-2 text-success"></i>
-                                        Auftragsvolumen:
-                                    </h5>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    <h3 class="mb-0 text-success" id="avTotalBudgetDisplay">0,00 €</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="text-end p-3 pt-0">
-                        <button type="button" class="modern-btn success" id="avSaveBudgetBtn">
-                            <i class="fas fa-save me-2"></i>
-                            Auftragsvolumen speichern
-                        </button>
-                    </div>
+            <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-weight: 700; font-size: .9rem;">
+                        <i class="fas fa-calculator me-2 text-success"></i>Auftragsvolumen:
+                    </span>
                 </div>
+                <div>
+                    <span style="font-size: 1.3rem; font-weight: 700; color: var(--success);" id="avTotalBudgetDisplay">0,00 €</span>
+                </div>
+            </div>
+
+            <div style="padding: 12px 24px 18px; border-top: 1px solid var(--border); text-align: right;">
+                <button type="button" class="modern-btn success" id="avSaveBudgetBtn">
+                    <i class="fas fa-save me-2"></i>
+                    Auftragsvolumen speichern
+                </button>
             </div>
         </div>
     </div>
@@ -399,7 +380,7 @@
 }
 
 <!-- Zusätzliche Projektkosten -->
-@if (Model.ScheduleAlreadyExists)
+@if (Model.BudgetAlreadyExists)
 {
     <div class="main-container">
 
