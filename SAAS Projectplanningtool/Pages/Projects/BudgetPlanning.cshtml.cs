@@ -83,6 +83,7 @@ namespace SAAS_Projectplanningtool.Pages.Projects
         // Available articles and HRGs for dropdowns
         public List<Article> AvailableArticles { get; set; } = new();
         public List<BudgetGroupDto> ExistingBudgetGroups { get; set; } = new();
+        public int OfferCount { get; set; }
 
 
         #region Time Tracking Properties
@@ -121,6 +122,11 @@ namespace SAAS_Projectplanningtool.Pages.Projects
                    .ToListAsync();
                 ScheduleAlreadyExists = Project.ProjectSections.Any();
                 BudgetAlreadyExists = Project.ProjectBudget != null && Project.ProjectBudget.InitialBudget > 0;
+
+                // Load offer count for the tile
+                OfferCount = await _context.Offer
+                    .Where(o => o.ProjectId == id && o.CompanyId == employee.CompanyId)
+                    .CountAsync();
 
                 // Initiale HRG-Planung laden
                 InitialHRGPlannings = Project.ProjectBudget?.InitialHRGPlannings?

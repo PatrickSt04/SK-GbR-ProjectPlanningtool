@@ -1,0 +1,92 @@
+@page "{id}"
+@using System.Globalization
+@model SAAS_Projectplanningtool.Pages.Projects.OffersModel
+
+@{
+    ViewData["Title"] = "Angebote - " + Model.Project?.ProjectName;
+    <link rel="stylesheet" href="~/css/Budgetplanning.css" />
+    <link rel="stylesheet" href="~/css/shared.css" />
+}
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>
+            <a asp-page="/Projects/BudgetPlanning" asp-route-id="@Model.Project?.ProjectId" class="edit-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <span><i class="fas fa-file-invoice me-2"></i>Angebote - @Model.Project?.ProjectName</span>
+        </h1>
+    </div>
+
+    <div class="main-container mt-3">
+        <div style="text-align: right; margin-bottom: 1rem;">
+            <a asp-page="/Projects/OfferEdit" asp-route-projectId="@Model.Project?.ProjectId"
+               class="modern-btn success">
+                <i class="fas fa-plus me-2"></i>Neues Angebot erstellen
+            </a>
+        </div>
+
+        @if (Model.Offers.Count == 0)
+        {
+            <div class="card" style="padding: 2rem; text-align: center;">
+                <i class="fas fa-file-invoice" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <p style="color: var(--text-secondary);">Es wurden noch keine Angebote erstellt.</p>
+            </div>
+        }
+        else
+        {
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <table class="cm-table">
+                    <thead>
+                        <tr>
+                            <th>Angebot</th>
+                            <th>Datum</th>
+                            <th>Positionen</th>
+                            <th style="text-align: right;">Netto</th>
+                            <th style="text-align: right;">Brutto (inkl. MwSt)</th>
+                            <th>Erstellt von</th>
+                            <th style="width: 120px;">Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var offer in Model.Offers)
+                        {
+                            var lineCount = offer.OfferGroups.Sum(g => g.OfferLineItems.Count);
+                            <tr>
+                                <td>
+                                    <a asp-page="/Projects/OfferEdit" asp-route-offerId="@offer.OfferId"
+                                       style="font-weight: 600; text-decoration: none;">
+                                        @offer.OfferName
+                                    </a>
+                                </td>
+                                <td>@offer.OfferDate.ToString("dd.MM.yyyy")</td>
+                                <td>@lineCount</td>
+                                <td style="text-align: right; font-weight: 600;">
+                                    @offer.TotalNetto.ToString("C2", new CultureInfo("de-DE"))
+                                </td>
+                                <td style="text-align: right; font-weight: 700; color: var(--success-color);">
+                                    @offer.TotalBrutto.ToString("C2", new CultureInfo("de-DE"))
+                                </td>
+                                <td>@(offer.CreatedByEmployee?.EmployeeDisplayName ?? "-")</td>
+                                <td>
+                                    <a asp-page="/Projects/OfferEdit" asp-route-offerId="@offer.OfferId"
+                                       class="btn btn-outline-primary btn-sm me-1" title="Bearbeiten">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" asp-page-handler="Delete" style="display: inline;">
+                                        <input type="hidden" name="offerId" value="@offer.OfferId" />
+                                        <input type="hidden" name="projectId" value="@Model.Project?.ProjectId" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('Angebot wirklich löschen?')" title="Löschen">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,364 @@
+@page
+@using SAAS_Projectplanningtool.Models.Budgetplanning
+@using System.Globalization
+@using System.Text.Json
+@model SAAS_Projectplanningtool.Pages.Projects.OfferEditModel
+
+@{
+    ViewData["Title"] = (Model.IsNew ? "Neues Angebot" : "Angebot bearbeiten") + " - " + Model.Project?.ProjectName;
+    <link rel="stylesheet" href="~/css/Budgetplanning.css" />
+    <link rel="stylesheet" href="~/css/employee.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/shared.css" />
+}
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>
+            <a asp-page="/Projects/Offers" asp-route-id="@Model.Project?.ProjectId" class="edit-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <span><i class="fas fa-file-invoice me-2"></i>@(Model.IsNew ? "Neues Angebot" : "Angebot bearbeiten")</span>
+        </h1>
+    </div>
+
+    <div class="main-container mt-3">
+        <div class="card" style="padding: 18px 24px 14px;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <label style="font-weight: 600; font-size: .85rem;">Angebotsname</label>
+                    <input type="text" id="offerNameInput" class="form-control" value="@Model.Offer?.OfferName" />
+                </div>
+                <div>
+                    <label style="font-weight: 600; font-size: .85rem;">MwSt-Satz</label>
+                    <div style="font-size: 1rem; font-weight: 600; padding-top: 6px;">19%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container mt-3">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 18px 24px 14px;">
+                <div class="cm-toolbar">
+                    <div style="flex: 1;">
+                        <h5 style="margin: 0; font-weight: 700;">
+                            <i class="fas fa-file-invoice me-2"></i>Angebotspositionen
+                        </h5>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm me-2" id="addRowBtn">
+                        <i class="fas fa-plus me-1"></i> Zeile hinzufügen
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="addGroupBtn">
+                        <i class="fas fa-layer-group me-1"></i> Gruppe einfügen
+                    </button>
+                </div>
+            </div>
+            @Html.AntiForgeryToken()
+            <table class="cm-table" id="offerFlatTable">
+                <thead>
+                    <tr>
+                        <th style="width:3%;"></th>
+                        <th style="width:11%;">Auswahl</th>
+                        <th style="width:20%;">Bezeichnung</th>
+                        <th style="width:9%;">Anzahl</th>
+                        <th style="width:11%;">Preis/Stck</th>
+                        <th style="width:11%;">Preis</th>
+                        <th style="width:11%;">Preis angepasst</th>
+                        <th style="width:8%;">Ausblenden</th>
+                        <th style="width:8%;">Aktion</th>
+                    </tr>
+                </thead>
+                <tbody id="offerRowsContainer">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="9" style="text-align: center;">
+                            <button type="button" class="btn btn-link btn-sm text-muted w-100" id="addRowFooterBtn">
+                                <i class="fas fa-plus me-1"></i> Neue Zeile
+                            </button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="padding: 16px 24px; border-top: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; font-size: .9rem;">
+                        <i class="fas fa-calculator me-2"></i>Netto:
+                    </span>
+                    <span style="font-size: 1.1rem; font-weight: 700;" id="totalNettoDisplay">0,00 €</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: .5rem;">
+                    <span style="font-weight: 600; font-size: .85rem; color: var(--text-secondary);">
+                        + 19% MwSt:
+                    </span>
+                    <span style="font-size: .95rem; color: var(--text-secondary);" id="totalMwstDisplay">0,00 €</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: .5rem; padding-top: .5rem; border-top: 2px solid var(--border);">
+                    <span style="font-weight: 700; font-size: 1rem;">
+                        <i class="fas fa-euro-sign me-2 text-success"></i>Brutto:
+                    </span>
+                    <span style="font-size: 1.3rem; font-weight: 700; color: var(--success-color);" id="totalBruttoDisplay">0,00 €</span>
+                </div>
+            </div>
+
+            <div style="padding: 12px 24px 18px; border-top: 1px solid var(--border); text-align: right;">
+                <button type="button" class="modern-btn success" id="saveOfferBtn">
+                    <i class="fas fa-save me-2"></i>
+                    Angebot speichern
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="projectId" value="@Model.Project?.ProjectId" />
+<input type="hidden" id="offerId" value="@(Model.IsNew ? "" : Model.Offer?.OfferId)" />
+
+@section Scripts {
+<script>
+    const projectId = document.getElementById('projectId').value;
+    const existingOfferId = document.getElementById('offerId').value;
+    const TAX_RATE = 0.19;
+
+    // Data from server
+    const existingGroups = @Html.Raw(JsonSerializer.Serialize(Model.ExistingOfferGroups, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+
+    let rows = [];
+    let nextId = 1;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        if (existingGroups && existingGroups.length > 0) {
+            existingGroups.forEach(g => {
+                rows.push({ id: nextId++, type: 'group', groupName: g.groupName, isHidden: g.isHidden || false });
+                const groupId = rows[rows.length - 1].id;
+                (g.lineItems || []).forEach(li => {
+                    rows.push({
+                        id: nextId++, type: 'item', groupId: groupId,
+                        lineItemType: li.lineItemType, articleId: li.articleId,
+                        projectHourlyRateGroupId: li.projectHourlyRateGroupId,
+                        description: li.description, snapshotArticleName: li.snapshotArticleName,
+                        quantity: li.quantity, unitPrice: li.unitPrice,
+                        adjustedPrice: li.adjustedPrice, isHidden: li.isHidden || false
+                    });
+                });
+            });
+        } else {
+            rows.push({ id: nextId++, type: 'group', groupName: 'Allgemein', isHidden: false });
+        }
+        renderAll();
+
+        document.getElementById('addRowBtn').addEventListener('click', addRow);
+        document.getElementById('addRowFooterBtn').addEventListener('click', addRow);
+        document.getElementById('addGroupBtn').addEventListener('click', addGroup);
+        document.getElementById('saveOfferBtn').addEventListener('click', saveOffer);
+    });
+
+    function addRow() {
+        let lastGroup = rows.filter(r => r.type === 'group').pop();
+        if (!lastGroup) {
+            rows.push({ id: nextId++, type: 'group', groupName: 'Allgemein', isHidden: false });
+            lastGroup = rows[rows.length - 1];
+        }
+        rows.push({
+            id: nextId++, type: 'item', groupId: lastGroup.id,
+            lineItemType: 2, description: '', quantity: 1, unitPrice: 0,
+            adjustedPrice: null, isHidden: false
+        });
+        renderAll();
+    }
+
+    function addGroup() {
+        rows.push({ id: nextId++, type: 'group', groupName: '', isHidden: false });
+        renderAll();
+    }
+
+    function renderAll() {
+        const container = document.getElementById('offerRowsContainer');
+        container.innerHTML = '';
+        let currentGroup = null;
+
+        rows.forEach((row, idx) => {
+            if (row.type === 'group') {
+                currentGroup = row;
+                const tr = document.createElement('tr');
+                tr.style.background = 'var(--bg-secondary, #f8f9fa)';
+                tr.innerHTML = `
+                    <td><i class="fas fa-layer-group text-muted"></i></td>
+                    <td colspan="6">
+                        <input type="text" class="form-control form-control-sm" style="font-weight:700;"
+                            value="${escHtml(row.groupName)}" onchange="updateGroupName(${row.id}, this.value)" placeholder="Gruppenname" />
+                    </td>
+                    <td style="text-align:center;">
+                        <label title="Alle Zeilen der Gruppe ausblenden" style="cursor:pointer;">
+                            <input type="checkbox" ${row.isHidden ? 'checked' : ''} onchange="toggleGroupHidden(${row.id}, this.checked)" />
+                            <i class="fas fa-eye-slash ms-1"></i>
+                        </label>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteRow(${row.id})" title="Gruppe löschen">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                container.appendChild(tr);
+            } else {
+                const isGroupHidden = currentGroup?.isHidden || false;
+                const isHidden = row.isHidden || isGroupHidden;
+                const tr = document.createElement('tr');
+                if (isHidden) {
+                    tr.style.opacity = '0.4';
+                    tr.style.textDecoration = 'line-through';
+                }
+                const calcPrice = (row.quantity || 0) * (row.unitPrice || 0);
+                const effectivePrice = row.adjustedPrice != null ? row.adjustedPrice : calcPrice;
+
+                tr.innerHTML = `
+                    <td></td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="changeLineItemType(${row.id}, this.value)">
+                            <option value="0" ${row.lineItemType === 0 ? 'selected' : ''}>Material</option>
+                            <option value="1" ${row.lineItemType === 1 ? 'selected' : ''}>Ressource</option>
+                            <option value="2" ${row.lineItemType === 2 ? 'selected' : ''}>Freitext</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" value="${escHtml(row.description)}"
+                            onchange="updateField(${row.id}, 'description', this.value)" placeholder="Bezeichnung" />
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" value="${row.quantity}" step="0.01" min="0"
+                            onchange="updateField(${row.id}, 'quantity', parseFloat(this.value)||0)" />
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" value="${row.unitPrice}" step="0.01" min="0"
+                            onchange="updateField(${row.id}, 'unitPrice', parseFloat(this.value)||0)" />
+                    </td>
+                    <td style="text-align:right; font-weight:600;">
+                        ${formatCurrency(calcPrice)}
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" value="${row.adjustedPrice != null ? row.adjustedPrice : ''}"
+                            step="0.01" min="0" placeholder="-"
+                            onchange="updateField(${row.id}, 'adjustedPrice', this.value ? parseFloat(this.value) : null)" />
+                    </td>
+                    <td style="text-align:center;">
+                        <label style="cursor:pointer;">
+                            <input type="checkbox" ${row.isHidden ? 'checked' : ''} onchange="toggleItemHidden(${row.id}, this.checked)" title="Zeile ausblenden" />
+                            <i class="fas fa-eye-slash ms-1"></i>
+                        </label>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteRow(${row.id})" title="Löschen">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                container.appendChild(tr);
+            }
+        });
+
+        updateTotals();
+    }
+
+    function updateGroupName(id, val) { const r = rows.find(r => r.id === id); if (r) r.groupName = val; }
+    function toggleGroupHidden(id, val) { const r = rows.find(r => r.id === id); if (r) { r.isHidden = val; renderAll(); } }
+    function toggleItemHidden(id, val) { const r = rows.find(r => r.id === id); if (r) { r.isHidden = val; renderAll(); } }
+    function changeLineItemType(id, val) { const r = rows.find(r => r.id === id); if (r) { r.lineItemType = parseInt(val); renderAll(); } }
+
+    function updateField(id, field, val) {
+        const r = rows.find(r => r.id === id);
+        if (r) { r[field] = val; updateTotals(); }
+    }
+
+    function deleteRow(id) {
+        const row = rows.find(r => r.id === id);
+        if (row && row.type === 'group') {
+            // Delete group and its items
+            rows = rows.filter(r => r.id !== id && r.groupId !== id);
+        } else {
+            rows = rows.filter(r => r.id !== id);
+        }
+        renderAll();
+    }
+
+    function updateTotals() {
+        let netto = 0;
+        let currentGroup = null;
+        rows.forEach(r => {
+            if (r.type === 'group') { currentGroup = r; return; }
+            if (r.isHidden || (currentGroup && currentGroup.isHidden)) return;
+            const calc = (r.quantity || 0) * (r.unitPrice || 0);
+            netto += r.adjustedPrice != null ? r.adjustedPrice : calc;
+        });
+        const mwst = netto * TAX_RATE;
+        const brutto = netto + mwst;
+        document.getElementById('totalNettoDisplay').textContent = formatCurrency(netto);
+        document.getElementById('totalMwstDisplay').textContent = formatCurrency(mwst);
+        document.getElementById('totalBruttoDisplay').textContent = formatCurrency(brutto);
+    }
+
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function saveOffer() {
+        const offerName = document.getElementById('offerNameInput').value;
+        const groups = [];
+        let currentGroup = null;
+        let sortOrder = 0;
+        let itemSort = 0;
+
+        rows.forEach(r => {
+            if (r.type === 'group') {
+                currentGroup = {
+                    groupName: r.groupName || 'Allgemein',
+                    sortOrder: sortOrder++,
+                    isHidden: r.isHidden || false,
+                    lineItems: []
+                };
+                groups.push(currentGroup);
+                itemSort = 0;
+            } else if (currentGroup) {
+                currentGroup.lineItems.push({
+                    lineItemType: r.lineItemType,
+                    articleId: r.articleId || null,
+                    projectHourlyRateGroupId: r.projectHourlyRateGroupId || null,
+                    description: r.description || '',
+                    snapshotArticleName: r.snapshotArticleName || null,
+                    quantity: r.quantity || 0,
+                    unitPrice: r.unitPrice || 0,
+                    adjustedPrice: r.adjustedPrice,
+                    sortOrder: itemSort++,
+                    isHidden: r.isHidden || false
+                });
+            }
+        });
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const url = `?handler=SaveOffer&projectId=${encodeURIComponent(projectId)}&offerId=${encodeURIComponent(existingOfferId)}&offerName=${encodeURIComponent(offerName)}`;
+
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(groups)
+            });
+            const result = await resp.json();
+            if (result.success) {
+                window.location.href = `/Projects/Offers/${result.projectId}`;
+            } else {
+                alert('Fehler: ' + (result.message || 'Unbekannter Fehler'));
+            }
+        } catch (e) {
+            alert('Fehler beim Speichern: ' + e.message);
+        }
+    }
+</script>
+}
