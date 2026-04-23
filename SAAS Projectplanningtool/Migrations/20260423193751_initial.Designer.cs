@@ -12,8 +12,8 @@ using SAAS_Projectplanningtool.Data;
 namespace SAAS_Projectplanningtool.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260420125042_newWindows")]
-    partial class newWindows
+    [Migration("20260423193751_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -319,9 +319,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Property<string>("LatestModifierId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("UnitId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -385,6 +382,36 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.ToTable("ArticleCategory");
                 });
 
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.ArticlePriceHistory", b =>
+                {
+                    b.Property<string>("ArticlePriceHistoryId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ArticleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ArticlePriceHistoryId");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("ArticlePriceHistory");
+                });
+
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.BankAccount", b =>
                 {
                     b.Property<string>("BankAccountId")
@@ -442,6 +469,122 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.HasIndex("LatestModifierId");
 
                     b.ToTable("BankAccount");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetGroup", b =>
+                {
+                    b.Property<string>("BudgetGroupId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CompanyId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LatestModificationText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LatestModificationTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LatestModifierId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProjectBudgetId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("BudgetGroupId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("LatestModifierId");
+
+                    b.HasIndex("ProjectBudgetId");
+
+                    b.ToTable("BudgetGroup");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetLineItem", b =>
+                {
+                    b.Property<string>("BudgetLineItemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal?>("AdjustedPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ArticleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("BudgetGroupId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CompanyId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CreatedTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LatestModificationText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LatestModificationTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LatestModifierId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("LineItemType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProjectHourlyRateGroupId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("BudgetLineItemId");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("BudgetGroupId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("LatestModifierId");
+
+                    b.HasIndex("ProjectHourlyRateGroupId");
+
+                    b.ToTable("BudgetLineItem");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetRecalculation", b =>
@@ -1670,6 +1813,24 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("LatestModifier");
                 });
 
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.ArticlePriceHistory", b =>
+                {
+                    b.HasOne("SAAS_Projectplanningtool.Models.ArticleManagement.Article", "Article")
+                        .WithMany("PriceHistory")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Article");
+
+                    b.Navigation("CreatedByEmployee");
+                });
+
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.BankAccount", b =>
                 {
                     b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
@@ -1692,6 +1853,84 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("CreatedByEmployee");
 
                     b.Navigation("LatestModifier");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetGroup", b =>
+                {
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
+                        .WithMany()
+                        .HasForeignKey("LatestModifierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectBudget", "ProjectBudget")
+                        .WithMany("BudgetGroups")
+                        .HasForeignKey("ProjectBudgetId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
+
+                    b.Navigation("LatestModifier");
+
+                    b.Navigation("ProjectBudget");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetLineItem", b =>
+                {
+                    b.HasOne("SAAS_Projectplanningtool.Models.ArticleManagement.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetGroup", "BudgetGroup")
+                        .WithMany("BudgetLineItems")
+                        .HasForeignKey("BudgetGroupId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "CreatedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Employee", "LatestModifier")
+                        .WithMany()
+                        .HasForeignKey("LatestModifierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectHourlyRateGroup", "ProjectHourlyRateGroup")
+                        .WithMany()
+                        .HasForeignKey("ProjectHourlyRateGroupId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Article");
+
+                    b.Navigation("BudgetGroup");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("CreatedByEmployee");
+
+                    b.Navigation("LatestModifier");
+
+                    b.Navigation("ProjectHourlyRateGroup");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetRecalculation", b =>
@@ -2420,9 +2659,19 @@ namespace SAAS_Projectplanningtool.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.Article", b =>
+                {
+                    b.Navigation("PriceHistory");
+                });
+
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.ArticleManagement.ArticleCategory", b =>
                 {
                     b.Navigation("Articles");
+                });
+
+            modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.BudgetGroup", b =>
+                {
+                    b.Navigation("BudgetLineItems");
                 });
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.Project", b =>
@@ -2436,6 +2685,8 @@ namespace SAAS_Projectplanningtool.Migrations
 
             modelBuilder.Entity("SAAS_Projectplanningtool.Models.Budgetplanning.ProjectBudget", b =>
                 {
+                    b.Navigation("BudgetGroups");
+
                     b.Navigation("BudgetRecalculations");
                 });
 

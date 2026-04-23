@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SAAS_Projectplanningtool.Migrations
 {
     /// <inheritdoc />
-    public partial class newWindows : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -219,7 +219,6 @@ namespace SAAS_Projectplanningtool.Migrations
                     ArticleNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ArticleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ArticleCategoryId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UnitId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     DeleteFlag = table.Column<bool>(type: "bit", nullable: false),
@@ -255,6 +254,27 @@ namespace SAAS_Projectplanningtool.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ArticlePriceHistory",
+                columns: table => new
+                {
+                    ArticlePriceHistoryId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ArticleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArticlePriceHistory", x => x.ArticlePriceHistoryId);
+                    table.ForeignKey(
+                        name: "FK_ArticlePriceHistory_Article_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Article",
+                        principalColumn: "ArticleId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BankAccount",
                 columns: table => new
                 {
@@ -275,6 +295,62 @@ namespace SAAS_Projectplanningtool.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BankAccount", x => x.BankAccountId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BudgetGroup",
+                columns: table => new
+                {
+                    BudgetGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectBudgetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    GroupName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SortOrder = table.Column<int>(type: "int", nullable: false),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BudgetGroup", x => x.BudgetGroupId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BudgetLineItem",
+                columns: table => new
+                {
+                    BudgetLineItemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    BudgetGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SortOrder = table.Column<int>(type: "int", nullable: false),
+                    LineItemType = table.Column<int>(type: "int", nullable: false),
+                    ArticleId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProjectHourlyRateGroupId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    AdjustedPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    LatestModifierId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    LatestModificationTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LatestModificationText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedTimestamp = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BudgetLineItem", x => x.BudgetLineItemId);
+                    table.ForeignKey(
+                        name: "FK_BudgetLineItem_Article_ArticleId",
+                        column: x => x.ArticleId,
+                        principalTable: "Article",
+                        principalColumn: "ArticleId");
+                    table.ForeignKey(
+                        name: "FK_BudgetLineItem_BudgetGroup_BudgetGroupId",
+                        column: x => x.BudgetGroupId,
+                        principalTable: "BudgetGroup",
+                        principalColumn: "BudgetGroupId");
                 });
 
             migrationBuilder.CreateTable(
@@ -1168,6 +1244,16 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "LatestModifierId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ArticlePriceHistory_ArticleId",
+                table: "ArticlePriceHistory",
+                column: "ArticleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ArticlePriceHistory_CreatedById",
+                table: "ArticlePriceHistory",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
@@ -1220,6 +1306,56 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "IX_BankAccount_LatestModifierId",
                 table: "BankAccount",
                 column: "LatestModifierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetGroup_CompanyId",
+                table: "BudgetGroup",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetGroup_CreatedById",
+                table: "BudgetGroup",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetGroup_LatestModifierId",
+                table: "BudgetGroup",
+                column: "LatestModifierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetGroup_ProjectBudgetId",
+                table: "BudgetGroup",
+                column: "ProjectBudgetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetLineItem_ArticleId",
+                table: "BudgetLineItem",
+                column: "ArticleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetLineItem_BudgetGroupId",
+                table: "BudgetLineItem",
+                column: "BudgetGroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetLineItem_CompanyId",
+                table: "BudgetLineItem",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetLineItem_CreatedById",
+                table: "BudgetLineItem",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetLineItem_LatestModifierId",
+                table: "BudgetLineItem",
+                column: "LatestModifierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetLineItem_ProjectHourlyRateGroupId",
+                table: "BudgetLineItem",
+                column: "ProjectHourlyRateGroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BudgetRecalculation_CompanyId",
@@ -1721,6 +1857,13 @@ namespace SAAS_Projectplanningtool.Migrations
                 principalColumn: "EmployeeId");
 
             migrationBuilder.AddForeignKey(
+                name: "FK_ArticlePriceHistory_Employee_CreatedById",
+                table: "ArticlePriceHistory",
+                column: "CreatedById",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId");
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_BankAccount_Company_CompanyId",
                 table: "BankAccount",
                 column: "CompanyId",
@@ -1740,6 +1883,66 @@ namespace SAAS_Projectplanningtool.Migrations
                 column: "LatestModifierId",
                 principalTable: "Employee",
                 principalColumn: "EmployeeId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetGroup_Company_CompanyId",
+                table: "BudgetGroup",
+                column: "CompanyId",
+                principalTable: "Company",
+                principalColumn: "CompanyId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetGroup_Employee_CreatedById",
+                table: "BudgetGroup",
+                column: "CreatedById",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetGroup_Employee_LatestModifierId",
+                table: "BudgetGroup",
+                column: "LatestModifierId",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetGroup_ProjectBudget_ProjectBudgetId",
+                table: "BudgetGroup",
+                column: "ProjectBudgetId",
+                principalTable: "ProjectBudget",
+                principalColumn: "ProjectBudgetId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetLineItem_Company_CompanyId",
+                table: "BudgetLineItem",
+                column: "CompanyId",
+                principalTable: "Company",
+                principalColumn: "CompanyId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetLineItem_Employee_CreatedById",
+                table: "BudgetLineItem",
+                column: "CreatedById",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetLineItem_Employee_LatestModifierId",
+                table: "BudgetLineItem",
+                column: "LatestModifierId",
+                principalTable: "Employee",
+                principalColumn: "EmployeeId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BudgetLineItem_ProjectHourlyRateGroup_ProjectHourlyRateGroupId",
+                table: "BudgetLineItem",
+                column: "ProjectHourlyRateGroupId",
+                principalTable: "ProjectHourlyRateGroup",
+                principalColumn: "ProjectHourlyRateGroupId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_BudgetRecalculation_Company_CompanyId",
@@ -1854,7 +2057,7 @@ namespace SAAS_Projectplanningtool.Migrations
                 table: "HourlyRateGroup");
 
             migrationBuilder.DropTable(
-                name: "Article");
+                name: "ArticlePriceHistory");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
@@ -1873,6 +2076,9 @@ namespace SAAS_Projectplanningtool.Migrations
 
             migrationBuilder.DropTable(
                 name: "BankAccount");
+
+            migrationBuilder.DropTable(
+                name: "BudgetLineItem");
 
             migrationBuilder.DropTable(
                 name: "BudgetRecalculation");
@@ -1905,9 +2111,6 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "ProjectEmployeeViewerShare");
 
             migrationBuilder.DropTable(
-                name: "ProjectHourlyRateGroup");
-
-            migrationBuilder.DropTable(
                 name: "ProjectSectionMilestone");
 
             migrationBuilder.DropTable(
@@ -1920,16 +2123,25 @@ namespace SAAS_Projectplanningtool.Migrations
                 name: "TimeEntry");
 
             migrationBuilder.DropTable(
-                name: "ArticleCategory");
-
-            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Unit");
+                name: "Article");
+
+            migrationBuilder.DropTable(
+                name: "BudgetGroup");
+
+            migrationBuilder.DropTable(
+                name: "ProjectHourlyRateGroup");
 
             migrationBuilder.DropTable(
                 name: "ProjectSection");
+
+            migrationBuilder.DropTable(
+                name: "ArticleCategory");
+
+            migrationBuilder.DropTable(
+                name: "Unit");
 
             migrationBuilder.DropTable(
                 name: "Project");
